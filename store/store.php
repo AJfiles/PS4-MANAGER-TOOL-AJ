@@ -1,7 +1,7 @@
 <?php
 /**
  * ====================================================================
- * PS4 Manager Tool v4.5.2 - MÓDULO STORE (PÚBLICO)
+ * PS4 Manager Tool v4.5.3 - MÓDULO STORE (PÚBLICO)
  * ====================================================================
  */
 error_reporting(0);
@@ -61,7 +61,7 @@ if (file_exists($archivoCatalogo)) {
             </div>
             <div>
                 <h1 class="text-sm font-black tracking-widest uppercase leading-none">GoldHen Store</h1>
-                <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">v4.5.2</span>
+                <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">v4.5.3</span>
             </div>
         </div>
         <div class="flex items-center gap-2">

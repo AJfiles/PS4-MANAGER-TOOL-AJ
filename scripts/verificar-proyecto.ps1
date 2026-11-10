@@ -116,7 +116,7 @@ Report-Check 'Todos los endpoints API y el router aplican guard de origen local'
 $projectVersion = Get-Content -LiteralPath (Join-Path $root 'project-version.json') -Raw | ConvertFrom-Json
 $androidReleaseApi = Get-Content -LiteralPath (Join-Path $root 'api\android_release_api.php') -Raw
 $androidReleaseScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
-Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.2' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
+Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.3' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
 $libraryListingTest = Join-Path $PSScriptRoot 'test-library-appmeta-listing.php'
 $libraryListingOutput = & $php $libraryListingTest 2>&1
 $libraryListingPassed = $LASTEXITCODE -eq 0 -and ($libraryListingOutput -join ' ') -match 'LIBRARY_APPMETA_LISTING_OK'
@@ -135,6 +135,7 @@ Report-Check 'SaveGames distingue su ZIP de respaldo del formato de importación
 Report-Check 'Título visible usa PS4 Manager Tools AJ' ($page -match '<title>PS4 Manager Tools AJ')
 $settingsMarkup = Get-Content -LiteralPath (Join-Path $root 'modulos\ajustes.php') -Raw
 $appScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
+Report-Check 'APK Android oculta instalación PWA y reconoce el servidor WebToApp local' ($appScript -match 'ocultarInstalacionPWAEnAPK' -and $appScript -match "location\.port === '18500'" -and $appScript -match 'btn-instalar-pwa')
 $customizationChecks = @(
     (($settingsMarkup -match 'cfg-launcher-vertical') -and ($appScript -match 'cfg_launcher_vertical'))
     (($settingsMarkup -match 'cfg-launcher-shape') -and ($appScript -match 'cfg_launcher_shape'))

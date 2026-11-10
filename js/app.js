@@ -823,7 +823,11 @@ window.conectarIPManualValidando = conectarIPManualValidando;
 
 let deferredPrompt;
 const ghmNativeAndroidShell = /Android/i.test(navigator.userAgent)
-    && (/;\s*wv\)/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches);
+    && (/;\s*wv\)/i.test(navigator.userAgent)
+        || window.matchMedia('(display-mode: standalone)').matches
+        // WebToApp serves this APK on its private loopback port. Its UA does
+        // not always include the Android WebView "wv" marker.
+        || (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === '18500'));
 
 function ocultarInstalacionPWAEnAPK() {
     if (!ghmNativeAndroidShell) return;

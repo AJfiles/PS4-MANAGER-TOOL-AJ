@@ -16,7 +16,7 @@ clear
 printf "${CYAN}╭──────────────────────────────────────────────────────╮${RESET}\n"
 printf "${CYAN}│${RESET}                                                      ${CYAN}│${RESET}\n"
 printf "${CYAN}│${RESET}   ${VIOLET}╔═╗╔═╗╦  ╔╦╗╦ ╦╔═╗╔╗╔${RESET}  ${GOLD}PS4 Manager Tool${RESET}   ${CYAN}│${RESET}\n"
-printf "${CYAN}│${RESET}   ${VIOLET}║ ╦║ ║║   ║ ║ ║╠═╣║║║${RESET}  ${WHITE}PS4 · TERMUX · v4.5.2${RESET}  ${CYAN}│${RESET}\n"
+printf "${CYAN}│${RESET}   ${VIOLET}║ ╦║ ║║   ║ ║ ║╠═╣║║║${RESET}  ${WHITE}PS4 · TERMUX · v4.5.3${RESET}  ${CYAN}│${RESET}\n"
 printf "${CYAN}│${RESET}   ${VIOLET}╚═╝╚═╝╩═╝ ╩ ╚═╝╩ ╩╝╚╝${RESET}  ${MUTED}AJ · SeBaS${RESET}           ${CYAN}│${RESET}\n"
 printf "${CYAN}│${RESET}                                                      ${CYAN}│${RESET}\n"
 printf "${CYAN}╰──────────────────────────────────────────────────────╯${RESET}\n\n"
