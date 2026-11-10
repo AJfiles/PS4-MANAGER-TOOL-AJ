@@ -23,9 +23,10 @@ function update_json_response(array $data, int $status = 200): void {
 
 function update_https_get(string $url): ?string {
     $headers = "User-Agent: PS4-Manager-Tools-AJ\r\nAccept: application/vnd.github+json\r\nX-GitHub-Api-Version: 2022-11-28\r\n";
+    $caBundle = __DIR__ . '/certs/cacert.pem';
     if (function_exists('curl_init')) {
         $curl = curl_init($url);
-        curl_setopt_array($curl, [
+        $options = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_TIMEOUT => 10,
@@ -35,7 +36,9 @@ function update_https_get(string $url): ?string {
             CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_USERAGENT => 'PS4-Manager-Tools-AJ',
             CURLOPT_HTTPHEADER => ['Accept: application/vnd.github+json', 'X-GitHub-Api-Version: 2022-11-28'],
-        ]);
+        ];
+        if (is_file($caBundle)) $options[CURLOPT_CAINFO] = $caBundle;
+        curl_setopt_array($curl, $options);
         $body = curl_exec($curl);
         $status = (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
         curl_close($curl);
@@ -43,7 +46,7 @@ function update_https_get(string $url): ?string {
     }
     $context = stream_context_create([
         'http' => ['method' => 'GET', 'timeout' => 10, 'ignore_errors' => true, 'header' => $headers],
-        'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
+        'ssl' => ['verify_peer' => true, 'verify_peer_name' => true, 'cafile' => is_file($caBundle) ? $caBundle : null],
     ]);
     $body = @file_get_contents($url, false, $context);
     $status = 0;
@@ -56,7 +59,52 @@ function update_https_get(string $url): ?string {
 function get_pc_release(string $repository, string $currentVersion): array {
     $endpoint = 'https://api.github.com/repos/' . $repository . '/releases?per_page=30';
     $raw = update_https_get($endpoint);
-    if (!is_string($raw)) return ['status' => 'error', 'message' => 'GitHub no respondió. Comprueba tu conexión e inténtalo de nuevo.'];
+    // La API REST puede estar limitada por cuota. En ese caso se resuelve la
+    // release pública más reciente y se valida su sidecar SHA-256 manteniendo TLS.
+    if (!is_string($raw) && function_exists('curl_init')) {
+        $caBundle = __DIR__ . '/certs/cacert.pem';
+        $curlGet = static function (string $url, array $headers = []) use ($caBundle): array {
+            $ch = curl_init($url);
+            $options = [
+                CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 12,
+                CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 5,
+                CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_USERAGENT => 'PS4-Manager-Tools-AJ', CURLOPT_HTTPHEADER => $headers,
+            ];
+            if (is_file($caBundle)) $options[CURLOPT_CAINFO] = $caBundle;
+            curl_setopt_array($ch, $options);
+            $body = curl_exec($ch);
+            $result = ['body' => is_string($body) ? $body : '', 'status' => (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE),
+                'url' => (string)curl_getinfo($ch, CURLINFO_EFFECTIVE_URL)];
+            curl_close($ch);
+            return $result;
+        };
+        $latest = $curlGet('https://github.com/' . $repository . '/releases/latest', ['Accept: text/html']);
+        $latestParts = parse_url($latest['url']);
+        $latestPath = (string)($latestParts['path'] ?? '');
+        if ($latest['status'] >= 200 && $latest['status'] < 300
+            && strtolower((string)($latestParts['host'] ?? '')) === 'github.com'
+            && preg_match('~^/AJfiles/PS4-MANAGER-TOOL-AJ/releases/tag/(v?([0-9]+(?:\.[0-9]+){1,3}))$~i', $latestPath, $tagMatch)) {
+            $tag = $tagMatch[1];
+            $version = $tagMatch[2];
+            $assetName = 'PS4-Manager-Tools-AJ-PC-v' . $version . '.zip';
+            $checksumName = 'SHA256SUMS-' . $version . '.txt';
+            $downloadBase = 'https://github.com/' . $repository . '/releases/download/' . rawurlencode($tag) . '/';
+            $checksum = $curlGet($downloadBase . rawurlencode($checksumName), ['Accept: text/plain']);
+            if ($checksum['status'] >= 200 && $checksum['status'] < 300
+                && preg_match('/^([a-f0-9]{64})[ \t]+\*?' . preg_quote($assetName, '/') . '\s*$/mi', $checksum['body'], $digestMatch)) {
+                $raw = json_encode([[
+                    'tag_name' => $tag, 'name' => 'PS4 Manager Tools AJ ' . $version,
+                    'html_url' => $latest['url'], 'assets' => [[
+                        'name' => $assetName, 'browser_download_url' => $downloadBase . rawurlencode($assetName),
+                    ], [
+                        'name' => $checksumName, 'browser_download_url' => $downloadBase . rawurlencode($checksumName),
+                    ]],
+                ]], JSON_UNESCAPED_SLASHES);
+            }
+        }
+    }
+    if (!is_string($raw)) return ['status' => 'error', 'message' => 'GitHub no respondió por API ni por la página pública de Releases. Comprueba tu conexión e inténtalo de nuevo.'];
     $releases = json_decode($raw, true);
     if (!is_array($releases)) return ['status' => 'error', 'message' => 'GitHub devolvió una respuesta de versiones no válida.'];
 

@@ -18,6 +18,7 @@
         'GitHub devolvió una respuesta de Releases inválida.': 'GitHub returned an invalid Releases response.',
         'GitHub no respondió. Comprueba la conexión a Internet e inténtalo de nuevo.': 'GitHub did not respond. Check your Internet connection and try again.',
         'GitHub no respondió. Comprueba tu conexión e inténtalo de nuevo.': 'GitHub did not respond. Check your connection and try again.',
+        'GitHub no respondió por API ni por la página pública de Releases. Comprueba tu conexión e inténtalo de nuevo.': 'GitHub did not respond through the API or public Releases page. Check your connection and try again.',
         'GitHub devolvió una respuesta de versiones no válida.': 'GitHub returned an invalid version response.',
         'No hay una versión de PC con ZIP y SHA-256 válidos en Releases.': 'No valid PC ZIP and SHA-256 are available in Releases.',
         'No se pudo leer la versión de PS4 Manager Tools.': 'Could not read the PS4 Manager Tools version.',
