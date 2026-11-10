@@ -1003,7 +1003,7 @@ window.aplicarActualizacion = async function() {
             if (estado) estado.innerText = tr('El enlace de actualización no pertenece al repositorio oficial.');
             return;
         }
-        if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Android te permitirá elegir la carpeta; al terminar, toca la notificación para abrirlo y confirma la instalación.')}`;
+        if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Android permitirá elegir dónde guardarlo; después abre el APK desde el gestor de archivos y confirma la instalación.')}`;
         const link = document.createElement('a');
         link.href = url.href;
         link.download = release.asset_name;

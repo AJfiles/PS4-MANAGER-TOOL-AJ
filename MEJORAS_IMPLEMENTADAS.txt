@@ -1230,3 +1230,8 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Desde la APK instalada se consultó el endpoint real de actualización: informó instalada 4.5.5, última 4.5.5, APK disponible y `update_available=false`; el SHA-256 comunicado coincide con el Release v4.5.5 de GitHub.
 - Se comprobó que Android tiene denegado el permiso de notificaciones para esta instalación. Se corrigió la guía para que no prometa que una notificación abre la descarga; indica abrir el APK guardado desde el gestor de archivos y confirmar la instalación del sistema.
 - Se verificó el Release público v4.5.5: incluye APK, paquete PC y archivo de SHA-256. La guía y la copia PC mantienen el comando Termux, las tres formas de distribución y los módulos actuales; no se generó otra versión del producto porque no se modificó código funcional ni artefactos de la APK.
+
+### Ajustes de descargas y mantenimiento 4.5.6 (2026-11-10)
+- Se corrigió el texto del actualizador Android: al completar la descarga, el usuario debe abrir el APK desde el gestor de archivos y confirmar la instalación; no se promete una notificación que puede estar deshabilitada.
+- Se alinearon las guías públicas con el flujo de descargas Android que usa la aplicación. Los datos de trabajo de la APK permanecen en su almacenamiento privado.
+- La auditoría automática y las pruebas de la APK/PS4 deben registrarse con el alcance real de cada prueba; compilar no demuestra que todos los módulos estén validados.

@@ -38,7 +38,7 @@
             <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-folder-tree text-emerald-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Archivos y respaldos</span></div>
             <div class="mt-3 space-y-2 text-[9px] leading-relaxed text-gray-400">
                 <p><b class="text-emerald-200">Termux:</b> Almacenamiento interno/PS4 Manager Tools AJ/user/</p>
-                <p><b class="text-emerald-200">APK:</b> los datos de trabajo se conservan en el almacenamiento privado de la app. Al exportar o actualizar, Android permite elegir dónde guardar; puedes crear o seleccionar <b>PS4 Manager Tools AJ</b> en el almacenamiento interno. Para instalar una actualización, abre el APK descargado desde el gestor de archivos y confirma el aviso de Android.</p>
+                <p><b class="text-emerald-200">APK:</b> los archivos internos de trabajo permanecen en el espacio privado de la app. Android gestiona dónde guardar exportaciones y actualizaciones según la configuración del teléfono. Para instalar una actualización, abre el APK desde el gestor de archivos y confirma el aviso de Android.</p>
                 <p><b class="text-emerald-200">PC:</b> carpeta user/ junto al programa. Consérvala al reemplazar archivos durante una actualización.</p>
                 <p class="text-gray-500">Android restringe la escritura directa en la raíz compartida. Descarga los ZIP de respaldo que quieras conservar fuera de la app.</p>
             </div>
@@ -202,7 +202,7 @@
             </div>
             <div class="flex flex-col items-center py-2">
                 <span class="text-[9px] font-mono text-gray-500 tracking-widest">PS4 Manager Tools</span>
-                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.5 • Mantenido por AJ</span>
+                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.6 • Mantenido por AJ</span>
                 <span class="text-[7px] font-mono text-gray-700 mt-1">Basado en el trabajo original de SeBaS</span>
                 <div class="flex gap-3 mt-2">
                     <span class="text-[8px] font-mono text-cyan-500/50">❤️ Comunidad</span>

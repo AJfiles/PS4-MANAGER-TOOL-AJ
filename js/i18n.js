@@ -26,6 +26,7 @@
         'Almacenamiento interno/PS4 Manager Tools AJ/user/': 'Internal storage/PS4 Manager Tools AJ/user/',
         'Android restringe la escritura directa en la raíz compartida. Descarga los ZIP de respaldo que quieras conservar fuera de la app.': 'Android restricts direct writes to shared storage. Download any backup ZIPs you want to keep outside the app.',
         'Archivos y respaldos': 'Files and backups',
+        'los archivos internos de trabajo permanecen en el espacio privado de la app. Android gestiona dónde guardar exportaciones y actualizaciones según la configuración del teléfono. Para instalar una actualización, abre el APK desde el gestor de archivos y confirma el aviso de Android.': 'The app keeps its working files in private storage. Android manages where exports and updates are saved according to the phone settings. To install an update, open the APK from the file manager and confirm the Android prompt.',
         'carpeta user/ junto al programa. Consérvala al reemplazar archivos durante una actualización.': 'the user/ folder beside the program. Keep it when replacing files during an update.',
         'Descarga el ZIP, cierra el servidor y extrae su contenido sobre la carpeta de la versión actual. Conserva la carpeta user.': 'Download the ZIP, stop the server, and extract its contents over the current version folder. Keep the user folder.',
         'los datos de trabajo se conservan en el almacenamiento privado de la app; las exportaciones se descargan en la carpeta Descargas de Android.': 'working data is kept in the app private storage; exports are downloaded to Android Downloads.',
@@ -37,11 +38,10 @@
         'No se pudo guardar por FTP nativo.': 'Could not save over native FTP.',
         'El enlace de actualización no pertenece al repositorio oficial.': 'The update link does not belong to the official repository.',
         'Descargando': 'Downloading',
-        'Al terminar, abre la notificación de Android para revisar e instalar la actualización.': 'When it finishes, open the Android notification to review and install the update.',
         'Notificaciones Flotantes': 'Floating notifications', 'Activa las burbujas flotantes estilo consola.': 'Enable console-style floating notifications.',
         'Motor de Audio (SFX)': 'Audio engine (SFX)', 'Sonidos de interfaz activos': 'Interface sounds enabled', 'Volumen SFX': 'SFX volume',
         'Estilo de sonido': 'Sound style', 'Suave': 'Soft', 'Consola': 'Console', 'Arcade': 'Arcade', 'Minimal': 'Minimal',
-        'Android te permitirá elegir la carpeta; al terminar, toca la notificación para abrirlo y confirma la instalación.': 'Android will let you choose a folder. When it finishes, tap the notification to open it and confirm installation.',
+        'Android permitirá elegir dónde guardarlo; después abre el APK desde el gestor de archivos y confirma la instalación.': 'Android will let you choose where to save it. Then open the APK from your file manager and confirm the installation.',
         'Probando el sonido de interfaz…': 'Testing interface sound…', 'Prueba reproducida. Si no la oyes, sube el volumen multimedia del teléfono.': 'Test played. If you cannot hear it, raise your phone media volume.', 'El audio está bloqueado por el sistema. Toca de nuevo, revisa el volumen multimedia y confirma que SFX esté activo.': 'Audio is blocked by the system. Tap again, check media volume, and make sure SFX is enabled.', 'Los efectos usan el volumen multimedia del dispositivo.': 'Effects use the device media volume.',
         'Idioma / Language': 'Language', 'Idioma de la interfaz': 'Interface language',
         'La traducción está en beta: algunos módulos y mensajes del servidor pueden seguir en español. Los nombres de juegos y archivos conservan el texto de la consola.': 'Translation is in beta: some modules and server messages may remain in Spanish. Game and file names keep the text reported by the console.',
@@ -72,7 +72,7 @@
         'Nombre no disponible': 'Name unavailable', 'Juego instalado': 'Installed game', 'Juego no instalado': 'Game not installed',
         'Respaldo de la base de datos XMB': 'XMB database backup', 'Se guarda una copia local de app.db. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': 'A local copy of app.db is saved. Each change creates another backup automatically. Close games and do not turn off the console during the operation.'
         , 'Centro de conexión PS4': 'PS4 connection center', 'Desconectado': 'Disconnected', 'SaveGames': 'Save Games', 'Limpieza': 'Cleanup',
-        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.5 • AJ': 'VERSION 4.5.5 • AJ',
+        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.6 • AJ': 'VERSION 4.5.6 • AJ',
         'BUSCANDO PS4 EN LA RED': 'SEARCHING FOR PS4 ON THE NETWORK', 'Conecta la PS4 y pulsa Actualizar para leer partidas.': 'Connect the PS4 and tap Refresh to read save data.',
         'Biblioteca de partidas': 'Save Data Library', 'DATOS DE CONSOLA': 'CONSOLE DATA', 'Respaldos locales': 'Local backups',
         'Los ZIP se conservan aunque elimines la partida de la consola.': 'ZIP backups are kept even if you delete the console save.',
@@ -138,7 +138,7 @@
         'Transfiriendo datos en la memoria de la consola. Dependiendo del peso, esto puede demorar varios segundos.': 'Transferring data to console memory. Depending on the file size, this may take several seconds.', 'Trucos y Parches': 'Cheats and patches', 'Ubicación (Grupo):': 'Location (group):', 'Ubicación Estructural:': 'Structural location:', 'Ubicado en categoría:': 'In category:',
         'Update plugin archive': 'Update plugin archive', 'Uso por categoría': 'Usage by category', 'Ver, guardar y eliminar': 'View, save and delete',
         'Verifica el firmware exacto antes de enviar cualquier payload. La aceptación se guardará en este navegador para no repetir el aviso en cada visita.': 'Verify the exact firmware before sending any payload. Your acknowledgement is saved in this browser so the warning is not repeated on every visit.',
-        'VERSION 4.5.5 • AJ': 'VERSION 4.5.5 • AJ', 'Versión 4.5.5 • Mantenido por AJ': 'Version 4.5.5 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
+        'VERSION 4.5.6 • AJ': 'VERSION 4.5.6 • AJ', 'Versión 4.5.6 • Mantenido por AJ': 'Version 4.5.6 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
         'ya existe en la consola. ¿Qué deseas hacer con él?': 'already exists on the console. What would you like to do with it?',
         '; Apollo genera la estructura `PS4/APOLLO/...` con `sce_sys`. Verifica la importación antes de borrar la partida original.': '; Apollo creates the `PS4/APOLLO/...` structure with `sce_sys`. Verify the import before deleting the original save.',
         '. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': '. Each save creates another backup automatically. Close games and do not turn off the console during the operation.',
@@ -148,7 +148,7 @@
         '. Solo se muestran payloads para FW 5.05 y 9.00; confirma el firmware antes de enviarlos.': '. Only payloads for FW 5.05 and 9.00 are listed; verify the firmware before sending.',
         '. Usa solo payloads compatibles con tu firmware.': '. Use only payloads compatible with your firmware.',
         '⚠️ NO CIERRES LA APP NI REINICIES EL JUEGO AÚN': '⚠️ DO NOT CLOSE THE APP OR RESTART THE GAME YET',
-        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.5': 'VERSION 4.5.5'
+        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.6': 'VERSION 4.5.6'
     };
     Object.assign(translations, {
         'Vista previa del launcher · se actualiza al cambiar las opciones': 'Launcher preview · updates when you change options', 'Ver vista previa': 'Preview', 'Ocultar vista previa': 'Hide preview',

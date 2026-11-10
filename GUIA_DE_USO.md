@@ -1,4 +1,4 @@
-# Guía de uso · PS4 Manager Tools 4.5.5
+# Guía de uso · PS4 Manager Tools 4.5.6
 
 Esta guía complementa el [README principal](README.md), donde están las descargas, el comando Termux, los requisitos, la privacidad y las advertencias de seguridad.
 
@@ -22,7 +22,7 @@ Esta guía complementa el [README principal](README.md), donde están las descar
 
 ## Guardar archivos en Android
 
-La APK solicita una ubicación al exportar partidas, respaldos o actualizaciones. En el selector de Android puedes elegir una carpeta existente o crear **PS4 Manager Tools AJ** en el almacenamiento interno. Al terminar una actualización, abre el APK descargado desde el gestor de archivos; Android solicitará confirmación para instalarlo.
+La APK entrega las exportaciones y actualizaciones al gestor de descargas de Android, que usa la ubicación configurada en el teléfono. Para instalar una actualización, abre el APK desde el gestor de archivos y confirma la instalación del sistema.
 
 En Termux, los datos persistentes del proyecto están en `Almacenamiento interno/PS4 Manager Tools AJ/user/`. En PC, conserva `user/` junto a la aplicación al actualizar.
 
