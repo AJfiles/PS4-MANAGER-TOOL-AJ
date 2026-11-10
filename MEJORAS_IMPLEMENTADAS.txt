@@ -1235,3 +1235,6 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Se corrigió el texto del actualizador Android: al completar la descarga, el usuario debe abrir el APK desde el gestor de archivos y confirmar la instalación; no se promete una notificación que puede estar deshabilitada.
 - Se alinearon las guías públicas con el flujo de descargas Android que usa la aplicación. Los datos de trabajo de la APK permanecen en su almacenamiento privado.
 - La auditoría automática y las pruebas de la APK/PS4 deben registrarse con el alcance real de cada prueba; compilar no demuestra que todos los módulos estén validados.
+- Se compiló `com.w2a.o3su` como APK 4.5.6 / código 40506 (44.5 MB) con el icono AJ y se instaló sobre 4.5.5 sin cambiar el paquete. El actualizador en el teléfono consultó GitHub y reconoció 4.5.6 como la versión actual; el SHA-256 coincide con el Release.
+- El ZIP PC 4.5.6 pasó la revisión de paquete limpio. Se extrajo y su PHP portable entregó HTTP 200; esta comprobación no prueba acciones de escritura en la PS4.
+- Se publicó el tag `v4.5.6` con APK, ZIP PC y `SHA256SUMS-4.5.6.txt`.
