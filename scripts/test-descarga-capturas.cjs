@@ -36,7 +36,7 @@ const document = {
 let fetchCount = 0;
 const context = {
     document,
-    localStorage: { getItem: key => key.includes('ip') ? '192.168.20.39' : '2121' },
+    localStorage: { getItem: key => key.includes('ip') ? '192.0.2.39' : '2121' },
     FormData: class { constructor() { this.entries = []; } append(...args) { this.entries.push(args); } },
     fetch: async (_url, options) => {
         requests.push(options);

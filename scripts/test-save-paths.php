@@ -4,20 +4,20 @@ declare(strict_types=1);
 require_once __DIR__ . '/../api/save_paths.php';
 
 $validFtp = [
-    '/user/home/18a95ddf/savedata/CUSA00419/data0.bin',
-    '/user/home/18a95ddf/savedata/SLUS21004/subdir/save.dat',
-    '/user/home/18a95ddf/savedata_meta/user/CUSA00419/icon0.png',
-    '/user/home/18a95ddf/savedata_meta/user/SLUS21004/subdir/metadata.sfo',
+    '/user/home/01234567/savedata/CUSA00419/data0.bin',
+    '/user/home/01234567/savedata/SLUS21004/subdir/save.dat',
+    '/user/home/01234567/savedata_meta/user/CUSA00419/icon0.png',
+    '/user/home/01234567/savedata_meta/user/SLUS21004/subdir/metadata.sfo',
 ];
 $invalidFtp = [
-    '/user/home/18a95ddf/savedata/CUSA00419',
-    '/user/home/18a95ddf/savedata/CUSA00419/../outside.bin',
-    '/user/home/18a95ddf/savedata/CUSA00419/./file.bin',
-    '/user/home/18a95ddf/savedata/CUSA00419/name/with?query',
-    '/user/home/18a95ddf/savedata/SLUSA1004/file.bin',
-    '/user/home/18a95ddf/app/CUSA00419/file.bin',
+    '/user/home/01234567/savedata/CUSA00419',
+    '/user/home/01234567/savedata/CUSA00419/../outside.bin',
+    '/user/home/01234567/savedata/CUSA00419/./file.bin',
+    '/user/home/01234567/savedata/CUSA00419/name/with?query',
+    '/user/home/01234567/savedata/SLUSA1004/file.bin',
+    '/user/home/01234567/app/CUSA00419/file.bin',
     '/user/home/not-a-profile/savedata/CUSA00419/file.bin',
-    '/user/home/18a95ddf/savedata/CUSA00419\\file.bin',
+    '/user/home/01234567/savedata/CUSA00419\\file.bin',
 ];
 $validArchive = [
     ['savedata/CUSA00419/data0.bin', 'CUSA00419'],

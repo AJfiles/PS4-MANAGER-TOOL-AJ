@@ -1,90 +1,112 @@
-# 🎮 PS4 Manager Tools 4.5.4
+<p align="center">
+  <img src="js/icon-512.png" width="176" alt="Icono de PS4 Manager Tools AJ">
+</p>
 
-**Administra tu PS4 con GoldHEN desde Android o Windows.** PS4 Manager Tools reúne en una sola interfaz local la biblioteca, las partidas, las capturas, los parches, los plugins, los payloads, el almacenamiento y las herramientas de red y archivos.
+<h1 align="center">🎮 PS4 Manager Tools AJ 4.5.5</h1>
+<p align="center"><strong>Tu consola, tus herramientas, tu red local.</strong><br>Administra y consulta una PS4 con GoldHEN desde Android o Windows.</p>
 
-📡 Se conecta directamente a la consola por la red local y FTP. No requiere una cuenta, no envía tus archivos a un servicio en la nube y ofrece tres formas de uso: **Termux**, **APK Android** y **Windows**.
+<p align="center">
+  <a href="https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest"><img alt="Última versión" src="https://img.shields.io/github/v/release/AJfiles/PS4-MANAGER-TOOL-AJ?label=versi%C3%B3n&color=7c3aed"></a>
+  <a href="https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases"><img alt="Descargas" src="https://img.shields.io/github/downloads/AJfiles/PS4-MANAGER-TOOL-AJ/total?color=0891b2"></a>
+  <img alt="Android y Windows" src="https://img.shields.io/badge/Android%20%7C%20Windows-disponible-16a34a">
+  <img alt="Interfaz en español e inglés" src="https://img.shields.io/badge/idiomas-espa%C3%B1ol%20%7C%20ingl%C3%A9s-f59e0b">
+</p>
 
-## ⬇️ Descargas
+PS4 Manager Tools es una aplicación local que reúne herramientas de biblioteca, partidas, capturas, organización XMB, plugins, parches, payloads, ventilador, transferencias y archivos. Se conecta a la PS4 directamente por la red local; no requiere una cuenta ni sube el contenido de la consola a un servicio en la nube.
 
-La descarga más reciente y sus notas están en [GitHub Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest).
+## 🚀 Descarga y empieza
 
-### 📱 Termux — Android
+| Plataforma | Descarga o instalación | Inicio rápido |
+| --- | --- | --- |
+| **📱 Android · Termux** | [Instalar / actualizar desde GitHub](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Pega el comando de abajo en Termux. |
+| **📦 Android · APK** | [Descargar APK 4.5.5](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.5/PS4-Manager-Tools-AJ-v4.5.5.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
+| **🖥️ Windows · PC** | [Descargar paquete PC 4.5.5](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.5/PS4-Manager-Tools-AJ-PC-v4.5.5.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
 
-Instala Termux desde una fuente vigente, abre la terminal y pega este comando:
+Consulta los cambios y versiones anteriores en [GitHub Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases).
+
+### Instalar en Termux
+
+Instala Termux desde una fuente confiable, ábrelo y pega:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/AJfiles/PS4-MANAGER-TOOL-AJ/main/goldhen.sh | bash
 ```
 
-El instalador prepara las dependencias, inicia PS4 Manager Tools y abre el panel local. En instalaciones nuevas, crea **Almacenamiento interno/PS4 Manager Tools AJ/user/** para los archivos locales y respaldos. Si ya tenías datos en la carpeta antigua, el instalador conserva y enlaza esa carpeta para no perderlos.
+El instalador prepara PHP y las dependencias, crea el acceso `goldhen` y abre el panel local. En instalaciones nuevas, los archivos del proyecto y respaldos van a **Almacenamiento interno/PS4 Manager Tools AJ/user/**. Al actualizar una instalación antigua, se conservan sus datos y rutas para evitar pérdidas.
 
-### 📦 APK — Android
+### Instalar el APK
 
-Descarga **PS4-Manager-Tools-AJ-v4.5.4.apk** desde Releases e instálalo. La aplicación se identifica en Android como **PS4 Manager Tools AJ** y dentro de la interfaz aparece como **PS4 Manager Tools**. No necesitas instalar Termux.
+Descarga el APK desde el botón de arriba, instálalo y confirma el permiso de instalación que muestre Android. El nombre de la app en el teléfono es **PS4 Manager Tools AJ**; el título dentro de la aplicación es **PS4 Manager Tools**.
 
-Los archivos que exportes se guardan en **Descargas** de Android. Los datos de trabajo que mantiene el servidor PHP quedan en el espacio privado y persistente de la aplicación; desinstalarla puede eliminar esos datos, así que descarga los respaldos que quieras conservar.
+Al exportar partidas, respaldos o una actualización, la APK abre el selector de archivos de Android; elige una carpeta o crea **PS4 Manager Tools AJ** en el almacenamiento interno. Al terminar, una notificación permite abrir el archivo. La instalación de una APK siempre requiere confirmación del sistema. El estado del servidor permanece en el espacio privado de la app; conserva una copia externa antes de desinstalarla.
 
-### 🖥️ PC — Windows
+### Ejecutar en Windows
 
-Descarga **PS4-Manager-Tools-AJ-PC-v4.5.4.zip**, descomprímelo y ejecuta `Iniciar-PS4-Manager-Tool.bat`. El paquete incluye PHP portable; no necesitas configurar PHP ni añadirlo al PATH. Mantén abierta la ventana del servidor mientras uses la aplicación.
+Descomprime el paquete completo y ejecuta `Iniciar-PS4-Manager-Tool.bat`. Incluye PHP portable y su configuración; no hace falta instalar PHP ni añadirlo al PATH. Mantén abierta la ventana del servidor mientras usas la app. Para actualizar, descarga el ZIP más reciente, cierra el servidor y extrae el contenido sobre la carpeta existente; conserva `user/`.
 
 ## ✅ Requisitos y conexión
 
-- Una PS4 con GoldHEN y el servidor FTP habilitado (habitualmente puerto **2121**).
-- El teléfono o PC y la consola conectados a la misma red local.
-- Para payloads, habilita **Enable BinLoader Server** en los ajustes de servidores de GoldHEN. El envío confirma los bytes transmitidos, no que el payload se haya ejecutado.
-- Para instalación RPI, abre **Package Installer** en primer plano. El APK Android no puede exponer su servidor local a la PS4; usa Termux o la versión de PC para RPI.
-- Termux necesita sus dependencias y permiso de almacenamiento para localizar archivos del dispositivo.
+- PS4 con GoldHEN y **Enable FTP Server** activado. El puerto FTP habitual es `2121`; puedes cambiar IP y puerto en la interfaz.
+- Teléfono o PC y PS4 en la misma red local. Radar ayuda a encontrar la consola; si el router aísla dispositivos, introduce su IP manualmente.
+- Para payloads, activa **Enable BinLoader Server** en GoldHEN y confirma que el archivo corresponde exactamente al firmware. El mensaje de envío confirma transmisión de bytes, no la ejecución del payload.
+- Para RPI, abre **Package Installer** en primer plano. RPI funciona desde Termux o PC; la APK usa un servidor local aislado por Android y no lo expone a la PS4.
+- En Termux, concede el permiso de almacenamiento cuando se solicite para buscar PKG y otros archivos del teléfono.
 
-La conexión se puede configurar con Radar o manualmente mediante IP y puerto. Algunos routers, redes de invitados o reglas de aislamiento impiden el descubrimiento automático; en ese caso, usa la IP de la consola.
+## ✨ Herramientas incluidas
 
-## ✨ Qué puedes hacer
-
-| Módulo | Funciones |
+| Módulo | Qué permite hacer |
 | --- | --- |
-| **Biblioteca** | Lista juegos y aplicaciones reconocibles por FTP, muestra carátulas y detalles disponibles, permite organizar la vista y acceder a herramientas por título. |
-| **SaveGames** | Consulta perfiles y partidas, muestra título/CUSA y tamaño, crea ZIP de respaldo, descarga, restaura o elimina con confirmación. |
-| **Limpieza** | Identifica partidas cuyo título no aparece entre los juegos leídos como instalados. Permite revisar tamaño y selección antes de eliminar. |
-| **Almacenamiento** | Resume el espacio que se pudo medir para juegos, actualizaciones, DLC, partidas y capturas; permite inspeccionar los elementos que ocupan espacio. Los tamaños son estimaciones FTP y la capacidad libre no está disponible por esta interfaz. |
-| **Capturas** | Explora la galería de la consola, descarga imágenes y elimina capturas seleccionadas cuando el FTP permite esa operación. |
-| **Parches de Juego** | Consulta archivos XML y estados disponibles de GoldHEN, compara versión del juego con la del parche y solicita confirmación para casos no compatibles o inciertos. |
-| **Organizar Apps** | Organiza carpetas, visibilidad y estructura XMB mediante `app.db`, con lectura, respaldos y guardado de cambios. |
-| **Plugins** | Lee plugins locales/remotos y `plugins.ini`, permite asignarlos por juego o de forma global, diagnosticar, importar/exportar y respaldar cambios. |
-| **Payloads** | Explora payloads locales y de la consola, permite seleccionar un archivo del dispositivo, instalarlo en la PS4 o enviarlo por BinLoader. |
-| **Ventilador** | Envía payloads disponibles para los firmwares incluidos. Requiere comprobar firmware y aceptar el aviso de riesgo antes de usarlo. |
-| **Actualizaciones FW** | Permite activar o bloquear la actualización de sistema con avisos y confirmación adicional para habilitarla. |
-| **Transferencias** | Sube archivos por FTP o instala PKG mediante RPI en los entornos compatibles; muestra estado y registro de la operación. |
-| **Explorador FTP** | Navega archivos y carpetas, descarga/sube elementos y ofrece acciones de gestión según las capacidades del FTP. |
-| **Modding** | Administra portadas, imágenes y recursos asociados a juegos. |
-| **Respaldo** | Crea y restaura copias de datos del proyecto y de las funciones que lo admiten. |
-| **Ajustes** | Personaliza idioma, audio, aspecto, animaciones y dispositivo; consulta la versión y busca actualizaciones. |
+| **Radar y conexión** | Buscar la consola en la red local, guardar IP/puerto o conectarse manualmente. |
+| **Biblioteca** | Consultar juegos y apps que el FTP puede leer, buscar por título/CUSA, ver metadatos y alternar las vistas. |
+| **Organizar Apps** | Revisar perfiles, carpetas y visibilidad XMB; crear/mover apps y guardar cambios con respaldo de `app.db`. |
+| **SaveGames** | Ver perfil, CUSA/título y tamaño; crear y descargar ZIP verificados, restaurar un respaldo o borrar con confirmación. |
+| **Limpieza** | Encontrar partidas asociadas a títulos que no aparecen instalados en el inventario leído; revisar tamaño y elegir qué borrar. |
+| **Almacenamiento** | Inspeccionar tamaños estimados de juegos, actualizaciones, DLC, partidas y capturas; no borra automáticamente. |
+| **Capturas** | Explorar, descargar y eliminar imágenes seleccionadas si el servidor FTP permite esas operaciones. |
+| **Parches de Juego** | Consultar XML y versiones de parches, revisar estados y editar la activación de parches compatibles. Requiere configurar Game Patch en GoldHEN. |
+| **Plugins** | Leer los PRX locales y remotos, diagnosticar `plugins.ini`, respaldarlo, reparar estructura, importar/exportar y asignar plugins por juego. |
+| **Payloads** | Explorar payloads del Manager y de la consola, elegir un archivo local y enviarlo por BinLoader. |
+| **Ventilador** | Enviar opciones compatibles con firmware incluido tras confirmar el aviso de riesgo y verificar la versión de PS4. |
+| **Actualizaciones FW** | Activar o bloquear las actualizaciones de sistema con advertencias y confirmación adicional para habilitarlas. |
+| **Transferencias** | Subir archivos por FTP o enviar PKG a RPI compatible; revisar velocidad/tiempo en FTP y el registro de RPI. |
+| **Explorador FTP** | Navegar, descargar y subir elementos, sujeto a los permisos que conceda el FTP de GoldHEN. |
+| **Modding y AFR** | Gestionar recursos y portadas de juegos, e instalar los archivos de mod compatibles incluidos. |
+| **Respaldo** | Exportar y restaurar configuraciones y recursos admitidos por el módulo. |
+| **Ajustes** | Elegir idioma, sonido, apariencia, animaciones y vista; consultar y aplicar actualizaciones de la app. |
 
-La lectura depende de las rutas y permisos que exponga cada firmware, versión de GoldHEN y FTP. Si una carpeta no se pudo leer, el resultado puede ser parcial: la interfaz muestra errores o límites detectados en lugar de afirmar que el inventario está completo.
+La lectura depende del firmware y las rutas expuestas por GoldHEN. Si el FTP no permite leer una ubicación, algunos inventarios pueden quedar incompletos; revisa el mensaje del módulo antes de tomar decisiones de borrado o escritura.
 
-## 🔄 Actualizaciones
+## 🔄 Actualizaciones de la aplicación
 
-- **APK:** `Ajustes → Actualizaciones → Verificar` consulta GitHub Releases. Si hay una versión con APK y SHA-256 válidos, **Actualizar** descarga el archivo a Descargas. Ábrelo y confirma la instalación en Android; el sistema siempre requiere autorización del usuario.
-- **Termux:** `Verificar → Actualizar` obtiene los cambios de la rama principal mediante Git y recarga la página al finalizar.
-- **PC:** el verificador consulta el ZIP de PC y su SHA-256 en Releases. Descarga el ZIP, cierra el servidor y extrae el contenido sobre la carpeta actual. Conserva `user/`; Windows no puede reemplazar con seguridad todos los archivos mientras el servidor está ejecutándose.
+- **APK Android:** abre `Ajustes → Actualizaciones → Verificar`. Mientras consulta GitHub, el botón muestra una animación. Si Releases contiene una APK más reciente con SHA-256 válido, **Actualizar** abre el selector de carpeta y descarga el archivo; la notificación permite abrirlo y Android solicita confirmar la instalación. La app no puede instalar APK sin autorización del sistema.
+- **Termux:** desde `Ajustes → Actualizaciones`, verifica y aplica los cambios publicados en la rama principal. También puedes volver a ejecutar el comando de instalación.
+- **Windows:** verifica desde Ajustes. Cuando haya una versión nueva, descarga el ZIP y extráelo sobre la carpeta actual después de cerrar el servidor. Conserva `user/`.
+- **Manual:** descarga la plataforma deseada desde [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest). Los APK y ZIP publicados incluyen SHA-256 en `SHA256SUMS`.
 
-También puedes instalar manualmente la versión deseada desde [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases).
+El botón muestra **Consultando GitHub…** mientras busca. El APK necesita que Android confirme la instalación; Windows necesita cerrar el servidor para reemplazar archivos en uso.
 
-## 📁 Dónde quedan tus archivos
+## 📂 Dónde se guardan los datos
 
-- **Termux:** `Almacenamiento interno/PS4 Manager Tools AJ/user/`. En la actualización de una instalación anterior, se conserva la carpeta de datos existente y se mantiene un enlace compatible.
-- **APK:** el servidor guarda su estado persistente en el espacio privado de la app; los archivos exportados se guardan en **Descargas**. Android restringe la escritura libre en la raíz compartida del teléfono.
-- **PC:** `user/` dentro de la carpeta extraída. Mantén esa carpeta al actualizar el programa.
+- **Termux:** archivos y respaldos del Manager en `Almacenamiento interno/PS4 Manager Tools AJ/user/`.
+- **APK:** selector de documentos de Android para exportaciones y actualizaciones. Elige o crea `PS4 Manager Tools AJ` en el almacenamiento interno. Los datos del servidor permanecen en el espacio privado de la app.
+- **Windows:** `user/` dentro de la carpeta descomprimida. Mantén esta carpeta al actualizar.
 
-## 🔒 Datos y privacidad
+## 🔐 Datos y privacidad
 
-La conexión PS4 se realiza en la red local. El actualizador consulta información pública de GitHub Releases; no sube partidas, capturas, direcciones IP ni contenido de la consola. Los archivos que eliges descargar o enviar permanecen bajo tu control. No expongas el servidor de Termux o Windows a Internet ni abras sus puertos hacia redes públicas.
+La conexión con la PS4 permanece en la red local. El actualizador consulta la información pública de GitHub Releases. La app no envía partidas, capturas, IP ni contenido de la PS4 a GitHub. No publiques el servidor de Termux o Windows en Internet ni reenvíes sus puertos al exterior.
 
 ## ⚠️ Advertencia legal y de seguridad
 
-Este software se proporciona “tal cual”, sin garantías y es de código abierto. El mantenedor “AJ” no se responsabiliza por daños a la PS4, pérdida de datos o incumplimiento de términos de servicio.
+El software se proporciona “tal cual”, sin garantías. El mantenedor AJ no se responsabiliza por daños a la consola, pérdida de datos o incumplimiento de términos de servicio. Payloads, cambios en `app.db`, plugins, firmware y borrados pueden causar fallos o pérdida de datos si se usan incorrectamente. Verifica el firmware, conserva respaldos y úsalo bajo tu responsabilidad.
 
-Los payloads, modificaciones de `app.db`, cambios de plugins, ajustes de firmware y acciones de borrado pueden provocar fallos o pérdida de datos si se usan incorrectamente. Úsalo bajo tu propio riesgo y conserva respaldos antes de modificar la consola.
+## 🧪 Verificación y desarrollo
 
-## 🧰 Verificación para colaboradores
+En Windows, la auditoría local se ejecuta con:
 
-La revisión local del proyecto está disponible en `scripts/verificar-proyecto.ps1`. La compatibilidad real de funciones FTP, payloads y RPI requiere probarlas en una PS4; las comprobaciones locales no sustituyen esa validación de hardware.
+```powershell
+.\scripts\verificar-proyecto.ps1
+```
+
+Las pruebas automatizadas comprueban sintaxis, guardas, navegación y lógica local. No sustituyen pruebas en una PS4 para cada firmware ni autorizan a asumir que una acción de escritura fue exitosa.
+
+> **Licencia:** el repositorio todavía no contiene un archivo `LICENSE`. El código puede consultarse públicamente, pero no se debe asumir permiso para redistribuirlo o publicar derivados hasta que el mantenedor añada una licencia explícita.

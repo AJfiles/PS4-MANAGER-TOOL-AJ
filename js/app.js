@@ -31,7 +31,7 @@ let pendingVisualPreview = null;
 
 function notificacionNavegador(titulo, cuerpo) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    try { new Notification(titulo, { body: cuerpo, icon: 'js/icon-192.png', tag: 'goldhen-manager-aj' }); } catch (_) {}
+    try { new Notification(titulo, { body: cuerpo, icon: 'js/icon-192.png', tag: 'ps4-manager-tools-aj' }); } catch (_) {}
 }
 window.solicitarNotificacionesNavegador = function() {
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
@@ -373,8 +373,12 @@ function inicializarContextoAudio() {
         if (!AudioContext) throw new Error('El navegador no ofrece Web Audio.');
         globalAudioCtx = new AudioContext();
     }
-    if (globalAudioCtx.state === 'suspended') {
-        globalAudioUnlock = globalAudioCtx.resume().catch(() => {});
+    if (globalAudioCtx.state !== 'running' && globalAudioCtx.state !== 'closed') {
+        globalAudioUnlock = globalAudioCtx.resume()
+            .then(() => globalAudioCtx.state === 'running')
+            .catch(() => false);
+    } else if (globalAudioCtx.state === 'running') {
+        globalAudioUnlock = Promise.resolve(true);
     }
     return globalAudioCtx;
 }
@@ -385,9 +389,9 @@ function desbloquearAudioInterfaz() {
 }
 
 function emitirEfectoSonidoNativo(tipo, force = false) {
-    if (!globalAppConfig.sonidosActivos || globalAppConfig.volumenSfx <= 0) return;
+    if (!globalAppConfig.sonidosActivos || globalAppConfig.volumenSfx <= 0) return false;
     const now = Date.now();
-    if (!force && now - ultimoEfectoAudioAt < 45) return;
+    if (!force && now - ultimoEfectoAudioAt < 45) return false;
     ultimoEfectoAudioAt = now;
     try {
         const ctx = inicializarContextoAudio(), style = globalAppConfig.estiloSfx || 'soft';
@@ -398,22 +402,43 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
             minimal: { wave:'triangle', click:[420,320,.05], open:[700,900,.12] }
         };
         const preset = presets[style] || presets.soft, values = tipo === 'ps-ui' ? preset.open : preset.click;
-        const volumen = globalAppConfig.volumenSfx;
-        Promise.resolve(globalAudioUnlock).then(() => {
-            if (!globalAppConfig.sonidosActivos || ctx.state !== 'running') return;
+        const play = () => {
+            if (!globalAppConfig.sonidosActivos || ctx.state !== 'running') return false;
             const osc = ctx.createOscillator(), gain = ctx.createGain(), start = ctx.currentTime, duration = values[2];
-            osc.type = preset.wave; osc.frequency.setValueAtTime(values[0], start); osc.frequency.exponentialRampToValueAtTime(values[1], start + duration);
-            gain.gain.setValueAtTime(0.32 * volumen, start); gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+            osc.type = preset.wave;
+            osc.frequency.setValueAtTime(values[0], start);
+            osc.frequency.exponentialRampToValueAtTime(values[1], start + duration);
+            gain.gain.setValueAtTime(0.62 * globalAppConfig.volumenSfx, start);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
             osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
-        }).catch(() => {});
-    } catch (e) {}
+            return true;
+        };
+        // Inicia el tono de inmediato si el contexto ya está desbloqueado por el
+        // gesto del usuario. Algunos WebView Android pierden la activación si
+        // siempre se espera a una promesa antes de crear el oscilador.
+        if (ctx.state === 'running') return play();
+        return Promise.resolve(globalAudioUnlock).then(unlocked => unlocked && play()).catch(() => false);
+    } catch (error) {
+        console.warn('PS4 Manager Tools: no se pudo reproducir el efecto de interfaz.', error);
+        return false;
+    }
 }
 
 document.addEventListener('pointerdown', desbloquearAudioInterfaz, { capture: true, passive: true });
 document.addEventListener('keydown', desbloquearAudioInterfaz, { capture: true });
 
 function cambiarEstiloSonido(style) { globalAppConfig.estiloSfx = ['soft','console','arcade','minimal'].includes(style) ? style : 'soft'; localStorage.setItem('cfg_sfx_style', globalAppConfig.estiloSfx); emitirEfectoSonidoNativo('ps-ui', true); }
-function probarSonidoSeleccionado() { emitirEfectoSonidoNativo('ps-ui', true); }
+function probarSonidoSeleccionado() {
+    const status = document.getElementById('cfg-audio-status');
+    if (status) status.textContent = 'Probando el sonido de interfaz…';
+    const result = emitirEfectoSonidoNativo('ps-ui', true);
+    Promise.resolve(result).then(played => {
+        if (!status) return;
+        status.textContent = played
+            ? 'Prueba reproducida. Si no la oyes, sube el volumen multimedia del teléfono.'
+            : 'El audio está bloqueado por el sistema. Toca de nuevo, revisa el volumen multimedia y confirma que SFX esté activo.';
+    });
+}
 
 function cambiarVolumenSFX(valorStr) {
     let porcentaje = parseInt(valorStr, 10);
@@ -978,7 +1003,7 @@ window.aplicarActualizacion = async function() {
             if (estado) estado.innerText = tr('El enlace de actualización no pertenece al repositorio oficial.');
             return;
         }
-        if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Se guardará en Descargas. Abre el APK y confirma la instalación en Android.')}`;
+        if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Android te permitirá elegir la carpeta; al terminar, toca la notificación para abrirlo y confirma la instalación.')}`;
         const link = document.createElement('a');
         link.href = url.href;
         link.download = release.asset_name;

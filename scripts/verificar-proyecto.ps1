@@ -52,6 +52,10 @@ foreach ($file in $jsFiles) {
     if ($LASTEXITCODE -ne 0) { $jsErrors.Add("$($file.FullName): $($output -join ' ')") }
 }
 Report-Check "JavaScript syntax ($($jsFiles.Count) files)" ($jsErrors.Count -eq 0) ($jsErrors -join '; ')
+$audioTest = Join-Path $PSScriptRoot 'test-audio.cjs'
+$audioOutput = & $nodeCommand.Source $audioTest 2>&1
+$audioPassed = $LASTEXITCODE -eq 0 -and ($audioOutput -join ' ') -match 'AUDIO_SFX_OK'
+Report-Check 'Audio reproduce SFX, desbloquea contexto suspendido y muestra estado de prueba' $audioPassed ($audioOutput -join ' ')
 
 $manifestPath = Join-Path $root 'manifest.json'
 $manifest = $null
@@ -116,7 +120,7 @@ Report-Check 'Todos los endpoints API y el router aplican guard de origen local'
 $projectVersion = Get-Content -LiteralPath (Join-Path $root 'project-version.json') -Raw | ConvertFrom-Json
 $androidReleaseApi = Get-Content -LiteralPath (Join-Path $root 'api\android_release_api.php') -Raw
 $androidReleaseScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
-Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.4' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
+Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.5' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
 $libraryListingTest = Join-Path $PSScriptRoot 'test-library-appmeta-listing.php'
 $libraryListingOutput = & $php $libraryListingTest 2>&1
 $libraryListingPassed = $LASTEXITCODE -eq 0 -and ($libraryListingOutput -join ' ') -match 'LIBRARY_APPMETA_LISTING_OK'

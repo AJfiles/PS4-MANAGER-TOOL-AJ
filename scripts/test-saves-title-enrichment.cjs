@@ -20,7 +20,7 @@ const saves = [
 const context = {
     window: { ps5Notification() {} },
     document: { getElementById: element, querySelectorAll: () => [], addEventListener() {} },
-    localStorage: { getItem: key => key.includes('ip') ? '192.168.20.39' : '2121' },
+    localStorage: { getItem: key => key.includes('ip') ? '192.0.2.39' : '2121' },
     FormData: class { constructor() { this.fields = {}; } append(key, value) { this.fields[key] = value; } },
     fetch: async (url, options) => {
         const fields = options.body.fields;
@@ -42,6 +42,6 @@ vm.runInNewContext(source, context, { filename: 'js/saves.js' });
     assert.match(html, /CUSA00265/);
     assert.match(html, /Juego no instalado/);
     assert.equal(requests[1].fields.host_port, '2121');
-    assert.equal(requests[1].fields.host_ip, '192.168.20.39');
+    assert.equal(requests[1].fields.host_ip, '192.0.2.39');
     console.log('SAVES_APPDB_TITLE_ENRICHMENT_OK');
 })().catch(error => { console.error(error); process.exitCode = 1; });

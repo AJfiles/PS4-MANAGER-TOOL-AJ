@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'parches_juego.js'), 'utf8');
 const elements = new Map();
-const savedSettings = { sebas_ip_final_libre: '192.168.20.39', sebas_port_libre: '2121' };
+const savedSettings = { sebas_ip_final_libre: '192.0.2.39', sebas_port_libre: '2121' };
 let fetchCount = 0;
 function element(id) {
     if (!elements.has(id)) elements.set(id, {
@@ -37,19 +37,19 @@ vm.runInNewContext(source, context, { filename: 'js/parches_juego.js' });
 (async () => {
     await context.window.parchesRecargar();
     assert.equal(element('patch-count').textContent, '1 juego con parches disponibles');
-    assert.match(element('patch-connection').textContent, /FTP 192\.168\.20\.39:2121/);
+    assert.match(element('patch-connection').textContent, /FTP 192\.0\.2\.39:2121/);
     assert.match(element('patch-game-list').innerHTML, /Hogwarts Legacy/);
     assert.match(element('patch-game-list').innerHTML, /CUSA12824/);
     assert.match(element('patch-game-list').innerHTML, /1 parche/);
     assert.equal(element('patch-plugin-status').innerHTML.includes('game_patch.prx'), true);
-    assert.equal(element('patch-ip').value, '192.168.20.39');
+    assert.equal(element('patch-ip').value, '192.0.2.39');
     assert.equal(element('patch-port').value, '2121');
     context.window.parchesAbrirJuego('CUSA12824');
     assert.match(element('patch-modal-list').innerHTML, /Compatible exacto/);
     element('patch-ip').value = '999.168.20.39';
     await context.window.parchesGuardarConexion();
     assert.equal(fetchCount, 1);
-    assert.equal(savedSettings.sebas_ip_final_libre, '192.168.20.39');
+    assert.equal(savedSettings.sebas_ip_final_libre, '192.0.2.39');
     element('patch-ip').value = '192.168.20.41';
     element('patch-port').value = '2122';
     await context.window.parchesGuardarConexion();
@@ -61,7 +61,7 @@ vm.runInNewContext(source, context, { filename: 'js/parches_juego.js' });
     await context.window.parchesRecargar();
     assert.match(element('patch-connection').textContent, /Sin IP guardada/);
     assert.match(element('patch-game-list').innerHTML, /Conecta la consola/);
-    savedSettings.sebas_ip_final_libre = '192.168.20.39';
+    savedSettings.sebas_ip_final_libre = '192.0.2.39';
     context.fetch = async () => ({ ok: true, json: async () => { throw new SyntaxError('Unexpected token <'); } });
     await context.window.parchesRecargar();
     assert.match(element('patch-connection').textContent, /error/);

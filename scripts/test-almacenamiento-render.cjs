@@ -17,7 +17,7 @@ function element(id) {
 const context = {
     window: {},
     document: { getElementById: element },
-    localStorage: { getItem: key => key === 'sebas_ip_final_libre' ? '192.168.20.39' : '2121' },
+    localStorage: { getItem: key => key === 'sebas_ip_final_libre' ? '192.0.2.39' : '2121' },
     FormData: class { append() {} },
     fetch: async () => ({ ok: true, json: async () => ({ status: 'success', report: {
         categories: {
