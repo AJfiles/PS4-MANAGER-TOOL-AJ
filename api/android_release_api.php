@@ -25,6 +25,14 @@ $context = stream_context_create([
 $endpoint = 'https://api.github.com/repos/' . $repository . '/releases?per_page=30';
 $response = @file_get_contents($endpoint, false, $context);
 $transportDetail = '';
+$streamStatus = 0;
+foreach (($http_response_header ?? []) as $headerLine) {
+    if (preg_match('/^HTTP\/\S+\s+(\d{3})/', $headerLine, $statusMatch)) $streamStatus = (int)$statusMatch[1];
+}
+if ($streamStatus >= 400) {
+    $transportDetail = 'GitHub REST HTTP ' . $streamStatus;
+    $response = false;
+}
 if (!is_string($response) || $response === '') {
     $lastError = error_get_last();
     if (is_array($lastError) && isset($lastError['message'])) $transportDetail = (string)$lastError['message'];
@@ -51,6 +59,67 @@ if ((!is_string($response) || $response === '') && function_exists('curl_init'))
     curl_close($ch);
     if (is_string($body) && $status >= 200 && $status < 300) $response = $body;
     else $transportDetail = trim('cURL HTTP ' . $status . ' ' . $curlError);
+}
+// GitHub limits unauthenticated REST API requests. If that quota is exhausted,
+// resolve the public latest-release page and its checksum sidecar instead.
+if ((!is_string($response) || $response === '') && function_exists('curl_init')) {
+    $caBundle = __DIR__ . '/certs/cacert.pem';
+    $curlGet = static function (string $url, array $headers = []) use ($caBundle): array {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 5,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_CAINFO => is_file($caBundle) ? $caBundle : null,
+            CURLOPT_USERAGENT => 'PS4-Manager-Tools-AJ',
+            CURLOPT_HTTPHEADER => $headers,
+        ]);
+        $body = curl_exec($ch);
+        $result = [
+            'body' => is_string($body) ? $body : '',
+            'status' => (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE),
+            'url' => (string)curl_getinfo($ch, CURLINFO_EFFECTIVE_URL),
+            'error' => (string)curl_error($ch),
+        ];
+        curl_close($ch);
+        return $result;
+    };
+    $latest = $curlGet('https://github.com/' . $repository . '/releases/latest', ['Accept: text/html']);
+    $latestParts = parse_url($latest['url']);
+    $latestPath = (string)($latestParts['path'] ?? '');
+    if ($latest['status'] >= 200 && $latest['status'] < 300
+        && strtolower((string)($latestParts['host'] ?? '')) === 'github.com'
+        && preg_match('~^/AJfiles/PS4-MANAGER-TOOL-AJ/releases/tag/(v?(\d+(?:\.\d+){1,3}))$~i', $latestPath, $tagMatch)) {
+        $tag = $tagMatch[1];
+        $version = $tagMatch[2];
+        $assetName = 'PS4-Manager-Tools-AJ-v' . $version . '.apk';
+        $checksumName = 'SHA256SUMS-' . $version . '.txt';
+        $downloadBase = 'https://github.com/' . $repository . '/releases/download/' . rawurlencode($tag) . '/';
+        $checksum = $curlGet($downloadBase . rawurlencode($checksumName), ['Accept: text/plain']);
+        if ($checksum['status'] >= 200 && $checksum['status'] < 300
+            && preg_match('/^([a-f0-9]{64})[ \t]+\*?' . preg_quote($assetName, '/') . '\s*$/mi', $checksum['body'], $digestMatch)) {
+            $response = json_encode([[
+                'tag_name' => $tag,
+                'name' => 'PS4 Manager Tools AJ ' . $version,
+                'html_url' => $latest['url'],
+                'assets' => [[
+                    'name' => $assetName,
+                    'browser_download_url' => $downloadBase . rawurlencode($assetName),
+                    'size' => 0,
+                    'digest' => 'sha256:' . strtolower($digestMatch[1]),
+                ]],
+            ]], JSON_UNESCAPED_SLASHES);
+        } else {
+            $transportDetail .= '; latest-release checksum sidecar unavailable or invalid';
+        }
+    } else {
+        $transportDetail .= '; latest-release page did not resolve to a supported version tag';
+        if ($latest['error'] !== '') $transportDetail .= ': ' . $latest['error'];
+    }
 }
 if (!is_string($response) || $response === '') {
     http_response_code(502);

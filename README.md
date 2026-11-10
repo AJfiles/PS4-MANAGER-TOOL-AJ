@@ -1,4 +1,4 @@
-# PS4 Manager Tools AJ 4.5.1
+# PS4 Manager Tools AJ 4.5.2
 
 PS4 Manager Tools AJ es una aplicación local para administrar una PS4 con GoldHEN desde Android o Windows. Se conecta por FTP a la consola y reúne biblioteca, partidas, capturas, parches, plugins, payloads, ventilador, transferencias RPI y herramientas de archivos.
 
@@ -12,9 +12,9 @@ Elige una de las tres opciones publicadas en [Releases](https://github.com/AJfil
    curl -sL https://raw.githubusercontent.com/AJfiles/PS4-MANAGER-TOOL-AJ/main/goldhen.sh | bash
    ```
 
-2. **APK para Android**: descarga `PS4-Manager-Tools-AJ-v4.5.1.apk` e instálalo. No requiere instalar Termux. Android solicita confirmación del sistema al instalar una actualización descargada desde Ajustes.
+2. **APK para Android**: descarga `PS4-Manager-Tools-AJ-v4.5.2.apk` e instálalo. No requiere instalar Termux. Android solicita confirmación del sistema al instalar una actualización descargada desde Ajustes.
 
-3. **Windows**: descarga el ZIP `PS4-Manager-Tools-AJ-PC-v4.5.1.zip`, extráelo y ejecuta `Iniciar-PS4-Manager-Tool.bat`. Mantén abierta la ventana del servidor mientras uses la aplicación.
+3. **Windows**: descarga el ZIP `PS4-Manager-Tools-AJ-PC-v4.5.2.zip`, extráelo y ejecuta `Iniciar-PS4-Manager-Tool.bat`. Mantén abierta la ventana del servidor mientras uses la aplicación.
 
 ## Requisitos de conexión
 
@@ -41,7 +41,7 @@ La primera conexión puede configurarse manualmente o con Radar. Si el escaneo d
 
 Algunas rutas de GoldHEN pueden variar por firmware, versión, almacenamiento externo o estado del servidor. La aplicación informa los datos que pudo leer; si una ruta FTP falla, no interpreta la lista como completa.
 
-**Límite del APK Android 4.5.1:** el runtime PHP incluido atiende las páginas en `127.0.0.1`, por lo que la PS4 no puede conectarse al servidor de archivos del teléfono para la descarga RPI. Usa Termux o la versión de PC para RPI; FTP manual y lectura de módulos funcionan desde el APK.
+**Límite del APK Android 4.5.2:** el runtime PHP incluido atiende las páginas en `127.0.0.1`, por lo que la PS4 no puede conectarse al servidor de archivos del teléfono para la descarga RPI. Usa Termux o la versión de PC para RPI; FTP manual y lectura de módulos funcionan desde el APK.
 
 ## Actualizaciones
 

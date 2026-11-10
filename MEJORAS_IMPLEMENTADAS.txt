@@ -1194,4 +1194,9 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Se probó desde el APK instalado la consulta de Releases. Tras añadir `api/certs/cacert.pem`, GitHub respondió por HTTPS con validación de certificado activa y el endpoint informó que todavía no hay APK publicado.
 - Se comprobó en el APK mediante solo lectura FTP: Biblioteca 45 juegos/apps; SaveGames 62 partidas; Parches 10 juegos con XML; Organizar Apps 2 perfiles; Plugins 16 archivos PRX; Payloads 8 archivos remotos; Capturas 1 imagen; Explorador FTP `/user/` 1 elemento.
 - El test automatizado PHP/JavaScript y la sincronización de archivos con PC pasan tras actualizar la versión. La revisión del almacenamiento sigue siendo una operación larga de solo lectura; no se habilita borrado automático.
-- La publicación GitHub con APK y paquete PC, y la verificación final del botón de actualización contra ese Release, quedan pendientes hasta terminar el empaquetado y la publicación del tag 4.5.1.
+- Se publicó en GitHub como tag `v4.5.1` con APK y ZIP PC. La prueba posterior del botón encontró el límite HTTP 403 de la API REST, que motivó el fallback descrito en la entrada 4.5.2.
+
+### Corrección del fallback de actualización y mantenimiento 4.5.2 (2026-11-10)
+- Después de publicar 4.5.1, la consulta móvil recibió HTTP 403 por el límite compartido de la API REST de GitHub. Se agregó un fallback para resolver `/releases/latest`, extraer solo una etiqueta `vMAJOR.MINOR.PATCH` del repositorio exacto y leer el SHA-256 del sidecar de la versión. El APK solo se habilita cuando el nombre esperado y el digest de 64 caracteres coinciden; HTTPS conserva la validación CA estricta.
+- La rama fallback quedó validada con PHP portable contra el Release público: `apk_available=true`, URL bajo el repositorio oficial y SHA-256 idéntico al asset de GitHub. Se incrementa a 4.5.2 para que la instalación anterior reconozca la corrección como actualización.
+- La actualización sigue usando el instalador del sistema Android; confirmar la instalación queda a cargo del usuario. La prueba con el APK 4.5.2 y la cuota real REST agotada se hará después de publicar la versión final.

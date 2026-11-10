@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# PS4 Manager Tools AJ v4.5.1 — instalador fiable para Termux
+# PS4 Manager Tools AJ v4.5.2 — instalador fiable para Termux
 set -u
 
 VERDE='\033[1;32m'; CYAN='\033[1;36m'; AMARILLO='\033[1;33m'; ROJO='\033[1;31m'; BLANCO='\033[1;37m'; NC='\033[0m'
@@ -108,7 +108,7 @@ validar_php() {
 
 clear
 printf "${CYAN}╭────────────────────────────────────╮${NC}\n"
-printf "${CYAN}│${NC}      ${BLANCO}PS4 Manager Tools AJ${NC} ${CYAN}v4.5.1      │${NC}\n"
+printf "${CYAN}│${NC}      ${BLANCO}PS4 Manager Tools AJ${NC} ${CYAN}v4.5.2      │${NC}\n"
 printf "${CYAN}│${NC}       ${AMARILLO}PS4 • Termux • Local FTP${NC}       ${CYAN}│${NC}\n"
 printf "${CYAN}╰────────────────────────────────────╯${NC}\n\n"
 
