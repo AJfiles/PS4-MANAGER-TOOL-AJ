@@ -38,7 +38,7 @@ El instalador prepara PHP y las dependencias, crea el acceso `goldhen` y abre el
 
 Descarga el APK desde el botón de arriba, instálalo y confirma el permiso de instalación que muestre Android. El nombre de la app en el teléfono es **PS4 Manager Tools AJ**; el título dentro de la aplicación es **PS4 Manager Tools**.
 
-Al exportar partidas, respaldos o una actualización, la APK abre el selector de archivos de Android; elige una carpeta o crea **PS4 Manager Tools AJ** en el almacenamiento interno. Al terminar, una notificación permite abrir el archivo. La instalación de una APK siempre requiere confirmación del sistema. El estado del servidor permanece en el espacio privado de la app; conserva una copia externa antes de desinstalarla.
+Al exportar partidas, respaldos o una actualización, la APK abre el selector de archivos de Android; elige una carpeta o crea **PS4 Manager Tools AJ** en el almacenamiento interno. Después de descargar una actualización, localiza el APK en la carpeta elegida y ábrelo desde el gestor de archivos; Android siempre pide confirmar la instalación. El estado del servidor permanece en el espacio privado de la app; conserva una copia externa antes de desinstalarla.
 
 ### Ejecutar en Windows
 
@@ -78,7 +78,7 @@ La lectura depende del firmware y las rutas expuestas por GoldHEN. Si el FTP no 
 
 ## 🔄 Actualizaciones de la aplicación
 
-- **APK Android:** abre `Ajustes → Actualizaciones → Verificar`. Mientras consulta GitHub, el botón muestra una animación. Si Releases contiene una APK más reciente con SHA-256 válido, **Actualizar** abre el selector de carpeta y descarga el archivo; la notificación permite abrirlo y Android solicita confirmar la instalación. La app no puede instalar APK sin autorización del sistema.
+- **APK Android:** abre `Ajustes → Actualizaciones → Verificar`. Mientras consulta GitHub, el botón muestra una animación. Si Releases contiene una APK más reciente con SHA-256 válido, **Actualizar** abre el selector de carpeta y descarga el archivo. Luego ábrelo desde el gestor de archivos; Android solicita confirmar la instalación. La app no instala APK sin autorización del sistema.
 - **Termux:** desde `Ajustes → Actualizaciones`, verifica y aplica los cambios publicados en la rama principal. También puedes volver a ejecutar el comando de instalación.
 - **Windows:** verifica desde Ajustes. Cuando haya una versión nueva, descarga el ZIP y extráelo sobre la carpeta actual después de cerrar el servidor. Conserva `user/`.
 - **Manual:** descarga la plataforma deseada desde [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest). Los APK y ZIP publicados incluyen SHA-256 en `SHA256SUMS`.

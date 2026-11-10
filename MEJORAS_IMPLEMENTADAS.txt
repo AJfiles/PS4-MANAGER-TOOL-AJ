@@ -1224,3 +1224,9 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Se actualizaron README, guía y documentos públicos para las tres distribuciones: Termux, APK y Windows. El flujo APK documenta la elección de carpeta y la confirmación del instalador Android. Se mantiene oculta en APK la opción PWA de instalar en el teléfono.
 - Se retiraron del repositorio y del código fuente APK tres informes locales que incluían identificadores de perfiles de consola. Se sustituyeron IP y perfil reales en fixtures de pruebas por valores reservados o genéricos.
 - La auditoría automatizada terminó sin errores: PHP/JavaScript, traducciones, seguridad de rutas, renderizado de módulos y sincronización con Windows. El ZIP PC pasó una extracción limpia y el servidor PHP portable respondió HTTP 200. La APK se compiló completa como 4.5.5 / 40505; `aapt` confirmó etiqueta y versión, y el certificado coincide con el de 4.5.4.
+
+### Revisión pública y comprobación APK 4.5.5 (2026-11-10)
+- El usuario confirmó que el tono de prueba se oye en el teléfono; no se requieren cambios de audio en esta revisión. La auditoría automatizada del repositorio se ejecutó de nuevo y terminó sin errores.
+- Desde la APK instalada se consultó el endpoint real de actualización: informó instalada 4.5.5, última 4.5.5, APK disponible y `update_available=false`; el SHA-256 comunicado coincide con el Release v4.5.5 de GitHub.
+- Se comprobó que Android tiene denegado el permiso de notificaciones para esta instalación. Se corrigió la guía para que no prometa que una notificación abre la descarga; indica abrir el APK guardado desde el gestor de archivos y confirmar la instalación del sistema.
+- Se verificó el Release público v4.5.5: incluye APK, paquete PC y archivo de SHA-256. La guía y la copia PC mantienen el comando Termux, las tres formas de distribución y los módulos actuales; no se generó otra versión del producto porque no se modificó código funcional ni artefactos de la APK.

@@ -30,7 +30,7 @@
         'Descarga el ZIP, cierra el servidor y extrae su contenido sobre la carpeta de la versión actual. Conserva la carpeta user.': 'Download the ZIP, stop the server, and extract its contents over the current version folder. Keep the user folder.',
         'los datos de trabajo se conservan en el almacenamiento privado de la app; las exportaciones se descargan en la carpeta Descargas de Android.': 'working data is kept in the app private storage; exports are downloaded to Android Downloads.',
         'los datos de trabajo se conservan en el almacenamiento privado de la app. Al exportar o actualizar, Android permite elegir dónde guardar; puedes crear o seleccionar': 'working data stays in the app private storage. When exporting or updating, Android lets you choose where to save; you can create or select',
-        'en el almacenamiento interno. La notificación permite abrir el archivo al terminar.': 'in internal storage. The notification lets you open the file when it finishes.',
+        'en el almacenamiento interno. Para instalar una actualización, abre el APK descargado desde el gestor de archivos y confirma el aviso de Android.': 'in internal storage. To install an update, open the downloaded APK from your file manager and confirm Android’s prompt.',
         'Vuelve a comprobar Releases; solo se habilitan APK con SHA-256 publicado.': 'Check Releases again; downloads are enabled only when GitHub publishes a SHA-256.',
         'Error al subir fragmento por FTP nativo.': 'Failed to upload chunk over native FTP.',
         'Fallo la subida FTP nativa. Comprueba espacio y permisos en el destino.': 'Native FTP upload failed. Check free space and destination permissions.',
