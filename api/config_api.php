@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/request_guard.php';
 error_reporting(0); set_time_limit(120);
 $root = dirname(__DIR__); $user = $root . '/user'; $configDir = $user . '/config';
 foreach ([$configDir, $user . '/plugins', $user . '/payloads'] as $dir) if (!is_dir($dir)) mkdir($dir, 0775, true);

@@ -1,121 +1,58 @@
-# GoldHen Manager AJ v4.0
+# PS4 Manager Tools AJ 4.5.1
 
-Aplicación web local para Termux orientada a administrar una PS4 con GoldHEN mediante FTP. Se ejecuta en el teléfono y abre una interfaz PWA para consultar juegos, explorar archivos, transferir contenido y gestionar mods.
+PS4 Manager Tools AJ es una aplicación local para administrar una PS4 con GoldHEN desde Android o Windows. Se conecta por FTP a la consola y reúne biblioteca, partidas, capturas, parches, plugins, payloads, ventilador, transferencias RPI y herramientas de archivos.
 
-GoldHen Manager AJ parte del proyecto GoldHenManager-v3 como base reconocida y lo
-extiende con correcciones, módulos y flujos propios. La comparación técnica y el
-alcance de esas diferencias están documentados en
-[COMPARATIVA_BASE_V3.md](COMPARATIVA_BASE_V3.md).
+## Descargas
 
-## Funciones
+Elige una de las tres opciones publicadas en [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest):
 
-- Biblioteca de juegos: escaneo de títulos, iconos, categorías, DLC, actualizaciones y capturas.
-- Explorador FTP: navegación, subida por fragmentos, creación, renombrado, copia, movimiento, eliminación y accesos rápidos.
-- Búsqueda global: localiza módulos, juegos sincronizados, archivos de la carpeta FTP actual, plugins y payloads cargados.
-- Respaldo de configuración: exporta/importa ajustes, catálogo Store y recursos personales permitidos mediante ZIP.
-- Transferencias: cargas FTP de archivos grandes y envío de PKG mediante Remote Package Installer.
-- Modding: respaldo e inyección de portadas, procesado de imágenes y galerías locales.
-- Game Mods: bóveda de mods de Minecraft e integración AFR para juegos compatibles.
-- Ajustes: notificaciones, perfiles SFX, fuentes, fondos, intros, tamaño de texto, vista vertical y diseño automático/móvil/PC.
-- Plugins: sube `.prx`, consulta los instalados y asigna plugins a `[default]` o a CUSA mediante `plugins.ini`.
-- Payload Loader: lista payloads locales/remotos y los envía al BinLoader de GoldHEN en el puerto `9090`.
-- Ventilador y Actualizaciones FW: selección controlada de payloads compatibles por firmware.
-- Store: catálogo de paquetes autorizados y envío directo al instalador compatible de la PS4.
+1. **Termux**: instala y ejecuta el gestor en Android. En Termux, pega:
 
-## Requisitos
+   ```bash
+   curl -sL https://raw.githubusercontent.com/AJfiles/PS4-MANAGER-TOOL-AJ/main/goldhen.sh | bash
+   ```
 
-- Android con Termux.
-- Windows: paquete portable de PC en `GoldHenPC-Release-v1.0`; extrae el ZIP y ejecuta `Iniciar-GoldHenManager.bat`.
-- Una PS4 con GoldHEN y servidor FTP activo, normalmente en el puerto `2121`.
-- Ambos dispositivos conectados a la misma red local.
-- Permiso de almacenamiento para Termux.
+2. **APK para Android**: descarga `PS4-Manager-Tools-AJ-v4.5.1.apk` e instálalo. No requiere instalar Termux. Android solicita confirmación del sistema al instalar una actualización descargada desde Ajustes.
 
-## Instalación
+3. **Windows**: descarga el ZIP `PS4-Manager-Tools-AJ-PC-v4.5.1.zip`, extráelo y ejecuta `Iniciar-PS4-Manager-Tool.bat`. Mantén abierta la ventana del servidor mientras uses la aplicación.
 
-En Termux, ejecuta un único comando:
+## Requisitos de conexión
 
-```bash
-curl -sL https://raw.githubusercontent.com/AJfiles/GoldHenManagerAJ/main/goldhen.sh | bash
-```
+- PS4 y dispositivo conectados a la misma red local.
+- GoldHEN con el servidor FTP habilitado; normalmente usa el puerto `2121`.
+- Para enviar payloads, habilita también BinLoader en GoldHEN. El envío no confirma que el payload se haya ejecutado correctamente.
+- Para instalar PKG por RPI, abre Package Installer en primer plano y habilita el puerto RPI que ofrezca la consola.
+- En Termux, acepta el permiso de almacenamiento para buscar PKG y payloads.
 
-El instalador solicita acceso al almacenamiento, instala Git, PHP, PHP GD, ZIP/UNZIP y Termux API, descarga el proyecto en `$HOME/GoldHenManagerAJ`, crea `/sdcard/GoldHenManager/user` y configura los comandos locales. La salida usa un spinner silencioso. Si un mirror de Termux está desincronizado, limpia los índices y prueba automáticamente el mirror oficial y un segundo mirror estable antes de detenerse.
+La primera conexión puede configurarse manualmente o con Radar. Si el escaneo de la red está limitado, introduce la IP de la PS4 y los puertos manualmente.
 
-Al finalizar, el instalador abre GoldHen Manager automáticamente. Para próximas sesiones basta con escribir `goldhen`; la terminal mostrará la URL exacta cuando el servidor esté listo. El servidor queda en segundo plano y los registros se guardan en `~/.goldhen-server.log`, por lo que la consola sigue disponible. Al abrir Termux de nuevo se ofrece un inicio automático con 15 segundos de espera: Enter abre de inmediato y otra tecla cancela. El servidor principal escucha en la red local para que la PS4 descargue PKG por RPI; solo el endpoint que valida cada archivo `.pkg` los entrega. Usa esta función solo en una Wi-Fi de confianza.
+## Módulos
 
-Para evitar incompatibilidades de paquetes, se recomienda Termux desde [F-Droid](https://f-droid.org/packages/com.termux/) o GitHub oficial, no la versión obsoleta de Play Store. En instalaciones posteriores el script detecta componentes ya instalados y omite la actualización de paquetes innecesaria.
+- **Biblioteca** lista juegos y aplicaciones que se pueden leer por FTP, con carátulas y detalles disponibles.
+- **Partidas** muestra perfiles, IDs, tamaños y partidas; permite crear ZIP de respaldo, descargar, restaurar y eliminar con controles de confirmación.
+- **Limpieza** identifica partidas cuyo título no aparece en las ubicaciones de juegos instalados que el FTP pudo leer. Revisa perfil, tamaño y respaldo antes de eliminar.
+- **Capturas** muestra la galería FTP, permite descargar y eliminar imágenes.
+- **Almacenamiento** estima tamaños de juegos, actualizaciones, DLC, partidas y capturas mediante un recorrido FTP de solo lectura. La PS4 no publica capacidad libre por este servicio.
+- **Parches de Juego** lee XML y estados de GoldHEN. La compatibilidad se determina comparando versión del juego y del parche; una incompatibilidad requiere confirmación.
+- **Organizar Apps** permite cambiar visibilidad, carpetas y ajustes XMB usando `app.db`, con respaldo local y verificación.
+- **Plugins** consulta los archivos `.prx` y `plugins.ini`; crea respaldo antes de cambios.
+- **Payloads** envía archivos locales o de la consola por BinLoader y organiza los payloads del proyecto.
+- **Ventilador**, **Actualizaciones FW**, **Transferencias**, **Explorador FTP**, **Modding** y **Respaldo** proporcionan controles adicionales.
 
-Compatibilidad comprobada: PS4 Pro con firmware 9.00 y GoldHEN v2.4b18.10. Otras combinaciones de consola, firmware y GoldHEN pueden requerir rutas o permisos diferentes.
+Algunas rutas de GoldHEN pueden variar por firmware, versión, almacenamiento externo o estado del servidor. La aplicación informa los datos que pudo leer; si una ruta FTP falla, no interpreta la lista como completa.
 
-## Uso rápido
+**Límite del APK Android 4.5.1:** el runtime PHP incluido atiende las páginas en `127.0.0.1`, por lo que la PS4 no puede conectarse al servidor de archivos del teléfono para la descarga RPI. Usa Termux o la versión de PC para RPI; FTP manual y lectura de módulos funcionan desde el APK.
 
-1. Conecta la PS4 a la red y habilita GoldHEN/FTP.
-2. Abre la aplicación desde Termux o el navegador.
-3. Introduce la IP de la PS4 y pulsa conectar o usa Radar.
-4. Abre Biblioteca y ejecuta una sincronización.
-5. Usa Explorador FTP o Transferencias sólo sobre rutas que conozcas.
-6. Antes de cambiar mods o sobrescribir archivos, crea una copia de seguridad.
+## Actualizaciones
 
-## Datos locales
+En **Ajustes → Actualizaciones → Verificar** se consulta la última publicación del repositorio. La opción de actualizar Android solo se habilita si Releases ofrece un APK más reciente con su SHA-256. Al descargarlo, abre la notificación de Android y confirma la instalación. También puedes instalar manualmente el APK de la sección Releases.
 
-Los datos generados por la aplicación se guardan fuera del repositorio en:
+## Datos y privacidad
 
-```text
-/sdcard/GoldHenManager/user/
-```
+La aplicación opera en tu red local. No expongas el servidor PHP de Termux o Windows a Internet ni abras puertos hacia redes públicas. Cachés, archivos locales y respaldos se guardan en el dispositivo que ejecuta la aplicación; no se cargan automáticamente al repositorio.
 
-Incluye cachés, portadas, capturas, respaldos y archivos para RPI. La caché se limpia automáticamente cuando un archivo lleva más de 30 días sin uso.
+## Advertencia legal y de seguridad
 
-Los plugins incluidos en `plugins/` se pueden subir desde el módulo Plugins. Los payloads que añadas se guardan en `user/payloads/`; los incluidos en `payloads/` aparecen directamente en el módulo. Linux, NanoDNS e Inicio de sesión falso se organizan por categoría.
+Este software se proporciona “tal cual”, sin garantías y es de código abierto. El mantenedor “AJ” no se responsabiliza por daños a la PS4, pérdida de datos o violación de términos de servicio.
 
-## Seguridad
-
-La herramienta está pensada para una red local de confianza. No expongas el servidor PHP a Internet ni abras puertos del teléfono hacia redes públicas. Las operaciones de eliminar, mover, inyectar y activar mods afectan datos reales de la consola.
-
-El módulo Plugins realiza una copia local de `plugins.ini` antes de editarlo. Payload Loader ejecuta binarios en la consola: utiliza únicamente payloads que conozcas y entiendas.
-
-## Desarrollo
-
-- Backend: PHP y cURL/FTP.
-- Frontend: JavaScript sin compilación, Tailwind CDN y Font Awesome CDN.
-- Entrada: `index.php`.
-- APIs: `api/`.
-- Interfaz modular: `modulos/`.
-- Controladores frontend: `js/`.
-
-### Edición portable para Windows
-
-Descarga `GoldHenPC-Release-v1.0.zip` desde Releases, descomprímelo y ejecuta
-`Iniciar-GoldHenManager.bat`. El paquete incluye el runtime PHP portable y abre
-el navegador al iniciar el servidor. No requiere configurar PHP ni agregarlo al
-PATH. PHP puede necesitar Microsoft Visual C++ Redistributable 2015–2022 x86 si
-ese componente no está instalado; el paquete indica el enlace oficial. Windows
-puede solicitar permiso para permitir RPI en la red privada.
-
-### Aplicación Android
-
-El botón de instalación actual ofrece una PWA; esta sigue necesitando que el
-servidor PHP esté ejecutándose en Termux o en un PC. Para generar un APK
-autónomo hay que empaquetar también el backend PHP y sus extensiones, o migrar
-las API que usan FTP, sockets y archivos a un backend Android nativo. Un simple
-envoltorio WebView no sustituye esas API.
-
-Consulta [GUIA_DE_USO.md](GUIA_DE_USO.md) para un recorrido operativo.
-
-## Limitaciones conocidas
-
-- El FTP de GoldHEN no proporciona telemetría de CPU, GPU o temperatura.
-- Una PWA no puede garantizar cargas FTP largas en segundo plano cuando Android la suspende.
-- La compatibilidad de rutas y permisos depende de la versión de GoldHEN y del juego.
-
-## ⚠️ ADVERTENCIA LEGAL Y DE SEGURIDAD
-
-Este software se proporciona "tal cual", sin garantías y es de código abierto.
-
-El mantenedor "AJ" no se responsabiliza por daños a tu PS4, pérdida de datos o
-violación de términos de servicio.
-
-Usar payloads de firmware o Ventilador puede brickear tu consola si no se usan
-como debe ser. Úsalo bajo tu propio riesgo.
-
-Se recomienda tener una copia de seguridad del firmware original antes de
-aplicar cualquier parche.
+Los payloads, las modificaciones de `app.db`, los cambios de plugins y las acciones de borrado pueden causar fallos o pérdida de datos si se usan incorrectamente. Úsalo bajo tu propio riesgo. Se recomienda conservar respaldos antes de modificar la consola.

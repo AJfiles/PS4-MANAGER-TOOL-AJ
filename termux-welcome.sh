@@ -15,8 +15,8 @@ RESET='\033[0m'
 clear
 printf "${CYAN}╭──────────────────────────────────────────────────────╮${RESET}\n"
 printf "${CYAN}│${RESET}                                                      ${CYAN}│${RESET}\n"
-printf "${CYAN}│${RESET}   ${VIOLET}╔═╗╔═╗╦  ╔╦╗╦ ╦╔═╗╔╗╔${RESET}  ${GOLD}GOLDHEN MANAGER AJ${RESET}   ${CYAN}│${RESET}\n"
-printf "${CYAN}│${RESET}   ${VIOLET}║ ╦║ ║║   ║ ║ ║╠═╣║║║${RESET}  ${WHITE}PS4 · TERMUX · v4.0${RESET}  ${CYAN}│${RESET}\n"
+printf "${CYAN}│${RESET}   ${VIOLET}╔═╗╔═╗╦  ╔╦╗╦ ╦╔═╗╔╗╔${RESET}  ${GOLD}PS4 Manager Tool${RESET}   ${CYAN}│${RESET}\n"
+printf "${CYAN}│${RESET}   ${VIOLET}║ ╦║ ║║   ║ ║ ║╠═╣║║║${RESET}  ${WHITE}PS4 · TERMUX · v4.5.1${RESET}  ${CYAN}│${RESET}\n"
 printf "${CYAN}│${RESET}   ${VIOLET}╚═╝╚═╝╩═╝ ╩ ╚═╝╩ ╩╝╚╝${RESET}  ${MUTED}AJ · SeBaS${RESET}           ${CYAN}│${RESET}\n"
 printf "${CYAN}│${RESET}                                                      ${CYAN}│${RESET}\n"
 printf "${CYAN}╰──────────────────────────────────────────────────────╯${RESET}\n\n"
@@ -43,7 +43,7 @@ done
 if ((remaining == 0)); then launch=1; fi
 printf "\n\n"
 if ((launch)); then
-    printf "  ${GREEN}●${RESET} Abriendo GoldHen Manager…\n\n"
+    printf "  ${GREEN}●${RESET} Abriendo PS4 Manager Tool…\n\n"
     bash "$HOME/GoldHenManagerAJ/start-goldhen.sh"
 else
     clear

@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * GOLDHEN MANAGER V2.1 🚀 - CONTROLADOR MAESTRO DE BIBLIOTECA
+ * PS4 Manager Tool V2.1 🚀 - CONTROLADOR MAESTRO DE BIBLIOTECA
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: js/biblioteca.js
  * ====================================================================
  */
@@ -17,10 +17,16 @@ let startX = 0;
 let currentX = 0;
 let isDragging = false;
 let bibliotecaAbortController = null;
-let galeriaCacheData = [];
-let urlImagenActualLightbox = "";
-let nombreImagenActualLightbox = "";
-let isGlobalGallery = false; 
+
+function bibliotecaEscaparHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+}
+function bibliotecaImagenSegura(value) {
+    const url = String(value ?? '').trim();
+    if (/^https:\/\/[a-z0-9.-]+(?:\/[a-z0-9._~!$&()*+,;=:@%/-]*)?(?:\?[a-z0-9._~!$&()*+,;=:@%/?-]*)?$/i.test(url)) return url;
+    if (/^user\/(?:cache\/biblioteca\/[A-Z0-9._-]+\.png(?:\?v=\d+)?|portadas_custom\/[A-Z0-9._-]+\.(?:jpg|jpeg|png))$/i.test(url)) return url;
+    return '';
+}
 let categoriaAEliminar = null;
 let bibliotecaAutoScanEnCurso = false;
 let bibliotecaAutoScanCompletado = Number(localStorage.getItem('ghm_biblioteca_ultimo_escaneo') || 0);
@@ -346,12 +352,16 @@ function renderizarGridDOM(visibles) {
         divCard.className = "grid-card-modern rounded-[1.2rem] p-1.5 flex flex-col justify-between cursor-pointer shadow-lg animate-fade-in";
         divCard.setAttribute('role', 'button');
         divCard.tabIndex = 0;
-        divCard.setAttribute('aria-label', `Abrir ${jg.nombre || jg.id}`);
+        divCard.setAttribute('aria-label', `Abrir ${String(jg.nombre || jg.id || '').slice(0, 160)}`);
         divCard.onclick = () => { abrirOpcionesJuegoDirecto(jg.id); };
-        divCard.innerHTML = `
-            <div class="w-full h-[84%] rounded-[1rem] overflow-hidden border border-white/5 bg-cover bg-center" style="background-image: url('${jg.img}');"></div>
-            <p class="text-[9px] font-bold text-center truncate pt-1 text-gray-300 px-0.5 uppercase tracking-wide">${jg.nombre}</p>
-        `;
+        const cover = document.createElement('div');
+        cover.className = 'w-full h-[84%] rounded-[1rem] overflow-hidden border border-white/5 bg-cover bg-center';
+        const imageUrl = bibliotecaImagenSegura(jg.img);
+        if (imageUrl) cover.style.backgroundImage = `url("${imageUrl.replace(/["\\]/g, '\\$&')}")`;
+        const title = document.createElement('p');
+        title.className = 'text-[9px] font-bold text-center truncate pt-1 text-gray-300 px-0.5 uppercase tracking-wide';
+        title.textContent = String(jg.nombre || jg.id || 'Título sin nombre');
+        divCard.append(cover, title);
         gridDom.appendChild(divCard);
     });
 }
@@ -373,15 +383,25 @@ function construirCoverflowDOMEstatico(visibles) {
     let html3D = "";
     visibles.forEach((jg) => {
         html3D += `
-        <div class="ps4-box-case" role="button" tabindex="0" aria-label="${String(jg.nombre).replace(/[&<>\"]/g, '')}">
+        <div class="ps4-box-case" role="button" tabindex="0" aria-label="${bibliotecaEscaparHtml(String(jg.nombre || jg.id || 'Título'))}">
             <div class="ps4-top-ribbon">
                 <i class="fa-brands fa-playstation text-white text-[10px]"></i>
                 <span class="ps4-ribbon-text">PS4</span>
             </div>
-            <img src="${jg.cover3d}" class="ps4-img-art" draggable="false" onerror="this.src='${jg.img}'">
+            <img src="${bibliotecaEscaparHtml(bibliotecaImagenSegura(jg.cover3d))}" data-fallback="${bibliotecaEscaparHtml(bibliotecaImagenSegura(jg.img))}" class="ps4-img-art" draggable="false">
         </div>`;
     });
     target3D.innerHTML = html3D;
+
+    target3D.querySelectorAll('.ps4-img-art').forEach(image => {
+        image.addEventListener('error', () => {
+            const fallback = image.dataset.fallback || '';
+            if (fallback && image.src !== new URL(fallback, document.baseURI).href) {
+                image.dataset.fallback = '';
+                image.src = fallback;
+            }
+        }, { once: true });
+    });
 
     const tarjetas = target3D.querySelectorAll('.ps4-box-case');
     tarjetas.forEach((card, idx) => {
@@ -438,8 +458,6 @@ function actualizarCoverflow3DStyles() {
             if (tTitle) tTitle.innerText = currentJg.nombre;
             if (tCusa) tCusa.innerText = currentJg.id;
             if (tVersion) tVersion.innerText = `v${currentJg.version || '1.00'}`;
-            actualizarConteoCapturasDock(currentJg.id, 'sheet-count-capturas-badge-3d');
-
             if (glowBg) glowBg.style.background = `radial-gradient(circle, rgba(0, 162, 255, 0.5) 0%, rgba(0, 114, 230, 0.15) 45%, rgba(0,0,0,0) 70%)`;
         } else if (offset > 0) {
             card.style.transform = `translateX(${pasoCarrusel + (offset - 1) * pasoLateral}px) translateZ(${-30 - (offset - 1) * 30}px) rotateY(-40deg) scale(0.85)`;
@@ -625,7 +643,7 @@ function confirmarEliminarCategoria(nombreCat) {
     const content = document.getElementById('modal-confirmar-content');
     const texto = document.getElementById('texto-confirmar-eliminar');
     
-    texto.innerHTML = `¿Seguro que deseas eliminar la categoría <br><span class="text-white font-bold text-xs mt-1 inline-block">'${nombreCat}'</span> ?`;
+    texto.innerHTML = `¿Seguro que deseas eliminar la categoría <br><span class="text-white font-bold text-xs mt-1 inline-block">'${bibliotecaEscaparHtml(nombreCat)}'</span> ?`;
     
     if (modal && content) {
         modal.classList.remove('hidden');
@@ -691,41 +709,6 @@ function moverCarruselBiblioteca(delta) {
     actualizarCoverflow3DStyles();
 }
 
-const capturasConteoCache = new Map();
-const capturasConteoPendiente = new Map();
-let capturasConteoTimer = null;
-function actualizarConteoCapturasDock(cusa, targetBadgeId = 'sheet-count-capturas-badge') {
-    const ip = localStorage.getItem('sebas_ip_final_libre') || '192.168.1.28';
-    const badge = document.getElementById(targetBadgeId);
-    if (!badge) return;
-    const key = `${ip}:${cusa}`;
-    const cached = capturasConteoCache.get(key);
-    if (cached && Date.now() - cached.time < 60000) {
-        badge.innerText = cached.count;
-        badge.classList.toggle('hidden', cached.count < 1);
-        return;
-    }
-    capturasConteoPendiente.clear();
-    capturasConteoPendiente.set(key, { cusa, targetBadgeId, ip });
-    clearTimeout(capturasConteoTimer);
-    capturasConteoTimer = setTimeout(async () => {
-        const request = capturasConteoPendiente.get(key);
-        capturasConteoPendiente.delete(key);
-        if (!request) return;
-        try {
-            const fd = new FormData(); fd.append('action', 'count_only'); fd.append('host_ip', request.ip); fd.append('cusa_id', request.cusa);
-            const res = await fetch('api/ps4_screenshots_api.php', { method: 'POST', body: fd });
-            const data = await res.json();
-            if (data?.status === 'success') {
-                const count = Number(data.count) || 0;
-                capturasConteoCache.set(key, { count, time: Date.now() });
-                const current = document.getElementById(request.targetBadgeId);
-                if (current && juegoSeleccionadoLocal?.id === request.cusa) { current.innerText = count; current.classList.toggle('hidden', count < 1); }
-            }
-        } catch (e) { console.error('Error Dock:', e); }
-    }, 180);
-}
-
 async function ejecutarAccionRapidaJuego(accion) {
     if (!juegoSeleccionadoLocal) return;
     
@@ -741,12 +724,7 @@ async function ejecutarAccionRapidaJuego(accion) {
                 abrirModulo('modding'); 
             }
         }, 300);
-    } 
-    else if (accion === 'galeria') { 
-        cerrarBottomSheet(null);
-        abrirGaleriaJuego();
-    } 
-    else if (accion === 'dlcs') { 
+    }else if (accion === 'dlcs') { 
         cerrarBottomSheet(null);
         abrirModalDLC();
     }
@@ -777,9 +755,6 @@ function abrirOpcionesJuegoDirecto(id) {
 
     const avatarArt = document.getElementById('panel-avatar-art');
     if (avatarArt) avatarArt.style.backgroundImage = `url('${juegoSeleccionadoLocal.img}')`;
-
-    actualizarConteoCapturasDock(juegoSeleccionadoLocal.id, 'sheet-count-capturas-badge');
-    
     const sheet = document.getElementById('sheet-detalles-juego');
     if (sheet) {
         sheet.classList.remove('hidden');
@@ -889,261 +864,6 @@ async function seleccionarCategoriaCustomGame(nuevaCat) {
     }
 }
 
-function abrirGaleriaGlobal() {
-    isGlobalGallery = true;
-    juegoSeleccionadoLocal = null; 
-
-    document.getElementById('galeria-title').innerText = "CAPTURAS GLOBALES";
-    document.getElementById('galeria-count').innerText = "Conectando...";
-    document.getElementById('galeria-grid').innerHTML = '';
-    document.getElementById('galeria-grid').classList.add('hidden');
-    document.getElementById('galeria-loader').classList.remove('hidden');
-
-    const modal = document.getElementById('modal-galeria-juego');
-    if (modal) {
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('translate-y-full');
-            modal.classList.add('opacity-100');
-        }, 10);
-    }
-
-    cargarFotosGaleriaGlobal(false);
-}
-
-async function cargarFotosGaleriaGlobal(force = false) {
-    const ip = localStorage.getItem('sebas_ip_final_libre') || '192.168.1.28';
-    try {
-        let fd = new FormData();
-        fd.append('action', 'get_all_caps');
-        fd.append('host_ip', ip);
-        fd.append('force', force ? '1' : '0'); 
-        
-        let res = await fetch('api/ps4_screenshots_api.php', { method: 'POST', body: fd });
-        let data = await res.json();
-        
-        document.getElementById('galeria-loader').classList.add('hidden');
-        const grid = document.getElementById('galeria-grid');
-        
-        if (data && data.status === 'success' && data.images.length > 0) {
-            galeriaCacheData = data.images;
-            document.getElementById('galeria-count').innerText = `${data.images.length} Capturas`;
-            
-            let htmlGrid = "";
-            data.images.forEach((img, idx) => {
-                htmlGrid += `
-                <div onclick="abrirLightbox(${idx})" class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#111621] border border-white/5 shadow-md cursor-pointer active:scale-95 transition-transform hover:border-emerald-500/40 group">
-                    <img src="${img.url}" loading="lazy" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <span class="absolute left-2 bottom-2 right-10 text-[8px] text-white font-mono truncate">${String((img.game_id ? '['+img.game_id+'] ' : '')+(img.name||'Captura')).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>
-                    <button onclick="event.stopPropagation(); eliminarCapturaGaleria(${idx})" aria-label="Eliminar captura" class="absolute right-2 top-2 w-8 h-8 rounded-lg bg-black/70 border border-red-400/30 text-red-300 flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
-                </div>`;
-            });
-            grid.innerHTML = htmlGrid;
-            grid.classList.remove('hidden');
-        } else {
-            document.getElementById('galeria-count').innerText = "0 Capturas";
-            grid.innerHTML = `<div class="col-span-full py-16 text-center text-gray-500 font-bold text-[10px] tracking-widest uppercase">${data.message || 'Sin fotos en la consola'}</div>`;
-            grid.classList.remove('hidden');
-        }
-    } catch(e) {
-        document.getElementById('galeria-loader').classList.add('hidden');
-        document.getElementById('galeria-count').innerText = "Error";
-    }
-}
-
-function abrirGaleriaJuego() {
-    if (!juegoSeleccionadoLocal) return;
-    isGlobalGallery = false; 
-    
-    document.getElementById('galeria-title').innerText = juegoSeleccionadoLocal.nombre;
-    document.getElementById('galeria-count').innerText = "Conectando...";
-    document.getElementById('galeria-grid').innerHTML = '';
-    document.getElementById('galeria-grid').classList.add('hidden');
-    document.getElementById('galeria-loader').classList.remove('hidden');
-
-    const modal = document.getElementById('modal-galeria-juego');
-    if (modal) {
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('translate-y-full');
-            modal.classList.add('opacity-100');
-        }, 10);
-    }
-
-    cargarFotosGaleria(false); 
-}
-
-function cerrarGaleriaJuego() {
-    const modal = document.getElementById('modal-galeria-juego');
-    if (modal) {
-        modal.classList.remove('opacity-100');
-        modal.classList.add('translate-y-full');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
-    }
-}
-
-async function eliminarCapturaGaleria(index) {
-    const image = galeriaCacheData[index];
-    if (!image?.remote_path) {
-        window.ps5Notification('CAPTURAS', 'Actualiza la galería para cargar la ruta de esta foto.', 'fa-rotate');
-        return;
-    }
-    if (!confirm(`¿Eliminar esta captura de la PS4?\n${image.game_id ? image.game_id + ' · ' : ''}${image.name}`)) return;
-    try {
-        const fd = new FormData();
-        fd.append('action', 'delete_capture');
-        fd.append('host_ip', localStorage.getItem('sebas_ip_final_libre') || '');
-        fd.append('remote_path', image.remote_path);
-        const response = await fetch('api/ps4_screenshots_api.php', { method: 'POST', body: fd });
-        const data = await response.json();
-        if (data.status !== 'success') throw new Error(data.message || 'No se pudo eliminar la captura.');
-        if (image.game_id) for (const key of capturasConteoCache.keys()) if (key.endsWith(`:${image.game_id}`)) capturasConteoCache.delete(key);
-        window.ps5Notification('CAPTURAS', 'Foto eliminada de la PS4.', 'fa-trash');
-        if (isGlobalGallery) await cargarFotosGaleriaGlobal(true);
-        else await cargarFotosGaleria(true);
-    } catch (error) {
-        window.ps5Notification('ERROR', error.message, 'fa-triangle-exclamation');
-    }
-}
-
-async function cargarFotosGaleria(force = false) {
-    const ip = localStorage.getItem('sebas_ip_final_libre') || '192.168.1.28';
-    try {
-        let fd = new FormData();
-        fd.append('action', 'get_caps');
-        fd.append('host_ip', ip);
-        fd.append('cusa_id', juegoSeleccionadoLocal.id);
-        fd.append('force', force ? '1' : '0'); 
-        
-        let res = await fetch('api/ps4_screenshots_api.php', { method: 'POST', body: fd });
-        let data = await res.json();
-        
-        document.getElementById('galeria-loader').classList.add('hidden');
-        const grid = document.getElementById('galeria-grid');
-        
-        if (data && data.status === 'success' && data.images.length > 0) {
-            galeriaCacheData = data.images;
-            document.getElementById('galeria-count').innerText = `${data.images.length} Capturas`;
-            
-            let htmlGrid = "";
-            data.images.forEach((img, idx) => {
-                htmlGrid += `
-                <div onclick="abrirLightbox(${idx})" class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#111621] border border-white/5 shadow-md cursor-pointer active:scale-95 transition-transform hover:border-emerald-500/40 group">
-                    <img src="${img.url}" loading="lazy" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <span class="absolute left-2 bottom-2 right-10 text-[8px] text-white font-mono truncate">${String((img.game_id ? '['+img.game_id+'] ' : '')+(img.name||'Captura')).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>
-                    <button onclick="event.stopPropagation(); eliminarCapturaGaleria(${idx})" aria-label="Eliminar captura" class="absolute right-2 top-2 w-8 h-8 rounded-lg bg-black/70 border border-red-400/30 text-red-300 flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
-                </div>`;
-            });
-            grid.innerHTML = htmlGrid;
-            grid.classList.remove('hidden');
-        } else {
-            document.getElementById('galeria-count').innerText = "0 Capturas";
-            grid.innerHTML = `<div class="col-span-full py-16 text-center text-gray-500 font-bold text-[10px] tracking-widest uppercase">${data.message || 'Sin fotos en la consola'}</div>`;
-            grid.classList.remove('hidden');
-        }
-    } catch(e) {
-        document.getElementById('galeria-loader').classList.add('hidden');
-        document.getElementById('galeria-count').innerText = "Error";
-    }
-}
-
-function forzarRecargaGaleria() {
-    document.getElementById('galeria-grid').classList.add('hidden');
-    document.getElementById('galeria-loader').classList.remove('hidden');
-    
-    if (isGlobalGallery) {
-        cargarFotosGaleriaGlobal(true);
-    } else {
-        cargarFotosGaleria(true);
-    }
-}
-
-function abrirLightbox(index) {
-    const visor = document.getElementById('lightbox-visor');
-    const imgElement = document.getElementById('lightbox-img');
-    const nameLabel = document.getElementById('lightbox-name');
-    
-    if (visor && imgElement && nameLabel) {
-        urlImagenActualLightbox = galeriaCacheData[index].url;
-        nombreImagenActualLightbox = galeriaCacheData[index].name;
-
-        imgElement.src = urlImagenActualLightbox;
-        nameLabel.innerText = nombreImagenActualLightbox;
-
-        visor.classList.remove('hidden');
-        setTimeout(() => { 
-            visor.classList.add('opacity-100'); 
-            imgElement.classList.remove('scale-95');
-            imgElement.classList.add('scale-100');
-        }, 10);
-    }
-}
-
-function cerrarLightbox() {
-    const visor = document.getElementById('lightbox-visor');
-    const imgElement = document.getElementById('lightbox-img');
-    
-    if (visor && imgElement) {
-        visor.classList.remove('opacity-100');
-        imgElement.classList.remove('scale-100');
-        imgElement.classList.add('scale-95');
-        
-        setTimeout(() => { 
-            visor.classList.add('hidden'); 
-            imgElement.src = ""; 
-        }, 300);
-    }
-}
-
-// 🔥 SISTEMA DE COMPARTIR Y DESCARGAR RESTAURADO
-async function compartirImagenLightbox() {
-    if (!urlImagenActualLightbox) return;
-    try {
-        window.ps5Notification("PREPARANDO", "Convirtiendo imagen para enviar...", "fa-share-nodes");
-        
-        const response = await fetch(urlImagenActualLightbox);
-        const blob = await response.blob();
-        const file = new File([blob], nombreImagenActualLightbox, { type: blob.type });
-        
-        // 1. Intenta abrir el menú nativo de Compartir de Android
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                title: nombreImagenActualLightbox,
-                text: `Captura de ${juegoSeleccionadoLocal ? juegoSeleccionadoLocal.nombre : 'PS4 (Global)'}`,
-                files: [file]
-            });
-        } 
-        // 2. Si el navegador lo bloquea, activa la descarga forzada a la memoria interna
-        else {
-            window.ps5Notification("DESCARGANDO", "Guardando imagen localmente...", "fa-download");
-            
-            const urlDescarga = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = urlDescarga;
-            a.download = nombreImagenActualLightbox;
-            document.body.appendChild(a);
-            a.click();
-            
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(urlDescarga);
-                window.ps5Notification("ÉXITO", "Imagen guardada en tus Descargas.", "fa-check");
-            }, 100);
-        }
-    } catch (err) {
-        // 3. Fallback de emergencia si falla la conversión
-        const a = document.createElement('a');
-        a.href = urlImagenActualLightbox;
-        a.download = nombreImagenActualLightbox;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-}
-
 let contenidoAEliminarData = null; 
 
 function abrirModalDLC() {
@@ -1218,10 +938,10 @@ async function escanearDLCsYUpdates(force = false) {
                         </div>
                         <div class="flex flex-col flex-1 truncate">
                             <span class="text-[12px] font-black uppercase tracking-widest text-emerald-400">Parche / Update</span>
-                            <span class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1.5">${iconLoc} ${data.update.size_label}</span>
+                            <span class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1.5">${iconLoc} ${bibliotecaEscaparHtml(data.update.size_label)}</span>
                         </div>
                     </div>
-                    <button onclick="prepararEliminacionContenido('${data.update.path}', 'Update Parche')" class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 active:scale-90 transition-all hover:bg-red-500/20 shrink-0">
+                    <button data-delete-update="1" class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 active:scale-90 transition-all hover:bg-red-500/20 shrink-0">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 `;
@@ -1237,13 +957,19 @@ async function escanearDLCsYUpdates(force = false) {
                 `;
             }
 
+            if (data.update.installed) {
+                updateBox.querySelector('[data-delete-update]')?.addEventListener('click', () => {
+                    prepararEliminacionContenido(String(data.update.path || ''), 'Update Parche');
+                });
+            }
+
             const dlcBox = document.getElementById('dlc-list-box');
             const badge = document.getElementById('dlc-count-badge');
             badge.innerText = data.dlcs.length;
             
             if (data.dlcs.length > 0) {
                 let dlcHtml = '';
-                data.dlcs.forEach(dlc => {
+                data.dlcs.forEach((dlc, index) => {
                     const iconLoc = dlc.location.includes('Ampliado') ? '<i class="fa-solid fa-server text-blue-400"></i>' : '<i class="fa-solid fa-hdd text-gray-400"></i>';
                     dlcHtml += `
                     <div class="flex items-center gap-3 p-3 rounded-xl bg-[#111827] border border-white/5 hover:border-blue-500/30 transition-colors">
@@ -1252,16 +978,22 @@ async function escanearDLCsYUpdates(force = false) {
                                 <i class="fa-solid fa-puzzle-piece text-blue-400 text-sm"></i>
                             </div>
                             <div class="flex flex-col flex-1 overflow-hidden">
-                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-200 truncate">${dlc.id}</span>
-                                <span class="text-[8px] text-gray-500 mt-0.5 flex items-center gap-1">${iconLoc} ${dlc.size_label}</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-200 truncate">${bibliotecaEscaparHtml(dlc.id)}</span>
+                                <span class="text-[8px] text-gray-500 mt-0.5 flex items-center gap-1">${iconLoc} ${bibliotecaEscaparHtml(dlc.size_label)}</span>
                             </div>
                         </div>
-                        <button onclick="prepararEliminacionContenido('${dlc.path}', '${dlc.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 active:scale-90 transition-all hover:bg-red-500/20 shrink-0">
+                        <button data-delete-dlc-index="${index}" class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 active:scale-90 transition-all hover:bg-red-500/20 shrink-0">
                             <i class="fa-solid fa-trash-can text-sm"></i>
                         </button>
                     </div>`;
                 });
                 dlcBox.innerHTML = dlcHtml;
+                dlcBox.querySelectorAll('[data-delete-dlc-index]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const dlc = data.dlcs[Number(button.dataset.deleteDlcIndex)];
+                        if (dlc) prepararEliminacionContenido(String(dlc.path || ''), String(dlc.id || 'DLC'));
+                    });
+                });
             } else {
                 dlcBox.innerHTML = `
                     <div class="p-4 rounded-xl border border-dashed border-white/10 text-center">

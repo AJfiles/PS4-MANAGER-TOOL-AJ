@@ -8,7 +8,7 @@ LOG_FILE="${HOME}/.goldhen-server.log"
 PID_FILE="${HOME}/.goldhen-server.pid"
 
 if [ ! -f "$PROJECT_DIR/index.php" ]; then
-  echo "GoldHen Manager no se encontró en $PROJECT_DIR. Ejecuta primero goldhen.sh."
+  echo "PS4 Manager Tool no se encontró en $PROJECT_DIR. Ejecuta primero goldhen.sh."
   exit 1
 fi
 if ! command -v php >/dev/null 2>&1; then
@@ -16,7 +16,7 @@ if ! command -v php >/dev/null 2>&1; then
   exit 1
 fi
 if command -v curl >/dev/null 2>&1 && curl -fsS --max-time 1 "http://127.0.0.1:${PORT}/index.php" >/dev/null 2>&1; then
-  echo "GoldHen Manager ya está abierto: http://127.0.0.1:${PORT}/index.php"
+  echo "PS4 Manager Tool ya está abierto: http://127.0.0.1:${PORT}/index.php"
   command -v termux-open-url >/dev/null 2>&1 && termux-open-url "http://127.0.0.1:${PORT}/index.php"
   exit 0
 fi
@@ -27,7 +27,7 @@ fi
 
 # Sin los logs de peticiones en pantalla: quedan disponibles si alguna vez hay
 # que diagnosticar algo en ~/.goldhen-server.log.
-nohup php -d memory_limit=256M -d max_execution_time=0 -S "0.0.0.0:${PORT}" -t "$PROJECT_DIR" "$PROJECT_DIR/server-router.php" >"$LOG_FILE" 2>&1 &
+nohup php -d memory_limit=256M -d max_execution_time=0 -d upload_max_filesize=16M -d post_max_size=18M -S "0.0.0.0:${PORT}" -t "$PROJECT_DIR" "$PROJECT_DIR/server-router.php" >"$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 printf '%s\n' "$SERVER_PID" > "$PID_FILE"
 
@@ -41,7 +41,7 @@ for _ in $(seq 1 30); do
 done
 
 if [ "$READY" -eq 1 ]; then
-  echo "GoldHen Manager AJ v4.0 abierto en http://127.0.0.1:${PORT}/index.php"
+  echo "PS4 Manager Tool v4.5.1 abierto en http://127.0.0.1:${PORT}/index.php"
   command -v termux-open-url >/dev/null 2>&1 && termux-open-url "http://127.0.0.1:${PORT}/index.php"
   exit 0
 fi

@@ -142,9 +142,6 @@
                 </button>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="abrirGaleriaGlobal()" class="h-9 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest text-emerald-300">
-                    <i class="fa-solid fa-images text-emerald-400"></i> Capturas
-                </button>
                 <button id="btn-toggle-library-view" type="button" aria-label="Cambiar entre cuadrícula y carrusel" aria-pressed="false" onclick="conmutarModoVista()" class="h-9 px-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center gap-2 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest text-cyan-300">
                     <i class="fa-solid fa-cube text-cyan-400" id="icono-vista"></i> Cambiar vista
                 </button>
@@ -212,12 +209,6 @@
                     <button onclick="ejecutarAccionRapidaJuego('saves')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-cyan-500/30">
                         <i class="fa-solid fa-floppy-disk text-cyan-400 text-lg mb-1.5"></i>
                         <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">Saves</span>
-                    </button>
-                    
-                    <button onclick="ejecutarAccionRapidaJuego('galeria')" class="relative flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-emerald-500/30">
-                        <i class="fa-solid fa-images text-emerald-400 text-lg mb-1.5"></i>
-                        <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">Galería</span>
-                        <span id="sheet-count-capturas-badge-3d" class="absolute top-1 right-1 bg-emerald-500 text-black text-[7px] font-black px-1 rounded-md hidden">--</span>
                     </button>
                     
                     <button onclick="ejecutarAccionRapidaJuego('editar_portada')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-purple-500/30">
@@ -309,19 +300,6 @@
             </div>
 
             <div class="flex flex-col gap-3 w-full">
-                <button onclick="ejecutarAccionRapidaJuego('galeria')" class="group flex items-center gap-4 p-4 rounded-2xl bg-[#0b1414]/80 border border-emerald-500/20 hover:bg-emerald-500/10 active:scale-[0.98] transition-all relative overflow-hidden shadow-lg text-left backdrop-blur-sm">
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500/90 shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
-                    <div class="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shrink-0 relative">
-                        <i class="fa-solid fa-images text-emerald-400 text-lg"></i>
-                        <span id="sheet-count-capturas-badge" class="absolute -top-1 -right-1 bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded-md hidden">--</span>
-                    </div>
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[12px] font-black uppercase tracking-widest text-gray-100 group-active:text-emerald-300 transition-colors">Galería de Capturas</span>
-                        <span class="text-[10px] text-gray-400 mt-1 leading-tight">Ver y administrar capturas y videos.</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-emerald-500/50 text-xs mr-1 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-
                 <button onclick="ejecutarAccionRapidaJuego('editar_portada')" class="group flex items-center gap-4 p-4 rounded-2xl bg-[#110b1a]/80 border border-purple-500/20 hover:bg-purple-500/10 active:scale-[0.98] transition-all relative overflow-hidden shadow-lg text-left backdrop-blur-sm">
                     <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-purple-500/90 shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
                     <div class="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shrink-0">
@@ -355,39 +333,6 @@
         <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-5"></div>
         <h3 class="text-[11px] font-black tracking-widest text-gray-400 uppercase mb-4 text-center">Mover a Categoría</h3>
         <div id="lista-categorias-custom-game" class="flex flex-col gap-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2"></div>
-    </div>
-</div>
-
-<div id="modal-galeria-juego" class="fixed inset-0 z-[800] bg-[#050810] hidden flex-col opacity-0 transition-opacity duration-300 transform translate-y-full">
-    <div class="w-full flex items-center justify-between p-4 bg-[#0a0e14]/90 backdrop-blur-md border-b border-white/5 z-20 shrink-0 shadow-lg">
-        <div class="flex items-center gap-3">
-            <button onclick="cerrarGaleriaJuego()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-300 active:scale-90 transition-all hover:bg-white/10"><i class="fa-solid fa-arrow-left"></i></button>
-            <div class="flex flex-col">
-                <h3 id="galeria-title" class="text-[13px] font-black uppercase text-white tracking-widest truncate max-w-[200px]">---</h3>
-                <span id="galeria-count" class="text-[9px] font-mono text-emerald-400">0 Capturas</span>
-            </div>
-        </div>
-        <button onclick="forzarRecargaGaleria()" class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 active:rotate-180 transition-all"><i class="fa-solid fa-rotate-right text-xs"></i></button>
-    </div>
-    <div id="galeria-grid-container" class="flex-1 w-full h-full overflow-y-auto p-3 pb-24 hide-scrollbar touch-pan-y" style="-webkit-overflow-scrolling: touch;">
-        <div id="galeria-loader" class="w-full h-full flex flex-col items-center justify-center text-emerald-500 opacity-60">
-            <i class="fa-solid fa-satellite-dish animate-pulse text-4xl mb-3"></i>
-            <p class="text-[10px] font-mono tracking-widest uppercase">Descargando Caché...</p>
-        </div>
-        <div id="galeria-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 hidden"></div>
-    </div>
-</div>
-
-<div id="lightbox-visor" onclick="cerrarLightbox()" class="fixed inset-0 z-[900] bg-black/95 backdrop-blur-xl hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
-    <div class="absolute top-6 right-6 z-50 flex items-center gap-3">
-        <button onclick="event.stopPropagation(); compartirImagenLightbox();" class="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 backdrop-blur-md active:scale-90 transition-all border border-cyan-500/30 shadow-lg"><i class="fa-solid fa-share-nodes text-lg"></i></button>
-        <button onclick="cerrarLightbox()" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md active:scale-90 transition-all border border-white/20 shadow-lg"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <div class="w-full h-full flex items-center justify-center p-2">
-        <img id="lightbox-img" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.8)] transform scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
-    </div>
-    <div class="absolute bottom-6 w-full text-center px-4 pointer-events-none">
-        <p id="lightbox-name" class="text-[10px] font-mono text-gray-400 tracking-widest bg-black/50 inline-block px-3 py-1 rounded-md backdrop-blur-sm border border-white/5"></p>
     </div>
 </div>
 

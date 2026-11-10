@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * GOLDHEN MANAGER V3.0 🚀 - CONTROLADOR DEL EXPLORADOR FTP
+ * PS4 Manager Tool V3.0 🚀 - CONTROLADOR DEL EXPLORADOR FTP
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: js/explorador.js
  * ====================================================================
  */
@@ -46,7 +46,7 @@ function abrirCapaExplorador() {
 function formatearTamanoBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
@@ -577,7 +577,7 @@ async function procesarSubidaExplorador(event) {
     document.getElementById('up-modal-percent').innerText = "0%";
     document.getElementById('up-modal-bar').style.width = "0%";
     document.getElementById('up-modal-sent').innerText = `0 B / ${formatearTamanoBytes(file.size)}`;
-    document.getElementById('up-modal-speed').innerText = "0 MB/s";
+    document.getElementById('up-modal-speed').innerText = "0 MiB/s";
     document.getElementById('up-modal-eta').innerText = "ETA: --:--";
 
     const modal = document.getElementById('modal-upload-progress');
@@ -741,7 +741,7 @@ function actualizarProgresoExplorador(bytesSent, totalBytes, chunkStartTime, chu
     document.getElementById('up-modal-percent').innerText = `${percent}%`;
     document.getElementById('up-modal-bar').style.width = `${percent}%`;
     document.getElementById('up-modal-sent').innerText = `${formatearTamanoBytes(bytesSent)} / ${formatearTamanoBytes(totalBytes)}`;
-    document.getElementById('up-modal-speed').innerText = `${speedMB} MB/s`;
+    document.getElementById('up-modal-speed').innerText = `${speedMB} MiB/s`;
     document.getElementById('up-modal-eta').innerText = `ETA: ${etaString}`;
 }
 

@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
+require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * GOLDHEN MANAGER AJ 🚀 - API: INYECTOR DE PORTADAS FTP
+ * PS4 Manager Tool 🚀 - API: INYECTOR DE PORTADAS FTP
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: api/inyector_portadas.php
  * ====================================================================
@@ -55,6 +57,7 @@ if (!file_exists($cache_dir . '/.nomedia')) {
 // MOTOR FTP cURL (Especial para Termux)
 // ==========================================
 function check_folder_exists($ip, $port, $path) {
+    if(function_exists('ftp_connect'))return ghm_ftp_list($ip,(int)$port,$path,8)!==false;
     $ch = curl_init("ftp://$ip:$port$path/");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
@@ -66,6 +69,7 @@ function check_folder_exists($ip, $port, $path) {
 }
 
 function curl_upload($ip, $port, $remote_path, $local_path) {
+    if(function_exists('ftp_connect'))return ghm_ftp_put($ip,(int)$port,$remote_path,$local_path,false,30);
     $fp = fopen($local_path, 'r');
     $ch = curl_init("ftp://$ip:$port$remote_path");
     curl_setopt($ch, CURLOPT_UPLOAD, 1);
@@ -116,11 +120,14 @@ if ($inyeccion_exitosa) {
     $dir_fallback = dirname($ruta_fallback);
     
     // Intentar crear la carpeta con MKD
+    if(function_exists('ftp_connect')){$res_mkd=ghm_ftp_mkdir($host_ip,$port,$dir_fallback);}
+    else{
     $ch = curl_init("ftp://$host_ip:$port/");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_QUOTE, ["MKD $dir_fallback"]);
     $res_mkd = curl_exec($ch);
     curl_close($ch);
+    }
     
     if ($res_mkd !== false) {
         if (curl_upload($host_ip, $port, $ruta_fallback, $tmp_file)) {

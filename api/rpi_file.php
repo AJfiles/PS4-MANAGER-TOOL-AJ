@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
 // Sirve exclusivamente PKG seleccionados en el escaneo RPI reciente.
 error_reporting(0);
 ini_set('display_errors', '0');
@@ -118,12 +119,12 @@ if ($handle === false || ($start > 0 && fseek($handle, $start) !== 0)) {
 $remaining = $length;
 $pendingProgressBytes = 0;
 while ($remaining > 0 && !feof($handle)) {
-    $chunk = fread($handle, min(1024 * 1024, $remaining));
+    $chunk = fread($handle, min(4 * 1024 * 1024, $remaining));
     if ($chunk === false || $chunk === '') break;
     echo $chunk;
     $remaining -= strlen($chunk);
     $pendingProgressBytes += strlen($chunk);
-    if ($progressFile !== '' && ($pendingProgressBytes >= 8 * 1024 * 1024 || $remaining === 0)) {
+    if ($progressFile !== '' && ($pendingProgressBytes >= 16 * 1024 * 1024 || $remaining === 0)) {
         $progressHandle = @fopen($progressFile, 'c+');
         if ($progressHandle) {
             if (flock($progressHandle, LOCK_EX)) {

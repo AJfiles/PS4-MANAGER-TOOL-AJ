@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
+require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * GOLDHEN MANAGER V3.0 🚀 - API: GESTOR AFR V3 + SISTEMA PLUGINS
+ * PS4 Manager Tool V3.0 🚀 - API: GESTOR AFR V3 + SISTEMA PLUGINS
  * RUTA: api/afr_api.php
  * ====================================================================
  */
@@ -53,6 +55,7 @@ function guardar_db($archivo, $data) { file_put_contents($archivo, json_encode($
 // FUNCIONES FTP
 // ==========================================
 function ghm_afr_ftp_list_files($ip, $port, $path) {
+    if(function_exists('ftp_connect')){$rows=ghm_ftp_list($ip,(int)$port,$path,15);if($rows===false)return [];return array_values(array_map(static fn($r)=>$r['name'],array_filter($rows,static fn($r)=>!$r['dir'])));}
     $ch = curl_init("ftp://$ip:$port$path/");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
@@ -75,6 +78,7 @@ function ghm_afr_ftp_list_files($ip, $port, $path) {
     return $files;
 }
 function ghm_afr_ftp_upload($ip, $port, $remote_path, $local_path) {
+    if(function_exists('ftp_connect'))return ghm_ftp_put($ip,(int)$port,$remote_path,$local_path,false,600);
     $fp = fopen($local_path, 'r');
     $ch = curl_init("ftp://$ip:$port$remote_path");
     curl_setopt($ch, CURLOPT_UPLOAD, 1);
@@ -86,6 +90,7 @@ function ghm_afr_ftp_upload($ip, $port, $remote_path, $local_path) {
     curl_close($ch); fclose($fp); return $res;
 }
 function ghm_afr_ftp_mkdir($ip, $port, $path) {
+    if(function_exists('ftp_connect'))return ghm_ftp_mkdir($ip,(int)$port,$path)!==false;
     $ch = curl_init("ftp://$ip:$port/");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTQUOTE, ["MKD $path"]);
@@ -93,6 +98,7 @@ function ghm_afr_ftp_mkdir($ip, $port, $path) {
     curl_exec($ch); curl_close($ch);
 }
 function ghm_afr_ftp_rename($ip, $port, $old_path, $new_path) {
+    if(function_exists('ftp_connect'))return ghm_ftp_rename($ip,(int)$port,$old_path,$new_path);
     $ch = curl_init("ftp://$ip:$port/");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTQUOTE, ["RNFR $old_path", "RNTO $new_path"]);
@@ -100,6 +106,7 @@ function ghm_afr_ftp_rename($ip, $port, $old_path, $new_path) {
     $res = curl_exec($ch); curl_close($ch); return $res;
 }
 function ghm_afr_ftp_delete($ip, $port, $path) {
+    if(function_exists('ftp_connect'))return ghm_ftp_delete($ip,(int)$port,$path);
     $ch = curl_init("ftp://$ip:$port/");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTQUOTE, ["DELE $path"]);
@@ -107,6 +114,7 @@ function ghm_afr_ftp_delete($ip, $port, $path) {
     curl_exec($ch); curl_close($ch);
 }
 function ghm_afr_ftp_download($ip, $port, $remote_file, $local_file) {
+    if(function_exists('ftp_connect'))return ghm_ftp_download($ip,(int)$port,$remote_file,$local_file,30)&&filesize($local_file)>0;
     $ch = curl_init("ftp://$ip:$port$remote_file");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);

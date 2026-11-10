@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
+require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * GOLDHEN MANAGER AJ 🚀 - API: DETECTOR DE PESO Y ESPACIO
+ * PS4 Manager Tool 🚀 - API: DETECTOR DE PESO Y ESPACIO
  * DEVELOPED By SeBaS - Mod AJ
  * RUTA: api/tech_info_biblioteca.php
  * ====================================================================
@@ -53,6 +55,7 @@ if (file_exists($cache_file)) {
 // FUNCIONES AUXILIARES FTP
 // ==========================================
 function curl_get_dir_list($ip, $port, $path) {
+    if(function_exists('ftp_connect')){$rows=ghm_ftp_list($ip,(int)$port,$path,10);if($rows===false)return [];return array_map(static fn($r)=>['name'=>$r['name'],'is_dir'=>$r['dir'],'size'=>$r['size']],$rows);}
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, "ftp://$ip:$port" . rtrim($path, '/') . '/');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

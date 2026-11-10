@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
 /** Descubre equipos que exponen servicios conocidos de GoldHEN en interfaces LAN activas. */
 error_reporting(0);
 ini_set('display_errors', '0');
@@ -7,7 +8,9 @@ set_time_limit(15);
 
 $timeoutMs = max(100, min(8000, (int)($_GET['timeout'] ?? 2500)));
 $requestedPort = (int)($_GET['port'] ?? 2121);
-$ports = array_values(array_unique(array_filter([$requestedPort, 2121, 2122, 12800, 12801, 9090], static fn($p) => $p >= 1 && $p <= 65535)));
+// BinLoader 9090 receives raw payload streams; never include it in an empty
+// TCP port scan. Use FTP/RPI services for discovery instead.
+$ports = array_values(array_unique(array_filter([$requestedPort, 2121, 2122, 12800, 12801], static fn($p) => $p >= 1 && $p <= 65535 && $p !== 9090)));
 $ports = array_slice($ports, 0, 6);
 if ($requestedPort < 1 || $requestedPort > 65535) {
     http_response_code(400);

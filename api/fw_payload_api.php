@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
 error_reporting(0); ini_set('display_errors', 0); set_time_limit(60);
 header('Content-Type: application/json; charset=utf-8');
 function fw_reply($data) { echo json_encode($data); exit; }
+require_once __DIR__ . '/binloader_client.php';
 $host = $_POST['host_ip'] ?? '';
 $fw = $_POST['firmware'] ?? '';
 $action = $_POST['action'] ?? '';
@@ -20,10 +22,13 @@ $file = realpath($base . '/' . $fw . $sub . $name);
 if (!$base || !$file || strpos($file, $base . DIRECTORY_SEPARATOR) !== 0 || !is_file($file)) fw_reply(['status'=>'error','message'=>'No se encontró el payload.']);
 $size = filesize($file);
 if ($size < 1 || $size > 16*1024*1024) fw_reply(['status'=>'error','message'=>'Tamaño de payload inválido.']);
-$sock = @fsockopen($host, 9090, $errno, $err, 5);
-if (!$sock) fw_reply(['status'=>'error','message'=>'BinLoader no responde en el puerto 9090.']);
-$fp = fopen($file, 'rb'); $sent = 0;
-while (!feof($fp)) { $chunk = fread($fp, 65536); if ($chunk === false || $chunk === '') break; $offset=0; while ($offset < strlen($chunk)) { $n=fwrite($sock, substr($chunk,$offset)); if ($n === false || $n === 0) break 2; $offset += $n; } $sent += strlen($chunk); }
-fclose($fp); fclose($sock);
-fw_reply($sent === $size ? ['status'=>'success','bytes'=>$sent] : ['status'=>'error','message'=>'El envío quedó incompleto.']);
+$bytes = @file_get_contents($file);
+if ($bytes === false || strlen($bytes) !== $size) fw_reply(['status'=>'error','message'=>'No se pudo leer completo el payload desde el almacenamiento.']);
+$result = ghm_binloader_send($host, $bytes, false);
+if (!$result['ok']) fw_reply(['status'=>'error','message'=>$result['message']]);
+fw_reply([
+  'status'=>'success', 'bytes'=>$result['bytes'], 'listener_ready'=>null,
+  'application_confirmed'=>false,
+  'message'=>'Se transmitieron todos los bytes. GoldHEN no confirma si aplicó el payload ni ofrece aquí una comprobación segura del listener; verifica el resultado en la consola antes de otro envío.'
+]);
 ?>

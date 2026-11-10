@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# GoldHen Manager AJ v4.0 — instalador fiable para Termux
+# PS4 Manager Tools AJ v4.5.1 — instalador fiable para Termux
 set -u
 
 VERDE='\033[1;32m'; CYAN='\033[1;36m'; AMARILLO='\033[1;33m'; ROJO='\033[1;31m'; BLANCO='\033[1;37m'; NC='\033[0m'
@@ -90,7 +90,7 @@ EOF
 componentes_faltantes() {
     PAQUETES_FALTANTES=()
     local package
-    for package in git php php-gd termux-api zip unzip; do
+    for package in git php php-gd sqlite termux-api zip unzip; do
         if ! dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null | grep -qx installed; then
             PAQUETES_FALTANTES+=("$package")
         fi
@@ -108,7 +108,7 @@ validar_php() {
 
 clear
 printf "${CYAN}╭────────────────────────────────────╮${NC}\n"
-printf "${CYAN}│${NC}      ${BLANCO}GOLDHEN MANAGER AJ${NC} ${CYAN}v4.0      │${NC}\n"
+printf "${CYAN}│${NC}      ${BLANCO}PS4 Manager Tools AJ${NC} ${CYAN}v4.5.1      │${NC}\n"
 printf "${CYAN}│${NC}       ${AMARILLO}PS4 • Termux • Local FTP${NC}       ${CYAN}│${NC}\n"
 printf "${CYAN}╰────────────────────────────────────╯${NC}\n\n"
 
@@ -135,12 +135,12 @@ else
 fi
 
 if [ -d "$REPO_DIR/.git" ]; then
-    if ! ejecutar_paso "Actualizando GoldHen Manager AJ…" git -C "$REPO_DIR" pull --ff-only origin main; then
+    if ! ejecutar_paso "Actualizando PS4 Manager Tools AJ…" git -C "$REPO_DIR" pull --ff-only origin main; then
         printf "${AMARILLO}Hay cambios locales distintos; la instalación se conservó sin sobrescribirlos.${NC}\n"
     fi
 else
     [ ! -e "$REPO_DIR" ] || { printf "${ROJO}La ruta $REPO_DIR existe pero no es una instalación válida.${NC}\n"; exit 1; }
-    ejecutar_paso "Descargando GoldHen Manager AJ…" git clone --depth 1 https://github.com/AJfiles/GoldHenManagerAJ.git "$REPO_DIR" || exit 1
+    ejecutar_paso "Descargando PS4 Manager Tools AJ…" git clone --depth 1 https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ.git "$REPO_DIR" || exit 1
 fi
 
 if ! ejecutar_paso "Verificando archivos PHP…" validar_php; then
@@ -157,6 +157,6 @@ configurar_inicio_termux
 
 printf "\n${VERDE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
 printf "${VERDE}  ✓ Instalación completada${NC}\n"
-printf "${CYAN}  Abriendo GoldHen Manager AJ…${NC}\n"
+printf "${CYAN}  Abriendo PS4 Manager Tools AJ…${NC}\n"
 printf "${VERDE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
 exec bash "$REPO_DIR/start-goldhen.sh"

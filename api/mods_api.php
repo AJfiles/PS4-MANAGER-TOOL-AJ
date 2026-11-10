@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
+require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * GOLDHEN MANAGER V3.0 🚀 - API: MOTOR DE MODS Y BÓVEDA (TERMUX)
+ * PS4 Manager Tool V3.0 🚀 - API: MOTOR DE MODS Y BÓVEDA (TERMUX)
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: api/mods_api.php
  * ====================================================================
  */
@@ -52,6 +54,7 @@ function enviar_lote_socket($host, $port, $comandos) {
 }
 
 function enviar_comando_raw_ftp($host, $port, $comandos) {
+    if(function_exists('ftp_connect')){foreach((array)$comandos as $cmd)if(ghm_ftp_command($host,(int)$port,(string)$cmd)===false)return false;return true;}
     $ch = curl_init("ftp://$host:$port/");
     if ($ch) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -65,6 +68,7 @@ function enviar_comando_raw_ftp($host, $port, $comandos) {
 }
 
 function borrar_recursivo_ftp($host_ip, $port, $path) {
+    if(function_exists('ftp_connect')){$rows=ghm_ftp_list($host_ip,(int)$port,$path,12);if($rows===false)return false;foreach($rows as $row){$item=rtrim($path,'/').'/'.$row['name'];if($row['dir']){if(!borrar_recursivo_ftp($host_ip,$port,$item))return false;}elseif(!ghm_ftp_delete($host_ip,(int)$port,$item))return false;}return ghm_ftp_rmdir($host_ip,(int)$port,$path);}
     $ch = curl_init();
     $url_path = implode('/', array_map('rawurlencode', explode('/', trim($path, '/'))));
     curl_setopt($ch, CURLOPT_URL, "ftp://$host_ip:$port/$url_path/");
@@ -94,6 +98,7 @@ function borrar_recursivo_ftp($host_ip, $port, $path) {
 }
 
 function leer_archivo_ftp($host, $port, $path) {
+    if(function_exists('ftp_connect'))return ghm_ftp_get($host,(int)$port,$path,15);
     $ch = curl_init("ftp://$host:$port" . implode('/', array_map('rawurlencode', explode('/', $path))));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 3);
@@ -119,6 +124,7 @@ if ($action === 'upload_chunk') {
     $folder_encoded = $target_folder ? '/' . implode('/', array_map('rawurlencode', explode('/', $target_folder))) : '';
     $remote_path = "$vault_base/" . rawurlencode($mod_name) . $folder_encoded . "/" . rawurlencode($filename);
     
+    if(function_exists('ftp_connect')){$ok=ghm_ftp_put($host_ip,$port,$remote_path,$tmp_file,$chunk_index>0,90);echo json_encode(['status'=>$ok?'success':'error']);exit;}
     $fp = fopen($tmp_file, 'r');
     $ch = curl_init("ftp://$host_ip:$port$remote_path");
 
@@ -144,6 +150,7 @@ if ($action === 'guardar_indice') {
     $tmp_file = $_FILES['file']['tmp_name'];
     $remote_path = "$vault_base/" . rawurlencode($mod_name) . "/index.json";
     
+    if(function_exists('ftp_connect')){$ok=ghm_ftp_put($host_ip,$port,$remote_path,$tmp_file,false,60);echo json_encode(['status'=>$ok?'success':'error']);exit;}
     $fp = fopen($tmp_file, 'r');
     $ch = curl_init("ftp://$host_ip:$port$remote_path");
     curl_setopt($ch, CURLOPT_UPLOAD, 1);
@@ -162,6 +169,7 @@ if ($action === 'guardar_indice') {
 // 2. ESCÁNER: BÓVEDA CON LECTURA INSTANTÁNEA
 // =======================================================
 if ($action === 'listar_boveda') {
+    if(function_exists('ftp_connect')){$rows=ghm_ftp_list($host_ip,$port,$vault_base,10);$mods=[];if(is_array($rows))foreach($rows as $row)if($row['dir']){$name=$row['name'];$idx=leer_archivo_ftp($host_ip,$port,"$vault_base/$name/index.json");$data=$idx?json_decode($idx,true):null;$mods[]=['id'=>md5($name),'name'=>$name,'total_files'=>$data['total_files']??'?','file_registry'=>$data['file_registry']??[]];}echo json_encode(['status'=>'success','data'=>$mods]);exit;}
     $ch = curl_init("ftp://$host_ip:$port$vault_base/");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");

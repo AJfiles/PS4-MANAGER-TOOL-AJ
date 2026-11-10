@@ -31,6 +31,7 @@ function registrarLogRPI(message, level = 'info') {
     line.className = level === 'error' ? 'text-red-300' : (level === 'success' ? 'text-emerald-300' : 'text-gray-300');
     line.textContent = entry;
     terminal.appendChild(line);
+    while (terminal.children.length > 120) terminal.firstElementChild?.remove();
     terminal.scrollTop = terminal.scrollHeight;
 }
 
@@ -41,7 +42,7 @@ function limpiarLogRPI() {
 }
 
 async function copiarLogRPI() {
-    const text = rpiLogLines.join('\n') || 'GoldHEN Manager: sin eventos RPI registrados.';
+    const text = rpiLogLines.join('\n') || 'PS4 Manager Tool: sin eventos RPI registrados.';
     try {
         await navigator.clipboard.writeText(text);
     } catch (_) {
@@ -68,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function formatearTamanoBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
@@ -432,7 +433,7 @@ function prepararArchivoTransferencia(event) {
     document.getElementById('transfer-sent').innerText = '0 B';
     document.getElementById('transfer-percent').innerText = '0%';
     document.getElementById('transfer-bar').style.width = '0%';
-    document.getElementById('transfer-speed').innerText = '0.00 MB/s';
+    document.getElementById('transfer-speed').innerText = '0.00 MiB/s';
     document.getElementById('transfer-eta').innerText = '--:--';
     const duracion = document.getElementById('transfer-duration');
     if (duracion) duracion.innerText = '00:00';
@@ -659,7 +660,7 @@ function actualizarMetricas(bytesSent, totalBytes, chunkStartTime, chunkSize) {
         const speedBytesPerSec = bytesSent / timeElapsed;
         speedMB = speedBytesPerSec / (1024 * 1024);
     }
-    const speedText = speedMB > 0 ? `${speedMB.toFixed(2)} MB/s` : 'Calculando...';
+    const speedText = speedMB > 0 ? `${speedMB.toFixed(2)} MiB/s` : 'Calculando...';
 
     const bytesRemaining = totalBytes - bytesSent;
     const secondsRemaining = speedMB > 0 ? Math.round(bytesRemaining / (speedMB * 1024 * 1024)) : 0;
@@ -715,7 +716,7 @@ function limpiarEstadoTransferencia() {
     document.getElementById('transfer-sent').innerText = '0 B';
     document.getElementById('transfer-percent').innerText = '0%';
     document.getElementById('transfer-bar').style.width = '0%';
-    document.getElementById('transfer-speed').innerText = '0.00 MB/s';
+    document.getElementById('transfer-speed').innerText = '0.00 MiB/s';
     document.getElementById('transfer-eta').innerText = '--:--';
     document.getElementById('transfer-duration').innerText = '00:00';
     document.getElementById('btn-limpiar-transferencia').classList.add('hidden');

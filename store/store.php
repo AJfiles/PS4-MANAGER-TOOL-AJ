@@ -1,7 +1,7 @@
 <?php
 /**
  * ====================================================================
- * GOLDHEN MANAGER v4.0 - MÓDULO STORE (PÚBLICO)
+ * PS4 Manager Tool v4.5.1 - MÓDULO STORE (PÚBLICO)
  * ====================================================================
  */
 error_reporting(0);
@@ -55,13 +55,13 @@ if (file_exists($archivoCatalogo)) {
     <!-- HEADER -->
     <div class="fixed top-0 left-0 right-0 z-40 glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
-            <a href="../index.php" class="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-200 transition-all hover:bg-cyan-500/20 active:scale-90" title="Volver a GoldHen Manager" aria-label="Volver a GoldHen Manager"><i class="fa-solid fa-house"></i></a>
+            <a href="../index.php" class="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-200 transition-all hover:bg-cyan-500/20 active:scale-90" title="Volver a PS4 Manager Tool" aria-label="Volver a PS4 Manager Tool"><i class="fa-solid fa-house"></i></a>
             <div class="bg-cyan-500 w-8 h-8 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)]">
                 <i class="fa-solid fa-store text-white text-sm"></i>
             </div>
             <div>
                 <h1 class="text-sm font-black tracking-widest uppercase leading-none">GoldHen Store</h1>
-                <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">v4.0</span>
+                <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">v4.5.1</span>
             </div>
         </div>
         <div class="flex items-center gap-2">

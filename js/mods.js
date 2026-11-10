@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * GOLDHEN MANAGER V3.0 🚀 - LÓGICA MOTOR MINECRAFT
+ * PS4 Manager Tool V3.0 🚀 - LÓGICA MOTOR MINECRAFT
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: js/mods.js
  * ====================================================================
  */

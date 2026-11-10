@@ -282,10 +282,10 @@
         draw();
     }
 
-    function changeDynamicWallpaper(bgId) {
+    function changeDynamicWallpaper(bgId, persist = true) {
         stopAllCanvas();
         document.querySelectorAll('.bg-layer').forEach(layer => layer.classList.remove('active'));
-        localStorage.setItem('ps4_dynamic_bg', bgId);
+        if (persist) localStorage.setItem('ps4_dynamic_bg', bgId);
 
         if (bgId === 'none' || !bgId) {
             const normalBg = document.getElementById('custom-bg-layer');

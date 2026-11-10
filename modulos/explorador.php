@@ -1,7 +1,7 @@
 <?php
 /**
  * ====================================================================
- * GOLDHEN MANAGER V3.0 🚀 - MÓDULO EXPLORADOR FTP
+ * PS4 Manager Tool V3.0 🚀 - MÓDULO EXPLORADOR FTP
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: modulos/explorador.php
  * ====================================================================
  */

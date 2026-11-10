@@ -1,11 +1,11 @@
 /**
  * ====================================================================
- * GOLDHEN MANAGER AJ 🚀 (PS4) - NÚCLEO DE CONTROL CENTRAL (CORE)
+ * PS4 Manager Tool 🚀 (PS4) - NÚCLEO DE CONTROL CENTRAL (CORE)
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * ====================================================================
  */
 const CREATOR_ATTRIBUTION = "by AJ · basado en el trabajo original de SeBaS";
-console.log(`%c GOLDHEN MANAGER AJ - Developed ${CREATOR_ATTRIBUTION} `, "background: #111827; color: #22d3ee; font-weight: bold; padding: 4px;");
+console.log(`%c PS4 Manager Tool - Developed ${CREATOR_ATTRIBUTION} `, "background: #111827; color: #22d3ee; font-weight: bold; padding: 4px;");
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -26,6 +26,7 @@ let globalAudioCtx = null;
 let ultimoEfectoAudioAt = 0;
 let radarTimeoutId = null; // Para controlar el cierre automático del radar
 let pwaInstallPrompt = null;
+let pendingVisualPreview = null;
 
 function notificacionNavegador(titulo, cuerpo) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -167,11 +168,81 @@ function aplicarPreferenciasDeAccesibilidad() {
 }
 
 function alternarVistaLauncher(vertical) {
-    const grid = document.getElementById('launcher-grid');
-    if (!grid) return;
+    const grids = [document.getElementById('launcher-grid'), document.getElementById('launcher-preview-grid')].filter(Boolean);
+    if (!grids.length) return;
     const enabled = Boolean(vertical);
-    grid.classList.toggle('launcher-vertical', enabled);
+    grids.forEach(grid => grid.classList.toggle('launcher-vertical', enabled));
     localStorage.setItem('cfg_launcher_vertical', enabled ? 'true' : 'false');
+}
+
+function cambiarEstiloLoader(value) {
+    const allowed = ['orbit', 'pulse', 'scan', 'minimal'];
+    const selected = allowed.includes(value) ? value : 'orbit';
+    localStorage.setItem('cfg_loader_style', selected);
+    const selector = document.getElementById('cfg-loader-style');
+    if (selector && selector.value !== selected) selector.value = selected;
+    if (typeof window.ghmLoaderPreview === 'function') window.ghmLoaderPreview(selected);
+}
+
+function cambiarAnimacionLauncher(motion) {
+    const grids = [document.getElementById('launcher-grid'), document.getElementById('launcher-preview-grid')].filter(Boolean);
+    if (!grids.length) return;
+    const allowed = ['none', 'rise', 'glide', 'float', 'tilt', 'pulse'];
+    const selected = allowed.includes(motion) ? motion : 'none';
+    grids.forEach(grid => {
+        ['motion-none', 'motion-rise', 'motion-glide', 'motion-float', 'motion-tilt', 'motion-pulse'].forEach(name => grid.classList.remove(name));
+        grid.classList.add(`motion-${selected}`);
+    });
+    localStorage.setItem('cfg_launcher_motion', selected);
+}
+
+function cambiarTemaLauncher(theme) {
+    const grids = [document.getElementById('launcher-grid'), document.getElementById('launcher-preview-grid')].filter(Boolean);
+    if (!grids.length) return;
+    const allowed = ['glass', 'solid', 'aurora', 'gradient'];
+    const selected = allowed.includes(theme) ? theme : 'glass';
+    grids.forEach(grid => {
+        ['theme-glass', 'theme-solid', 'theme-aurora', 'theme-gradient'].forEach(name => grid.classList.remove(name));
+        grid.classList.add(`theme-${selected}`);
+    });
+    localStorage.setItem('cfg_launcher_theme', selected);
+}
+
+function cambiarEstiloIconosLauncher() {
+    const grids = [document.getElementById('launcher-grid'), document.getElementById('launcher-preview-grid')].filter(Boolean);
+    if (!grids.length) return;
+    const shape = document.getElementById('cfg-launcher-shape')?.value || localStorage.getItem('cfg_launcher_shape') || 'rounded';
+    const style = document.getElementById('cfg-launcher-icons')?.value || localStorage.getItem('cfg_launcher_icons') || 'color';
+    grids.forEach(grid => {
+        ['shape-rounded','shape-circle','shape-square','shape-diamond','shape-pill','shape-squircle','shape-hexagon','icons-color','icons-glow','icons-outline','icons-mono'].forEach(name => grid.classList.remove(name));
+        grid.classList.add(`shape-${shape}`, `icons-${style}`);
+    });
+    localStorage.setItem('cfg_launcher_shape', shape);
+    localStorage.setItem('cfg_launcher_icons', style);
+}
+
+function toggleLauncherPreview() {
+    const panel = document.getElementById('launcher-preview-panel');
+    const button = document.getElementById('launcher-preview-toggle');
+    if (!panel) return;
+    const show = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !show);
+    if (button) {
+        button.setAttribute('aria-expanded', show ? 'true' : 'false');
+        button.innerHTML = show ? '<i class="fa-solid fa-eye-slash mr-1"></i> Ocultar vista previa' : '<i class="fa-solid fa-eye mr-1"></i> Ver vista previa';
+    }
+    if (show) {
+        const grid = document.getElementById('launcher-preview-grid');
+        const motion = localStorage.getItem('cfg_launcher_motion') || 'none';
+        if (grid && ['rise', 'glide'].includes(motion)) {
+            grid.classList.remove(`motion-${motion}`);
+            void grid.offsetWidth;
+            grid.classList.add(`motion-${motion}`);
+        }
+        grid?.querySelectorAll('.launcher-card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 55}ms`;
+        });
+    }
 }
 
 function cambiarFuenteApp(font) {
@@ -228,6 +299,20 @@ function cargarConfiguracionesLocales() {
     const bgGuardado = localStorage.getItem('ps4_dynamic_bg') || 'bg-ps4';
     cambiarFuenteApp(localStorage.getItem('cfg_app_font') || 'outfit');
     alternarVistaLauncher(localStorage.getItem('cfg_launcher_vertical') === 'true');
+    const shapeSelector = document.getElementById('cfg-launcher-shape');
+    if (shapeSelector) shapeSelector.value = localStorage.getItem('cfg_launcher_shape') || 'rounded';
+    const iconSelector = document.getElementById('cfg-launcher-icons');
+    if (iconSelector) iconSelector.value = localStorage.getItem('cfg_launcher_icons') || 'color';
+    cambiarEstiloIconosLauncher();
+    const motionSelector = document.getElementById('cfg-launcher-motion');
+    if (motionSelector) motionSelector.value = localStorage.getItem('cfg_launcher_motion') || 'none';
+    cambiarAnimacionLauncher(motionSelector?.value || localStorage.getItem('cfg_launcher_motion') || 'none');
+    const themeSelector = document.getElementById('cfg-launcher-theme');
+    if (themeSelector) themeSelector.value = localStorage.getItem('cfg_launcher_theme') || 'glass';
+    cambiarTemaLauncher(themeSelector?.value || localStorage.getItem('cfg_launcher_theme') || 'glass');
+    const loaderSelector = document.getElementById('cfg-loader-style');
+    if (loaderSelector) loaderSelector.value = localStorage.getItem('cfg_loader_style') || 'orbit';
+    cambiarEstiloLoader(loaderSelector?.value || localStorage.getItem('cfg_loader_style') || 'orbit');
     if (typeof changeDynamicWallpaper === 'function') {
         setTimeout(() => changeDynamicWallpaper(bgGuardado), 300);
     }
@@ -254,8 +339,17 @@ function inicializarValoresInterfazAjustes() {
         if (fontSelect) fontSelect.value = localStorage.getItem('cfg_app_font') || 'outfit';
         const verticalToggle = document.getElementById('cfg-launcher-vertical');
         if (verticalToggle) verticalToggle.checked = localStorage.getItem('cfg_launcher_vertical') === 'true';
+        const launcherShape = document.getElementById('cfg-launcher-shape');
+        if (launcherShape) launcherShape.value = localStorage.getItem('cfg_launcher_shape') || 'rounded';
+        const launcherIcons = document.getElementById('cfg-launcher-icons');
+        if (launcherIcons) launcherIcons.value = localStorage.getItem('cfg_launcher_icons') || 'color';
+        const launcherTheme = document.getElementById('cfg-launcher-theme');
+        if (launcherTheme) launcherTheme.value = localStorage.getItem('cfg_launcher_theme') || 'glass';
         const deviceLayout = document.getElementById('cfg-device-layout');
         if (deviceLayout) deviceLayout.value = localStorage.getItem('cfg_device_layout') || 'auto';
+        const loaderStyle = document.getElementById('cfg-loader-style');
+        if (loaderStyle) loaderStyle.value = localStorage.getItem('cfg_loader_style') || 'orbit';
+        cambiarEstiloLoader(loaderStyle?.value || 'orbit');
 
         const selectWall = document.getElementById('custom-select-label');
         if (selectWall) {
@@ -336,24 +430,61 @@ function cerrarSelectorIntro() { cambiarEstadoModalAjuste('modal-selector-intro'
 function toggleCustomSelect() { abrirSelectorFondo(); }
 
 function seleccionarFondoCustom(idFondo, nombreVisible) {
-    document.getElementById('custom-select-label').innerText = nombreVisible;
+    if (pendingVisualPreview) cancelarPrevisualizacionVisual();
+    pendingVisualPreview = { type: 'wallpaper', id: idFondo, name: nombreVisible };
     cerrarSelectorFondo();
-    emitirEfectoSonidoNativo('ps-ui'); 
+    const layer = document.getElementById('layer-ajustes');
+    layer?.classList.add('bg-preview-transparent');
+    document.getElementById('visual-preview-actions')?.classList.remove('hidden');
+    const label = document.getElementById('visual-preview-description');
+    if (label) label.textContent = `Previsualizando “${nombreVisible}”. El fondo guardado no cambiará hasta que pulses Aplicar.`;
+    emitirEfectoSonidoNativo('ps-ui');
     if (typeof changeDynamicWallpaper === 'function') {
-        changeDynamicWallpaper(idFondo);
-        sysNotification("SISTEMA VISUAL", `Fondo dinámico cargado correctamente.`, "fa-desktop");
+        changeDynamicWallpaper(idFondo, false);
     }
 }
 
 function toggleCustomSelectIntro() { abrirSelectorIntro(); }
 
 function seleccionarIntroCustom(idIntro, nombreVisible) {
-    document.getElementById('custom-select-intro-label').innerText = nombreVisible;
+    if (pendingVisualPreview) cancelarPrevisualizacionVisual();
+    pendingVisualPreview = { type: 'intro', id: idIntro, name: nombreVisible };
     cerrarSelectorIntro();
-    localStorage.setItem('ps4_selected_intro', idIntro);
+    document.getElementById('visual-preview-actions')?.classList.remove('hidden');
+    const label = document.getElementById('visual-preview-description');
+    if (label) label.textContent = idIntro === 'none' ? 'Previsualización: sin animación de inicio.' : `Previsualizando “${nombreVisible}”. La intro guardada no cambiará hasta que pulses Aplicar.`;
     emitirEfectoSonidoNativo('ps-ui');
-    sysNotification("AJUSTES", `Intro seleccionada. Vista previa iniciada.`, "fa-play");
     if (typeof reproducirIntro === 'function' && idIntro !== 'none') setTimeout(() => reproducirIntro(idIntro), 80);
+}
+
+function aplicarPrevisualizacionVisual() {
+    if (!pendingVisualPreview) return;
+    const pending = pendingVisualPreview;
+    if (pending.type === 'wallpaper') {
+        localStorage.setItem('ps4_dynamic_bg', pending.id);
+        document.getElementById('custom-select-label').innerText = pending.name;
+        document.getElementById('layer-ajustes')?.classList.remove('bg-preview-transparent');
+    } else if (pending.type === 'intro') {
+        localStorage.setItem('ps4_selected_intro', pending.id);
+        document.getElementById('custom-select-intro-label').innerText = pending.name;
+    }
+    pendingVisualPreview = null;
+    document.getElementById('visual-preview-actions')?.classList.add('hidden');
+    sysNotification('AJUSTES', 'Personalización guardada.', 'fa-circle-check');
+}
+
+function cancelarPrevisualizacionVisual() {
+    const pending = pendingVisualPreview;
+    if (!pending) return;
+    if (pending.type === 'wallpaper') {
+        const current = localStorage.getItem('ps4_dynamic_bg') || 'bg-ps4';
+        if (typeof changeDynamicWallpaper === 'function') changeDynamicWallpaper(current, false);
+        document.getElementById('layer-ajustes')?.classList.remove('bg-preview-transparent');
+    } else if (pending.type === 'intro') {
+        if (typeof window.cancelarIntroTemporal === 'function') window.cancelarIntroTemporal();
+    }
+    pendingVisualPreview = null;
+    document.getElementById('visual-preview-actions')?.classList.add('hidden');
 }
 
 function configurarEventosDashboard() {
@@ -596,7 +727,7 @@ async function lanzarRadarVentanaEmergente() {
         }
 
         logTerm.innerHTML += `<p class="text-yellow-500">Caché offline o cambio de red detectado.</p>`;
-        logTerm.innerHTML += `<p class="text-emerald-400">Buscando en las interfaces LAN activas; se prueban FTP, RPI/Nova y BinLoader.</p>`;
+        logTerm.innerHTML += `<p class="text-emerald-400">Buscando en las interfaces LAN activas; se prueban FTP y RPI/Nova.</p>`;
         logTerm.scrollTop = logTerm.scrollHeight;
 
         const timeoutMs = 8000;
@@ -605,7 +736,7 @@ async function lanzarRadarVentanaEmergente() {
 
         if (dataRadar && dataRadar.status === 'success') {
             if (subLabel) subLabel.innerText = `SCANNING.${dataRadar.segmento}`;
-            logTerm.innerHTML += `<p class="text-gray-500">Buscando servicios GoldHEN en ${dataRadar.segmento}: FTP, RPI/Nova y BinLoader.</p>`;
+            logTerm.innerHTML += `<p class="text-gray-500">Buscando servicios GoldHEN en ${dataRadar.segmento}: FTP y RPI/Nova.</p>`;
             
             // Mostrar IP local detectada por el backend
             if (dataRadar.local_ip) {
@@ -691,8 +822,19 @@ window.conectarIPManualValidando = conectarIPManualValidando;
 // ============ PWA INSTALL ============
 
 let deferredPrompt;
+const ghmNativeAndroidShell = /Android/i.test(navigator.userAgent)
+    && (/;\s*wv\)/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches);
+
+function ocultarInstalacionPWAEnAPK() {
+    if (!ghmNativeAndroidShell) return;
+    const hide = () => { document.getElementById('btn-instalar-pwa')?.remove(); document.getElementById('btn-pwa-install')?.remove(); };
+    hide();
+    new MutationObserver(hide).observe(document.documentElement, { childList: true, subtree: true });
+}
+ocultarInstalacionPWAEnAPK();
 
 window.addEventListener('beforeinstallprompt', (e) => {
+    if (ghmNativeAndroidShell) { e.preventDefault(); return; }
     e.preventDefault();
     deferredPrompt = e;
     pwaInstallPrompt = e;
@@ -726,17 +868,44 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 window.mostrarInstalacionPWA = async function() {
+    if (ghmNativeAndroidShell) return;
     if (!pwaInstallPrompt) { sysNotification('INSTALACIÓN', 'El navegador no ofrece instalación en este momento.', 'fa-mobile-screen-button'); return; }
     pwaInstallPrompt.prompt();
     await pwaInstallPrompt.userChoice;
     pwaInstallPrompt = null;
 };
 
+window.androidReleaseCandidate = null;
 window.comprobarActualizacion = async function() {
     const estado = document.getElementById('update-status');
     const boton = document.getElementById('btn-aplicar-update');
-    if (estado) estado.innerText = 'Consultando GitHub…';
+    const tr = value => window.ghmTranslateText ? window.ghmTranslateText(value) : value;
+    if (estado) estado.innerText = tr('Consultando GitHub…');
     try {
+        if (/Android/i.test(navigator.userAgent)) {
+            const fd = new FormData(); fd.append('action', 'check');
+            const res = await fetch('api/android_release_api.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.status !== 'success') throw new Error(data.message || 'No se pudo comprobar la APK.');
+            window.androidReleaseCandidate = data.apk_available ? data.release : null;
+            if (data.update_available && data.release) {
+                const release = data.release;
+                const hasDigest = /^[a-f0-9]{64}$/i.test(release.sha256 || '');
+                if (estado) estado.innerText = hasDigest
+                    ? `${tr('APK nueva disponible')}: PS4 Manager Tools AJ ${release.version}. SHA-256: ${release.sha256}. ${tr('Android pedirá confirmar la instalación después de descargarla.')}`
+                    : `${tr('Versión disponible, pero falta el SHA-256 publicado por GitHub')}: ${release.version}. ${tr('No se habilitó la descarga directa.')}`;
+                if (boton) {
+                    boton.disabled = !hasDigest;
+                    boton.innerText = hasDigest ? 'Descargar APK' : 'Sin SHA-256';
+                    boton.classList.toggle('opacity-40', !hasDigest);
+                }
+                return;
+            }
+            if (estado) estado.innerText = tr(data.message || `PS4 Manager Tools AJ ${data.current_version}: no hay actualización Android.`);
+            if (boton) { boton.disabled = true; boton.innerText = 'Actualizar'; boton.classList.add('opacity-40'); }
+            return;
+        }
+
         const fd = new FormData(); fd.append('action', 'check');
         const res = await fetch('api/update_api.php', { method: 'POST', body: fd }); const data = await res.json();
         if (data.status !== 'success') throw new Error(data.message);
@@ -747,6 +916,32 @@ window.comprobarActualizacion = async function() {
 
 window.aplicarActualizacion = async function() {
     const estado = document.getElementById('update-status');
+    if (/Android/i.test(navigator.userAgent)) {
+        const tr = value => window.ghmTranslateText ? window.ghmTranslateText(value) : value;
+        const release = window.androidReleaseCandidate;
+        if (!release || !/^[a-f0-9]{64}$/i.test(release.sha256 || '')) {
+            if (estado) estado.innerText = tr('Vuelve a comprobar Releases; solo se habilitan APK con SHA-256 publicado.');
+            return;
+        }
+        let url;
+        try { url = new URL(release.asset_url); } catch (_) { url = null; }
+        if (!url || url.protocol !== 'https:' || url.hostname !== 'github.com'
+            || !url.pathname.startsWith('/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/')) {
+            if (estado) estado.innerText = tr('El enlace de actualización no pertenece al repositorio oficial.');
+            return;
+        }
+        if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Al terminar, abre la notificación de Android para revisar e instalar la actualización.')}`;
+        const link = document.createElement('a');
+        link.href = url.href;
+        link.download = release.asset_name;
+        link.rel = 'noopener';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+    }
+
     if (estado) estado.innerText = 'Aplicando actualización…';
     try {
         const fd = new FormData(); fd.append('action', 'apply');
@@ -774,6 +969,12 @@ const modulosBusquedaGlobal = [
     ['Transferencias', 'Subidas y Remote Package Installer', 'transferir'], ['Modding', 'Portadas y respaldos', 'modding'],
     ['Game Mods', 'Mods compatibles', 'mods'], ['Plugins', 'Asignaciones plugins.ini', 'plugins'],
     ['Payloads', 'BinLoader GoldHEN', 'payloads'], ['Ventilador', 'Control por firmware compatible', 'coolers'], ['Actualizaciones FW', 'Bloquear o permitir', 'actualizaciones-fw'], ['Ajustes', 'Preferencias y actualización', 'ajustes'],
+    ['Organizar Apps', 'Ocultar apps del sistema y agrupar aplicaciones', 'organizador-apps'],
+    ['SaveGames', 'Partidas por perfil, respaldos y restauración', 'savegames'],
+    ['Limpieza', 'Partidas de juegos que no aparecen instalados', 'limpieza'],
+    ['Almacenamiento', 'Espacio usado por juegos, capturas y partidas', 'almacenamiento'],
+    ['Capturas', 'Ver, descargar o eliminar capturas', 'capturas'],
+    ['Parches de Juego', 'Estados y versiones de parches instalados', 'parches-juego'],
     ['Store', 'Catálogo autorizado', 'store']
 ];
 function escaparBusquedaGlobal(texto) { const node = document.createElement('span'); node.textContent = String(texto || ''); return node.innerHTML; }

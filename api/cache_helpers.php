@@ -1,5 +1,5 @@
 <?php
-/** Utilidades compartidas para cachés locales de GoldHen Manager. */
+/** Utilidades compartidas para cachés locales de PS4 Manager Tool. */
 function limpiar_cache_antigua($directorio, $dias = 30) {
     if (!is_dir($directorio)) return;
 

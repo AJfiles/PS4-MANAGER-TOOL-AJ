@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * GOLDHEN MANAGER AJ 🚀 - CONTROLADOR DE MODDING
+ * PS4 Manager Tool 🚀 - CONTROLADOR DE MODDING
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: js/modding.js
  * ====================================================================

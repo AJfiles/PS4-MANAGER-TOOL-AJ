@@ -1,7 +1,8 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
 /**
  * ====================================================================
- * GOLDHEN MANAGER AJ 🚀 - API CORE DE LA BIBLIOTECA
+ * PS4 Manager Tool 🚀 - API CORE DE LA BIBLIOTECA
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: api/library_biblioteca.php
  * ====================================================================
@@ -13,6 +14,7 @@ set_time_limit(300);
 
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/cache_helpers.php';
+require_once __DIR__ . '/library_listing_helpers.php';
 $firma = chr(83).chr(101).chr(66).chr(97).chr(83); 
 header('X-Author: ' . $firma);
 
@@ -91,19 +93,7 @@ function parse_sfo_real($filepath) {
 function curl_download_ftp_file($ip, $port, $remote_path, $local_path, $max_attempts = 2) {
     $attempt = 0;
     while ($attempt < $max_attempts) {
-        $ch = curl_init("ftp://$ip:$port" . $remote_path);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-        curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FTP_USE_EPSV, false); // Mejor compatibilidad
-        $data = curl_exec($ch);
-        $error = curl_error($ch);
-        curl_close($ch);
-        
-        if ($data !== false && strlen($data) > 0) {
-            @file_put_contents($local_path, $data);
-            return true;
-        }
+        if (lb_download_ftp_file((string)$ip, (int)$port, (string)$remote_path, (string)$local_path)) return true;
         $attempt++;
         usleep(200000); // Esperar 200ms entre reintentos
     }
@@ -174,34 +164,14 @@ if ($action === 'scan') {
     ];
 
     $cusa_detectados = [];
-    $escaneo_exitoso = false;
 
     foreach ($rutas_appmeta as $base_path) {
-        $ch = curl_init("ftp://$host_ip:$port" . $base_path . '/');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-        $res = curl_exec($ch);
-        curl_close($ch);
-
-        if ($res !== false) {
-            $escaneo_exitoso = true;
-            $lines = explode("\n", trim($res));
-            foreach ($lines as $line) {
-                if (empty(trim($line))) continue;
-                $parts = preg_split('/\s+/', trim($line), 9);
-                if (count($parts) >= 9) {
-                    $folder_name = trim($parts[8]);
-                    if (preg_match('/^[A-Z]{4}\d{5}$/i', $folder_name) || strpos($folder_name, 'LAPY') === 0 || strpos($folder_name, 'NPXS') === 0) {
-                        $cusa_detectados[strtoupper($folder_name)] = $base_path;
-                    }
-                }
-            }
-        }
+        $cusa_detectados += lb_read_appmeta_directory($host_ip, $port, $base_path);
     }
 
     // Limpiar caché de juegos que ya no están en la consola
-    if ($escaneo_exitoso && count($cusa_detectados) > 0) {
+    // No borrar caché ante una lectura vacía: puede ser una respuesta FTP incompleta.
+    if (count($cusa_detectados) > 0) {
         $sfos_existentes = glob($cache_dir . '/*.sfo');
         if (is_array($sfos_existentes)) {
             foreach ($sfos_existentes as $sfo_path) {

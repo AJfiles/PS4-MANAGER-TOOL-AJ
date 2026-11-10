@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
 // Worker interno: se ejecuta desde CLI para no bloquear el servidor HTTP que sirve el PKG.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 error_reporting(0);

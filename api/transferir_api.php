@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
+require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * GOLDHEN MANAGER V3.0 🚀 - API: TRANSFERENCIA Y RPI
+ * PS4 Manager Tool V3.0 🚀 - API: TRANSFERENCIA Y RPI
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: api/transferir_api.php
  * ====================================================================
  */
@@ -75,6 +77,7 @@ if ($action === 'list_ftp_dirs') {
     
     if(!$host_ip) { ob_end_clean(); echo json_encode(['status'=>'error', 'message'=>'Falta IP']); exit; }
 
+    if(function_exists('ftp_connect')){$rows=ghm_ftp_list($host_ip,$port,$path,10);if($rows===false){ob_end_clean();echo json_encode(['status'=>'error','message'=>'No se pudo listar la ruta FTP.']);exit;}$dirs=[];foreach($rows as $row)if($row['dir'])$dirs[]=$row['name'];sort($dirs);ob_end_clean();echo json_encode(['status'=>'success','path'=>$path,'dirs'=>$dirs]);exit;}
     $ch = curl_init();
     $partes = explode('/', trim($path, '/'));
     $partes_codificadas = array_map('rawurlencode', $partes);
@@ -121,6 +124,7 @@ if ($action === 'check_exists') {
         $file_path = '/user' . $file_path;
     }
 
+    if(function_exists('ftp_connect')){$exists=ghm_ftp_exists($host_ip,$port,$file_path);ob_end_clean();echo json_encode(['status'=>$exists===null?'error':'success','exists'=>$exists===true]);exit;}
     $partes = explode('/', $file_path);
     $partes_codificadas = array_map('rawurlencode', $partes);
     $url = "ftp://$host_ip:$port" . implode('/', $partes_codificadas);
@@ -340,6 +344,7 @@ if ($chunk_index === 0) {
     foreach ($dir_parts as $part) {
         $current_path .= '/' . $part;
         // Intentar crear el directorio (ignorar errores si ya existe)
+        if(function_exists('ftp_connect')){ghm_ftp_mkdir($host_ip,$port,$current_path);continue;}
         $ch = curl_init("ftp://$host_ip:$port$current_path/");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_QUOTE, ["MKD $current_path"]);
@@ -347,6 +352,8 @@ if ($chunk_index === 0) {
         curl_close($ch);
     }
 }
+
+if(function_exists('ftp_connect')){$ok=ghm_ftp_put($host_ip,$port,$ruta_completa,$tmp_file,$chunk_index>0,150);ob_end_clean();echo json_encode($ok?['status'=>'success']:['status'=>'error','message'=>'Fallo la subida FTP nativa. Comprueba espacio y permisos en el destino.']);exit;}
 
 $partes = explode('/', $ruta_completa);
 $partes_codificadas = array_map('rawurlencode', $partes);

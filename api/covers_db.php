@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
 /**
  * ====================================================================
  * GOLD HEN SUITE PRO 🚀 - API DOWNLOADER DE PORTADAS PREMIUM (HD)

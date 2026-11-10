@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/request_guard.php';
+require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * GOLDHEN MANAGER AJ 🚀 - API: DETECTOR Y GESTOR DE DLCS
+ * PS4 Manager Tool 🚀 - API: DETECTOR Y GESTOR DE DLCS
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: api/dlc_update_biblioteca.php
  * ====================================================================
@@ -37,6 +39,7 @@ $cache_file = $cache_dir . "/dlc_info_{$cusa}.json";
 // FUNCIONES AUXILIARES FTP
 // ==========================================
 function ftp_check_folder($ip, $port, $path) {
+    if(function_exists('ftp_connect')){$rows=ghm_ftp_list($ip,(int)$port,$path,10);if($rows===false)return false;return array_map(static fn($r)=>['name'=>$r['name'],'is_dir'=>$r['dir'],'size'=>$r['size']],$rows);}
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, "ftp://$ip:$port" . rtrim($path, '/') . '/');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -99,6 +102,7 @@ if ($action === 'delete_content') {
     }
     
     function curl_ftp_delete_recursive($ip, $port, $dir) {
+        if(function_exists('ftp_connect')){$rows=ghm_ftp_list($ip,(int)$port,$dir,10);if($rows===false)return false;foreach($rows as $row){$path=rtrim($dir,'/').'/'.$row['name'];if($row['is_dir']){if(!curl_ftp_delete_recursive($ip,$port,$path))return false;}elseif(!ghm_ftp_delete($ip,(int)$port,$path))return false;}return ghm_ftp_rmdir($ip,(int)$port,$dir);}
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "ftp://$ip:$port" . rtrim($dir, '/') . '/');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

@@ -1,5 +1,31 @@
-GOLDHEN MANAGER AJ - CAMBIOS Y PRUEBAS
+PS4 Manager Tool - CAMBIOS Y PRUEBAS
 ========================================
+
+Organizar Apps: visibilidad y grupos XMB
+----------------------------------------
+- Se añadió Organizar Apps al menú principal, con las funciones Hide or Show
+  System Apps y Folder App Group: lectura de perfiles, cambio de visibilidad,
+  creación de carpetas y asignación de juegos/aplicaciones a cada carpeta.
+- Antes de tocar app.db, la API la descarga por FTP a un temporal, verifica
+  PRAGMA integrity_check y crea una copia local fechada. Los cambios se aplican
+  en una transacción SQLite; después se sube app.db y se vuelve a descargar para
+  comparar SHA-256. Si la transferencia o verificación falla, intenta restaurar
+  y verificar la copia previa. El usuario también puede crear y restaurar copias.
+- Termux instala el paquete sqlite para proporcionar sqlite3. La distribución
+  PC incluye runtime/sqlite3.exe y la nota de terceros; los respaldos se excluyen
+  del servidor web y del control de versiones.
+- Pruebas: lectura real de app.db por FTP en la PS4; la API mostró
+  dos perfiles, 19 filas de apps del sistema por perfil, 45 juegos/apps por
+  perfil y 3/0 carpetas. La integridad se confirmó en ambos perfiles. En una copia
+  desechable se probó crear carpeta, asignar una app y actualizar folderInfo y
+  tbl_version; PRAGMA integrity_check devolvió ok. PHP -l y node --check pasan.
+- Prueba real reversible: se cambió temporalmente visible de una app del sistema,
+  la lectura FTP confirmó el valor; después se revirtió y se verificó. También se
+  probó la restauración del respaldo. La comparación de las nueve tablas antes y
+  después confirmó que los datos lógicos quedaron iguales.
+- Falta validar en la PS4 el refresco visual del XMB y la creación/uso de carpetas
+  en su firmware. La prueba de grupos se hizo solo sobre una copia desechable; crea
+  primero un respaldo desde el módulo antes de probar una carpeta en la consola.
 
 Objetivo
 --------
@@ -227,20 +253,8 @@ Actualización 3.2
 - `COMPARATIVA_BASE_V3.md` documenta las diferencias verificadas frente a la
   base original analizada en modo lectura.
 - Store se reorganiza en `store/data`, `store/covers`, `store/store.php` y un
-  panel privado `store/admin`. El comando `store-admin` abre dicho panel en
-  127.0.0.1:8081 con una credencial temporal. Permite CRUD del catálogo,
-  validación de enlaces directos, conversión WebP y ZIP de cambios con
-  manifiesto de eliminaciones. La API pública de Store no ofrece CRUD para no
-  exponer la edición del catálogo a la red local.
-- El administrador de Store acepta IDs de título o aplicación de 3 a 32
-  caracteres (por ejemplo CUSA, SLUS/SLES, NP y homebrew), por lo que ya no se
-  limita a CUSA. Update y DLC pueden dejarse vacíos o marcarse como `No aplica`;
-  se guardan correctamente como ausencia de enlace. Los PKG mantienen la
-  validación de URL directa autorizada para evitar páginas intermedias.
-- El panel privado Store incorpora **Buscar actualizaciones** y **Actualizar
-  Store Admin**. Consulta `origin/main` y aplica solo un `git pull --ff-only`;
-  antes de modificar el proyecto comprueba cambios locales y se cancela sin
-  sobrescribirlos. Tras actualizar se debe reiniciar `store-admin`.
+  catálogo público de solo lectura para usuarios. Los controles de edición y
+  mantenimiento se mantienen fuera de la interfaz pública.
 
 Módulos avanzados de GoldHEN 3.2
 -------------------------------
@@ -277,7 +291,7 @@ Versión 3.3
 - Las carátulas nuevas usan rutas absolutas bajo `/store/covers/`, evitando que
   el administrador las resuelva como una ruta incorrecta y las muestre grises.
 - El launcher reordena sus módulos, sitúa Búsqueda global sobre la información
-  de red y actualiza su identidad visual a GoldHen Manager AJ 3.3.
+  de red y actualiza su identidad visual a PS4 Manager Tool 3.3.
 - Store público: reutiliza la IP guardada por el Manager, permite seleccionar
   RPI Nova (12801) u Original (12800), incorpora radar FTP y comprueba que el
   puerto RPI responda antes de instalar.
@@ -285,24 +299,21 @@ Versión 3.3
   descripción, peso, proveedor, update y DLC publicados.
 - Visual: se aplicó la identidad 3.3 a las intros y se añadieron Aurora AJ y
   Onda clásica como opciones de inicio ligeras basadas en CSS.
-- Actualizador: GoldHen Manager y Store Admin resguardan los cambios locales
+- Actualizador: PS4 Manager Tool resguarda los cambios locales
   temporalmente con Git, aplican la actualización y los restauran; un conflicto
   real queda protegido para resolverlo sin perder catálogo, carátulas ni código.
 - Instalador: ante un mirror de Termux desincronizado, borra índices temporales
   y reintenta automáticamente con los mirrors oficiales estables. También
   asegura PHP GD, ZIP y UNZIP desde la primera instalación.
-- Arranque: `goldhen` y `store-admin` se instalan como ejecutables reales en
-  `$PREFIX/bin`, por lo que no dependen de que Bash recargue `.bashrc`. La
-  instalación abre GoldHen Manager automáticamente y no expone Store Admin al
-  usuario final. Cuando las dependencias ya existen, omite `pkg update` para
-  hacer las reinstalaciones y actualizaciones más ágiles.
+- Arranque: `goldhen` se instala como ejecutable real en `$PREFIX/bin`, por lo
+  que no depende de que Bash recargue `.bashrc`. Cuando las dependencias ya
+  existen, omite `pkg update` para agilizar reinstalaciones y actualizaciones.
 
 Corrección de Store e intros 3.3
 --------------------------------
 - `start-goldhen.sh` deja el servidor PHP en segundo plano y guarda su salida
   en `~/.goldhen-server.log`. GoldHen se abre automáticamente, pero Termux
-  vuelve a estar disponible; el mantenedor puede ejecutar `store-admin` en
-  cualquier momento para abrir el panel privado en el puerto 8081.
+  vuelve a estar disponible para otros comandos.
 - Las nuevas intros Aurora AJ y Onda clásica se registran en el selector real
   de Ajustes, no solo en accesos rápidos. El selector ahora las previsualiza
   inmediatamente y conserva la selección para el siguiente arranque.
@@ -319,9 +330,9 @@ Corrección de Store e intros 3.3
 
 Store: compatibilidad de enlaces y diagnóstico final 3.3
 -----------------------------------------------------
-- El administrador permite guardar `enlaces.alternativo` por elemento. La Store
-  intenta la URL principal y, si no puede verificarse o RPI la rechaza, prueba
-  la alternativa sin alterar el catálogo.
+- La Store permite configurar un enlace alternativo por elemento. Intenta la
+  URL principal y, si falla la comprobación o RPI la rechaza, prueba la
+  alternativa sin alterar el catálogo.
 - La normalización de MediaFire elimina únicamente fragmentos del navegador y
   codificación HTML. No borra parámetros `?` ni fuerza HTTP de entrada porque
   pueden formar parte de una firma temporal; la variante HTTP se intenta solo
@@ -334,9 +345,9 @@ Store: compatibilidad de enlaces y diagnóstico final 3.3
 
 Corrección de compatibilidad RPI y validación PHP 3.3
 -----------------------------------------------------
-- Se corrigió la apertura duplicada de PHP que impedía iniciar el panel
-  `store-admin` con un error de parseo. El panel valida sus cuatro archivos
-  críticos con `php -l` antes de abrir el puerto 8081.
+- Se corrigió una apertura duplicada de PHP que impedía iniciar una herramienta
+  local de mantenimiento con un error de parseo; sus archivos críticos se
+  validan antes de arrancar.
 - `goldhen.sh` valida todos los archivos `.php` descargados antes de abrir la
   aplicación; si encuentra un error deja el detalle en `~/.goldhen-install.log`
   y no inicia un servidor incompleto.
@@ -366,8 +377,8 @@ Mejoras solicitadas de conexión, transferencias y biblioteca
   personalizada, la respuesta HTTP 206 para un rango de bytes y el POST a un
   servidor RPI simulado. Esta prueba no reemplaza la confirmación en una PS4.
 - `start-goldhen.sh` expone el servidor de la aplicación en la red local en el
-  puerto 8080 y lo mantiene en segundo plano. RPI puede acceder desde la PS4;
-  Store Admin sigue limitada a 127.0.0.1. `server-router.php` impide servir
+  puerto 8080 y lo mantiene en segundo plano. RPI puede acceder desde la PS4.
+  `server-router.php` impide servir
   directamente `user/`; `api/rpi_file.php` entrega solo el PKG solicitado y
   valida su nombre. Termux conserva la consola y los logs quedan en
   `~/.goldhen-server.log`.
@@ -410,7 +421,7 @@ Actualización 4.0 — módulos, estabilidad y organización
   confirmación y envío por BinLoader 9090. La API mantiene una lista permitida
   de nombres/firmware y restringe los archivos a `payloads fw`.
 - Payloads muestra primero los que ya están en PS4 y luego los que conserva
-  GoldHEN Manager; GENERAL muestra subtítulos General, Linux y Especiales.
+  PS4 Manager Tool; GENERAL muestra subtítulos General, Linux y Especiales.
   Se añade instalación FTP opcional en `/data/payloads/` para reutilizar archivos
   locales, además de su carga temporal por BinLoader.
 - La normalización de `plugins.ini` separa rutas concatenadas, conserva una
@@ -474,7 +485,7 @@ Radar LAN y selección de PKG en RPI
 - Validación local: php -l correcto para radar_api.php, transferir_api.php y
   rpi_file.php; el escaneo RPI de prueba guardó el índice temporal y rpi_file
   entregó correctamente un rango HTTP 206. El Radar detectó el host
-  192.168.40.41 con FTP 2121; 12800/12801 no respondieron durante la prueba.
+  la PS4 respondió por FTP 2121; 12800/12801 no respondieron durante la prueba.
   Falta confirmar en Android que ese host sea la PS4, abrir Package Installer
   y validar el puerto RPI y la selección de archivos en el dispositivo.
 
@@ -522,3 +533,665 @@ Corrección de instalación RPI y progreso de PKG
   `206` de 32 bytes, `task_id` y progreso BGFT hasta 100 %. Sintaxis PHP correcta
   en los 86 archivos y JavaScript en los 12 archivos fuente. Falta repetir con
   el RPI Nova real y un PKG en PS4 para validar cabeceras y estado final BGFT.
+
+Estabilidad de BinLoader y carga sostenida de RPI
+-------------------------------------------------
+- Se centralizó el envío TCP por BinLoader para serializar payloads de Ventilador,
+  Actualizaciones FW y Payload Loader. Si el puerto 9090 se reinicia unos
+  instantes, se reintenta durante 15 segundos antes de informar el error.
+- Ventilador/Actualizaciones comprueba después del envío que BinLoader vuelva a
+  responder (hasta 10 segundos). La interfaz evita un segundo toque mientras
+  termina esa comprobación y distingue payload enviado de servicio listo.
+  Esto recupera pausas breves; si el servidor queda deshabilitado o no vuelve,
+  la aplicación informa el estado, pues el mismo puerto caído no puede reactivarse
+  por TCP desde el Manager.
+- Para RPI, el servidor lee bloques de 4 MiB y actualiza el índice de bytes cada
+  16 MiB; BGFT continúa dando el progreso fino. El registro visual conserva un
+  máximo de 120 renglones para no crecer durante paquetes grandes.
+- No se midió velocidad real con PS4 en esta edición. El ajuste reduce llamadas
+  de escritura/flush PHP por cada rango; la velocidad final depende de radio,
+  señal, router y lectura del almacenamiento del teléfono/PC.
+- Validación local simulada: se enviaron fan50.bin y fan60.bin en solicitudes
+  consecutivas al puerto 9090 simulado; ambos bytes llegaron completos y el
+  servicio respondió después de cada uno. Esto valida serialización y sondeo,
+  pero no reproduce si un firmware o payload específico apaga el listener real.
+
+Organizador XMB: vistas de Carpetas y Ocultas
+---------------------------------------------
+- Se separó la pantalla en dos vistas: **Carpetas** para agrupar juegos/apps y
+  **Ocultas** para cambiar visibilidad de apps del sistema. La vista Ocultas
+  muestra aparte las apps escondidas y las visibles.
+- Las carpetas ahora presentan hasta cuatro iconos como adelanto y se expanden
+  para listar sus apps y permitir moverlas con el selector. Las apps sin carpeta
+  tienen un desplegable propio. Se mantiene la selección de perfil, la revisión
+  de cambios y el respaldo/validación de `app.db` existente.
+- Se añadió un endpoint de iconos con carga diferida y caché local. Solo acepta
+  IP IPv4, puertos FTP 2121/2122 e identificadores acotados; busca `icon0.png`
+  en ubicaciones conocidas de appmeta/app. Si no hay icono disponible, muestra
+  una inicial como recurso visual de respaldo.
+- Verificación local: `node --check` para el JavaScript y `php -l` para las APIs
+  y el módulo. No se alteró `app.db` en esta actualización; la lectura visual de
+  iconos depende de que el FTP de la PS4 permita esas rutas para cada aplicación.
+- Ajustes posteriores de interfaz: se corrigió el fallback del icono para que
+  la inicial solo se muestre si la imagen falla; el endpoint ahora usa la ruta
+  `metaDataPath` validada de `app.db`, incluidas las rutas `/system_ex/app/...`
+  de apps del sistema. La creación de carpetas quedó junto al encabezado de
+  Carpetas. El panel de respaldo añade actualización de la lista de apps,
+  respaldo local y selector explícito entre copias válidas para restaurar.
+- El estado de guardado presenta el nombre de cada app/carpeta afectada y solo
+  informa éxito tras la subida FTP y la comparación SHA-256 de `app.db`. Crear
+  carpetas, respaldar y restaurar también muestran el resultado verificado.
+- Verificación con PS4 por FTP: 19 apps del sistema y 45 juegos/apps leídos; un
+  icono de app del sistema en `/system_ex/app/.../sce_sys` respondió como PNG
+  válido. Se listaron seis respaldos íntegros y se creó una copia adicional
+  `appdb-20261021-055433-e1f824.db`, con SHA-256 validado. No se restauró ni se
+  modificó la base activa de la consola.
+- Se corrigió el fallback para que la inicial tenga `display:none` hasta que la
+  imagen falle, y se añadió una notificación visible junto al estado detallado.
+  Al guardar se informa cada app oculta/mostrada o movida y el nombre del backup;
+  la confirmación de éxito depende de que la API termine la subida y valide el
+  SHA-256 remoto. El restaurador exige escoger una copia íntegra de una lista
+  que muestra fecha, nombre y tamaño, y confirma el nombre antes de restaurar.
+- El panel incluye **Actualizar apps**, que vuelve a leer `app.db`, y
+  **Guardar copia actual**, que descarga la base por FTP y la conserva en
+  `user/backups/appdb`; cada aplicación de cambios crea automáticamente otra
+  copia antes de subirlos. La API de lista de respaldos es local y valida cada
+  SQLite antes de ofrecerlo para restaurar.
+- Verificación adicional por FTP: un icono de app del sistema se sirvió con
+  HTTP 200 (`image/png`, 3,285 bytes). La acción de respaldo descargó y guardó
+  una copia de `app.db`; su SHA-256 coincidió con el respaldo íntegro ya
+  conservado. No se ejecutó una restauración ni se aplicaron nuevos cambios.
+- La lista de respaldos muestra todos los archivos reconocidos, señala el más
+  reciente y el más antiguo, y permite marcar uno o varios para eliminarlos con
+  confirmación. Solo las copias que pasan `PRAGMA integrity_check` aparecen como
+  opciones de restauración. Se probó el endpoint de borrado con una copia
+  temporal, que fue eliminada sin tocar los respaldos reales.
+- Diagnóstico y reparación de carpeta XMB: la copia de la consola mostraba
+  `Mis APPS` con sus dos miembros y `folderInfo` correctos, pero campos requeridos
+  `pathInfo`, `dispLocation`, `canRemove`, `contentType`, `pathInfo2`,
+  `presentBoxStatus` y `entitlement` eran `NULL`. Las carpetas existentes tenían
+  esos valores, respectivamente `0, 5, 1, 0, 0, 0, 0`. La creación de carpetas
+  ahora escribe estos valores y el guardado normaliza los que falten.
+- Con respaldo previo, se reparó la fila de `Mis APPS` en PS4 rellenando solo
+  esos campos nulos; se conservaron las dos asignaciones y el `folderInfo`, se
+  actualizaron `folder_index`/`access_index`, y la subida FTP pasó la verificación
+  SHA-256. Una nueva copia remota/local dio `PRAGMA integrity_check = ok` y
+  confirmó los valores y los dos miembros. No se restauró ninguna copia.
+
+
+Organizador XMB: eliminar carpetas sin borrar aplicaciones
+----------------------------------------------------------
+- Cada carpeta tiene una acción para eliminar solo el grupo. La confirmación
+  indica cuántas apps volverán a «Sin carpeta» y aclara que ni las apps ni sus
+  datos se borran.
+- La operación desasigna primero las apps (parentFolderId y positionInFolder
+  quedan nulos) y después elimina la fila de la carpeta. Se actualiza la
+  información de las carpetas restantes, se incrementan los índices XMB y se
+  conserva el respaldo automático previo, con verificación de integridad y
+  comparación SHA-256 después de subir app.db.
+- Si hay cambios de organización pendientes, la interfaz pide confirmación para
+  descartarlos antes de eliminar la carpeta, para evitar aplicar asignaciones
+  parciales sin que el usuario lo sepa.
+- Verificación en una copia temporal del respaldo app.db: «Mis APPS» desapareció,
+  las dos apps (AJ - GeForce NOW PS4 y AJ ControlALL) siguieron presentes con
+  parentFolderId y positionInFolder nulos, y PRAGMA integrity_check devolvió ok.
+  La copia temporal se eliminó. No se borró ninguna carpeta de la consola en
+  esta prueba.
+- `php -l` pasó para API y módulo; `node --check` pasó para el JavaScript.
+
+Ajustes de interfaz en Organizar Apps
+-------------------------------------
+- El control para borrar una carpeta ahora es un botón discreto con icono de
+  papelera en la esquina superior derecha de cada tarjeta. Conserva etiqueta
+  accesible y tooltip «Eliminar carpeta»; la confirmación explica que las apps
+  vuelven al menú de PS4.
+- El selector y botón de eliminación de respaldos se movieron debajo de la lista
+  y del resumen de copias, separados por un borde para que el bloque de acciones
+  principales quede compacto.
+- Se sincronizaron módulo y JavaScript con GoldHenPC-Release-v1.0.
+- Verificación: `php -l` en el módulo y `node --check` en el JavaScript.
+
+Organizador XMB y diagnóstico seguro de plugins.ini
+---------------------------------------------------
+- La acción para eliminar respaldos se movió al final de Organizar Apps,
+  después del estado de lectura/guardado y del resto del contenido.
+- Se añadió **Diagnosticar plugins.ini** sobre Exportar/Importar/Actualizar. El
+  análisis detecta bytes inválidos, encabezados repetidos, entradas duplicadas,
+  secciones sin plugins, líneas no válidas y referencias a archivos PRX ausentes.
+  Presenta una vista previa antes de habilitar la reparación.
+- La reparación conserva las rutas válidas y las referencias a PRX ausentes,
+  fusiona secciones repetidas, deduplica rutas, separa varias rutas por línea,
+  elimina secciones vacías y normaliza el formato. Crea y valida un respaldo
+  local antes de escribir. Relee la PS4 y verifica SHA-256; si falla la escritura
+  o la lectura de verificación, intenta restaurar y validar el contenido previo.
+  Una vista previa caducada se rechaza si cambió el archivo remoto.
+- Las acciones de importar y asignar plugins ahora se detienen si no pueden leer
+  y respaldar el archivo actual; también verifican la escritura y tratan de
+  restaurar la versión anterior ante un error.
+- Prueba de diagnóstico de solo lectura contra la PS4: detectó la estructura
+  anómala descrita por el parser y produjo la vista previa esperada. No se aplicó
+  la reparación ni se modificó `plugins.ini` en la consola.
+- Validación local: `php -l` pasó para API y módulos; `node --check` pasó para
+  los JavaScript modificados.
+
+Organizar Apps: borrado pendiente, respaldos y lectura de apps del sistema
+-------------------------------------------------------------------------
+- Eliminar carpeta ahora solo marca la carpeta y sus apps como cambios locales
+  pendientes. La PS4 no se modifica hasta pulsar «Guardar cambios en PS4»;
+  después se crea el respaldo habitual y se verifica `app.db`.
+- La lista completa de respaldos, su estado, las casillas para seleccionarlos y
+  el botón «Eliminar selección» se agruparon al final de la pantalla. Los
+  controles para crear/restaurar una copia siguen en el bloque superior.
+- El escaneo de apps del sistema ahora incluye su carpeta y posición. Las apps
+  visibles del sistema aparecen en «Sin carpeta» o en la vista previa/contenido
+  de su carpeta; el selector de movimiento queda desactivado para ellas porque
+  el guardado actual solo admite mover apps con `contentId`.
+- Lectura FTP de solo consulta de `app.db` (21-oct-2026): integridad SQLite OK.
+  `NPXS20102` (Navegador de Internet) está en Home, posición 1; antes no se
+  mostraba porque se consultaban solo juegos. `NPXS20110` (TV y vídeo) sigue
+  registrado y `visible=1`, sin carpeta. No se escribió ningún cambio en PS4.
+- Ajustes incorpora forma de icono (redondeado, circular, cuadrado suave o
+  diamante) y tratamiento visual (color original, neón, contorno o monocromo),
+  guardados localmente y aplicados solo al menú principal.
+- Los cambios se sincronizaron con `GoldHenPC-Release-v1.0`.
+- Validación: PHP lint y Node syntax check para los archivos editados. La
+  escritura real de `app.db` no se ejecutó en esta revisión.
+
+Organizar Apps: mover y ocultar cualquier app; forma exterior del launcher
+-------------------------------------------------------------------------
+- Los selectores de carpeta y visibilidad ahora están disponibles para juegos
+  y apps del sistema. Se puede mover una app a una carpeta o a «Sin carpeta»,
+  y ocultarla/mostrarla desde la tarjeta o desde las vistas «Ocultas» y
+  «Apps visibles». La asignación y la visibilidad siguen pendientes hasta
+  «Guardar cambios en PS4».
+- El backend valida que cada app y carpeta existan en el perfil leído antes de
+  aplicar la asignación. El cambio se hace primero en una copia íntegra, guarda
+  respaldo local y solo después escribe y verifica `app.db` por FTP; un fallo
+  conserva el flujo de reversión existente.
+- La forma elegida ahora afecta la tarjeta exterior del menú principal además
+  del distintivo interior: redondeada, oval/circular, cuadrada o hexagonal.
+  El tratamiento de color/neón/contorno/monocromo se mantiene independiente.
+- Investigación de lanzamiento remoto: GoldHEN todavía no documenta un servicio
+  remoto de lanzamiento. Su mantenedor consideró la función como una capacidad
+  que podría añadirse. Un lanzador requiere una llamada nativa en la PS4; para
+  PS4 Manager Tool web sería necesario un componente residente nativo o plugin
+  local con protocolo autenticado. No se implementó ni se envió ningún comando
+  de ejecución a la consola.
+
+Diagnóstico de Ventilador / BinLoader FW 9.00
+--------------------------------------------
+- `api/binloader_client.php` ahora informa la IP:9090 comprobada y especifica
+  que no se transmitió ningún byte si el listener no aparece.
+- La interfaz ya diferencia una transmisión TCP completa de la aplicación
+  efectiva del payload: GoldHEN no devuelve confirmación de que cambió la curva
+  del ventilador.
+- Prueba en la conexión actual (21-oct-2026): FTP 2121 y Klog 3232 respondieron;
+  BinLoader 9090 falló tres intentos consecutivos. El endpoint web se probó
+  con `coolers`, FW 9.00 y `fan50.bin`; respondió error tras 15 s indicando que
+  no se envió ningún byte. No se transmitió payload a la PS4.
+- Para hacer una prueba real, hay que habilitar Enable Payload/BinLoader Server
+  en GoldHEN → Settings → Servers. El envío real debe confirmarse en la consola;
+  un socket abierto no confirma que el ventilador haya aplicado el ajuste.
+Diagnóstico adicional de BinLoader sin listener
+------------------------------------------------
+- Ante TCP 9090 cerrado, el Manager ya evita enviar bytes. Se mejoró el error
+  para aclarar que activar el ajuste no demuestra que el listener esté activo,
+  recomendar recargar GoldHEN y revisar la versión antes de repetir.
+- En la consola probada: FTP 2121 y Klog 3232 abiertos; BinLoader 9090 no
+  responde. `config.ini` declara BinLoader Enabled = 1. Esto descarta un error
+  de IP básico y apunta a un servicio GoldHEN que no inició o quedó atascado;
+  no se puede reactivar desde la web sin que 9090 acepte conexiones.
+- GoldHEN v2.4b18 anota una corrección al guardado de configuración de los
+  servidores; la causa concreta requiere confirmar la versión instalada y
+  volver a cargar GoldHEN. No se envió ningún payload durante este diagnóstico.
+
+BinLoader: sondeo TCP seguro y diagnóstico tras reinicio
+---------------------------------------------------------
+- La conexión de 9090 no debe tratarse como un health-check normal: BinLoader
+  espera el flujo binario del payload. Se retiraron los connect/close vacíos
+  previos y los sondeos posteriores al envío para evitar interferir con la
+  sesión del listener. El envío ahora abre una sola conexión y transmite en
+  esa misma sesión; un rechazo significa que no se enviaron bytes.
+- El Radar de red ya no escanea el puerto 9090 con conexiones vacías. Descubre
+  la consola mediante FTP y RPI/Nova. Esto evita que el descubrimiento de red
+  interactúe con el receptor de payloads.
+- La interfaz ya no afirma que BinLoader volvió a responder tras el envío; solo
+  informa de bytes transmitidos, porque GoldHEN no entrega confirmación de que
+  aplicó el payload ni se usa una prueba TCP vacía para inferirlo.
+- En diagnóstico físico, el 9090 aceptó una conexión durante una comprobación,
+  pero rechazó la conexión directa de envío inmediatamente después. No se
+  enviaron bytes de payload. Se dejaron de hacer sondeos activos; la causa de
+  esa transición no queda confirmada. El envío directo posterior se registra a continuación.
+
+Prueba directa BinLoader FW 9.00 tras reinicio
+------------------------------------------------
+- Se localizó la consola en 192.168.40.41: FTP 2121 respondió.
+- Se envió en una sola conexión directa a 9090 el archivo
+  `payloads fw/9.00/Fan/fan50.bin` (7,472 bytes). La escritura TCP terminó
+  completa; GoldHEN no devuelve confirmación de que la curva se haya aplicado.
+- No se hicieron sondeos TCP vacíos antes ni después del envío. El resultado
+  confirma conectividad y transmisión, no la temperatura ni el efecto físico.
+
+Actualización de producto PS4 Manager Tool 4.5
+---------------------------------------------
+- Se actualizó la identidad de versión visible del producto a 4.5 en la PWA,
+  manifest, pantallas de inicio, Acerca de, Store, README, guías, Termux,
+  identificador HTTP y lanzador de PC.
+- Se sincronizaron esos cambios con `GoldHenPC-Release-v1.0`; ese nombre sigue
+  indicando la versión del paquete de distribución para PC, no la versión del
+  producto PS4 Manager Tool.
+- Las entradas 4.0 anteriores de este archivo se conservan como historial de
+  los cambios realizados en aquella versión.
+
+Payloads personalizados desde el dispositivo
+--------------------------------------------
+- Payload Loader incorpora la categoría USUARIO. Permite elegir `.bin`,
+  `.payload` o `.elf` desde el almacenamiento del teléfono/PC y enviarlo a la
+  PS4 por BinLoader sin guardar una copia en el Manager o en la consola.
+- Se valida la extensión y un máximo de 16 MB antes de transmitir; el backend
+  vuelve a validar la IP, la carga, el tamaño y la lectura completa. La pantalla
+  solicita dos confirmaciones para reducir envíos accidentales de payloads
+  incompatibles. La notificación confirma los bytes enviados, no su aplicación.
+- Termux limita la carga HTTP a 16 MB (18 MB de cuerpo multipart) y el PHP
+  portable de PC usa los mismos límites. Los archivos mayores deben reducirse;
+  no se elevó el límite para evitar cargas innecesariamente grandes.
+- Los cambios de API, interfaz, límites PHP, README y este registro se copiaron
+  a `GoldHenPC-Release-v1.0`.
+Biblioteca de SaveGames, Limpieza, Parches de Juego y Analizador de almacenamiento
+---------------------------------------------------------------------------------
+- Se añadieron al menú principal los accesos SaveGames, Limpieza, Parches de juego y Almacenamiento.
+- `api/saves_api.php` explora `savedata` y `savedata_meta` por perfil, muestra alias de perfil, CUSA, nombre de juego cuando se puede resolver, bytes y archivos. Los identificadores internos del perfil no se exponen en la interfaz.
+- Los respaldos se guardan en `user/backups/saves/` como ZIP con manifiesto, metadatos y SHA-256 por archivo. El borrado requiere un ZIP coincidente, íntegro y de ese perfil/CUSA; también compara el contenido remoto antes de eliminar. La restauración crea primero un respaldo del estado actual cuando hay una partida y verifica el contenido subido.
+- Limpieza marca posibles partidas huérfanas comparando CUSA con `/user/app` y metadatos externos legibles. El usuario selecciona qué revisar; no hay eliminación automática.
+- `api/patches_api.php` lee los XML instalados en `/data/GoldHEN/patches/xml/`, identifica las entradas por su hash GoldHEN, lee/escribe `/data/GoldHEN/patches/settings/0x<hash>.txt`, muestra AppVer/PatchVer y verifica cada escritura. El cambio de `plugins.ini` es opcional, respalda el texto original y agrega/activa `game_patch.prx` específicamente dentro de `[default]` preservando las otras secciones y texto.
+- Primera versión del analizador: resumía `/user/app`, capturas y guardados, e incluía una lista de archivos grandes. Esa lista se retiró en una revisión posterior; véase la revisión final al final de este registro.
+- Prueba de solo lectura en PS4 `192.168.20.39:2121`: 63 carpetas de guardado en perfiles legibles; GTA V `CUSA00419` apareció sin juego instalado, con 116,392,512 bytes de guardado y 71,146 bytes de metadatos. Hogwarts Legacy `CUSA12824` informó versión `01.05`, 7 parches; los 3 estados activos coincidieron con los observados y los 4 estados restantes estaban apagados.
+- Prueba solicitada de borrado/restauración de GTA V: antes del borrado se descargaron los 19 archivos del guardado y metadatos, se verificó cada archivo contra la PS4 con SHA-256, y el ZIP local pasó prueba de integridad. Se borró solo `CUSA00419`, se verificó que ambas carpetas dejaron de listarse y se restauró el contenido. Al final los 19 archivos coincidieron en tamaño y SHA-256. El respaldo manual de verificación quedó en `user/backups/GTA-V-CUSA00419-readonly-test-backup-20261108.zip`.
+- Pruebas locales con PHP portable 8.5.11: sintaxis PHP de las APIs/módulos y `index.php`; `node --check` de ambos controladores JS. Se ejecutaron escaneos reales de partidas, parches y almacenamiento sin cambios adicionales en la consola.
+- Límites: el ZIP guarda los archivos FTP tal como están; no se afirma compatibilidad universal de importación directa con Apollo, que depende del formato esperado, juego y perfil. No se alteraron estados de parches ni se modificó `plugins.ini` durante esta validación.
+
+Separación de módulos, limpieza revisada y marca PS4 Manager Tool
+----------------------------------------------------------------
+- Partidas, Limpieza, Almacenamiento y Capturas ahora son accesos/capas independientes desde el menú. Capturas dejó de duplicarse como botón en Biblioteca.
+- Limpieza presenta selección múltiple y suma de espacio. Puede generar respaldos verificados antes del borrado o ejecutar eliminación permanente con confirmación escrita; la API vuelve a consultar aplicaciones instaladas y rechaza la operación si no puede leer `/user/app` o si el CUSA ya aparece instalado. También revisa aplicaciones en los volúmenes externos visibles por FTP.
+- Antes de borrar cualquier guardado, la API enumera completamente la partida y comprueba que puede inspeccionar su carpeta de metadatos; cancela el borrado si cualquiera de esas lecturas queda incompleta.
+- Parches busca juegos en `/user/app` además de las rutas de metadatos, resuelve el nombre del XML sin distinguir mayúsculas y carga esa lista de una vez para evitar búsquedas FTP repetidas. Si no hay parches, el módulo muestra cantidad de títulos detectados, legibilidad del directorio XML e instrucciones de GoldHEN Plugin Settings.
+- Primera versión de Almacenamiento: mostraba hasta 20 archivos grandes. La versión vigente presenta el desglose por juego/aplicación, captura y partida con vistas previas cuando están disponibles, sin la lista de archivos grandes ni controles de borrado.
+- Capturas dispone de selección múltiple, descarga individual y eliminación individual o por lote con confirmación. Biblioteca conserva su sincronización de juegos sin la acción duplicada de galería.
+- El producto visible se renombró a `PS4 Manager Tool` (la integración sigue identificándose como GoldHEN donde corresponde) y se reemplazaron los iconos PWA de 192 y 512 px. Ajustes añade formas de tarjeta cápsula, superelipse y hexágono.
+- Las modificaciones de esta iteración se deben sincronizar en `GoldHenPC-Release-v1.0`; no se generó ZIP.
+- Validación: PHP portable `-l` pasó para 12 APIs/módulos y `index.php`; `node --check` pasó en los 7 controladores involucrados; ambos manifiestos PWA son JSON válido. Los 23 archivos modificados en esta iteración coinciden por SHA-256 con la copia para PC.
+- Prueba real de solo lectura en PS4 `192.168.20.39:2121`: 63 partidas listadas; el endpoint de almacenamiento respondió con 38 juegos, 63 partidas, 26 capturas, 20 archivos grandes y la marca de mínimo estimado activa. Parches detectó 38 títulos instalados, 387 XML legibles y 10 juegos con parches; Hogwarts `CUSA12824` muestra versión `01.05` y 7 opciones.
+- Limpieza informó 36 candidatas. GTA V `CUSA00419` aparece sin app instalada y suma 116,392,512 bytes; no se borró en esta iteración. Se envió una solicitud de limpieza permanente para Hogwarts `CUSA12824`, detectado como instalado, y el backend la rechazó con “este CUSA aparece instalado”. No se modificó ningún dato de la PS4 en esta iteración.
+- Pendiente de validación visual: revisar los nuevos paneles en teléfono y PC. En esa fecha aún faltaba mostrar el nombre de usuario; la revisión final posterior lo lee desde `username.dat`, sin exponer el identificador interno.
+- Verificación adicional del endpoint de respaldo desde PHP portable: generó y catalogó el ZIP de GTA V con 19 archivos, 116,392,512 bytes de datos y 71,146 bytes de metadatos; total 116,463,658 bytes y validación SHA-256 aprobada.
+- El analizador FTP real recorrió 38 títulos detectados, 63 partidas y 27 capturas. Marcó el total como mínimo porque FTP satura al menos un `app.pkg` en 2 GiB y reportó algunas rutas de aplicaciones no legibles; esas limitaciones se muestran en pantalla.
+- La biblioteca mantiene una sección de respaldos locales fuera de la lista de guardados activos. Tras borrar una partida, el usuario puede localizar su ZIP, descargarlo o restaurarlo; la restauración crea primero una copia del estado actual si existe.
+
+### Revisión final de perfiles y almacenamiento (2026-11-08)
+- Los perfiles ahora se muestran con el nombre local leído de `/user/home/<perfil>/username.dat`. En la PS4 conectada se verificaron `xAJx` y `User-2`; el nombre del directorio interno no se expone.
+- Limpieza ofrece tres acciones separadas: crear ZIPs verificados para descargar sin borrar; respaldar y borrar; borrar sin respaldo tras confirmación escrita. La lectura de respaldo/descarga no modifica datos de la consola.
+- El analizador de Almacenamiento lista juegos/aplicaciones, partidas y solo imágenes JPG/JPEG/PNG de capturas con tamaño por elemento y vistas previas cuando existen. Excluye los DAT/EXT auxiliares y no lista archivos grandes. Los tamaños dependen de los metadatos FTP.
+- Validación de solo lectura en PS4 `192.168.20.39:2121`: perfiles `xAJx`, `User-2`; 63 partidas; 38 juegos; 20 entradas iniciales en la carpeta de fotos eran `.dat/.ext` auxiliares, no imágenes; 38 títulos instalados, 387 XML y 10 juegos con parches; Hogwarts `CUSA12824`, versión `01.05`, 7 parches.
+- La limpieza se probó enviando una petición para Hogwarts, que está instalado. El backend la rechazó con `este CUSA aparece instalado`; no se borraron partidas ni capturas en esta iteración.
+- Las APIs PHP tocadas pasaron `php -l` con PHP portable 8.5.11; los controladores JS de Limpieza, Almacenamiento y Capturas pasaron `node --check`.
+- La revisión visual en navegador quedó pendiente: Computer Use no pudo establecer con suficiente confianza la URL activa de Brave y detuvo la automatización. No se presenta la prueba de API como validación visual.
+- Ajustes amplía la personalización del menú principal con animación configurable: sin animación, entrada suave, elevación al tocar y pulso ambiental. La selección persiste localmente y respeta `prefers-reduced-motion`.
+
+- Corrección posterior de interfaz: el botón Actualizar capturas ahora fuerza una lectura nueva del FTP en lugar de reabrir la galería desde caché; los subtítulos de SaveGames y Almacenamiento reflejan que son módulos separados y lo que muestran.
+
+- Comprobación adicional de capturas: la galería real devolvió una imagen JPG; la cabecera FTP comenzó con `FFD8`, formato JPEG. Almacenamiento reportó 1 imagen y 622,058 bytes, omitiendo los DAT/EXT auxiliares. La respuesta de galería sin imágenes ahora es `success` con lista vacía y mensaje explicativo, no un error de conexión.
+- El borrado individual y por selección de capturas solo limpia las cachés después de que un nuevo listado FTP confirma la ausencia del archivo. Los borrados por lote reportan cuántos se verificaron, muestran el primer error y actualizan las insignias de los juegos afectados.
+
+### Corrección de acceso a Parches y comprobación en consola (2026-11-09)
+- Se corrigió el ID de la capa del módulo Parches: el launcher solicitaba `layer-parches-juego`, pero el HTML tenía `layer-patches-juego`. Por eso la API podía leer los XML y aun así el usuario veía la pantalla vacía. El módulo ahora usa el mismo ID español que el router.
+- Verificación en PS4 `192.168.20.39:2121`, solo lectura: la API respondió correctamente con 38 títulos instalados, 387 XML disponibles y 10 juegos con parches; Hogwarts Legacy `CUSA12824` apareció en el resultado. La prueba confirmó que el módulo tenía datos y que el fallo era de apertura de la capa, no del escaneo.
+- Nueva lectura de partidas, solo lectura: 62 guardados asociados a los nombres locales `xAJx` y `User-2`; no se borró ni modificó información de la consola. La cantidad puede cambiar si el contenido de la consola cambia entre lecturas.
+- La limpieza define candidatas por CUSA sin aplicación instalada detectada en las rutas internas y externas que el FTP permite leer; vuelve a comprobar la instalación en el servidor justo antes de borrar. Esto no demuestra que una partida sea innecesaria para su dueño: se conserva la opción de ZIP verificado y el borrado sin respaldo exige confirmación escrita.
+- Interfaz de Limpieza: el botón ahora indica «Seleccionar todas»/«Deseleccionar todas» y los controles distinguen el borrado con respaldo del borrado permanente sin respaldo. El aviso explica que una partida sin juego instalado puede seguir siendo valiosa y que la clasificación no determina si el usuario la necesita.
+- Interfaz de Capturas: «Seleccionar todas» ahora alterna a «Deseleccionar todas», actualiza el conteo y limpia selección/datos obsoletos al refrescar una galería vacía.
+- Validación final de sintaxis: 51 archivos PHP pasaron `php -l` y 18 JavaScript pasaron `node --check`; manifest JSON y rutas/ID del HTML se verificaron. No se borraron partidas ni capturas reales.
+- Branding de Windows: el iniciador principal ahora se llama `Iniciar-PS4-Manager-Tool.bat`. Se conserva `Iniciar-GoldHenManager.bat` como wrapper de compatibilidad y se actualizan las instrucciones del paquete para usar el nombre nuevo.
+- Documentación: README aclara que Capturas se abre como módulo independiente, no como una acción de Biblioteca; se actualizó también la copia de PC.
+- Auditoría de navegación del HTML renderizado: 456 IDs sin duplicados; 17 destinos estáticos de apertura con capa correspondiente; 19 scripts cargados con todos los archivos locales presentes. HTTP 200 en `index.php`.
+- Verificación de iconos PWA: `icon-192.png` y `icon-512.png` son PNG válidos de sus dimensiones declaradas y ambos aparecen en `manifest.json` con propósito `any maskable`.
+- Rebranding conserva solo los identificadores técnicos de repositorio/instalación y la ruta de datos Termux antigua para compatibilidad; el README explica el motivo. El nombre visible de producto y el iniciador PC usan PS4 Manager Tool.
+
+### Nombres de perfil en Organizar Apps (2026-11-09)
+- Organizar Apps ya no presenta las tablas de usuario de app.db como «Perfil 1/2». El backend convierte el sufijo decimal de tbl_appbrowse_<userId> al ID hexadecimal de /user/home/<id>/username.dat y muestra el nombre local; la conversión está limitada a IDs PS4 de 32 bits y el fallback es «Perfil local sin nombre».
+- Evidencia de la PS4: las tablas tbl_appbrowse_0413752799 y tbl_appbrowse_0413752800 corresponden a /user/home/18a95ddf y /user/home/18a95de0; username.dat devuelve xAJx y User-2. El endpoint de Organizar Apps volvió a escanear app.db en modo de lectura y devolvió esos dos nombres.
+- La lista de perfil amplía su ancho para que el nombre sea visible; el estado de lectura también presenta el nombre local.
+- Pruebas de interacción JS con el código real y DOM mínimo simulado: Capturas selecciona/deselecciona todas sincronizando casillas, contador y etiqueta; Limpieza sincroniza selección, total de bytes y visibilidad de acciones. No se simularon borrados ni se tocó la consola.
+- Herramienta de mantenimiento: se añadió scripts/verificar-proyecto.ps1, de solo lectura, para repetir revisión de sintaxis PHP/JavaScript, manifiesto, iconos PWA, destinos del menú y hashes de la copia PC. Ejecución local: pasó 51 PHP, 18 JS, 17 destinos de navegación y sincronización del release.
+- Endurecimiento de Limpieza: el borrado de una partida ya no se reporta exitoso si el FTP no permite volver a listar cualquiera de las carpetas padre y confirmar que el CUSA desapareció. La respuesta ahora separa rutas restantes, archivos fallidos y carpetas no verificadas; el ZIP se conserva si se había creado.
+
+- Limpieza ahora bloquea selección, actualización, respaldos y borrados mientras hay una operación en curso. Esto evita peticiones simultáneas o que la lista cambie bajo un borrado por lote; el bloqueo se libera antes de volver a escanear.
+- La validación posterior confirmó PHP y JavaScript sin errores y la copia PC quedó sincronizada con el módulo.
+
+### Prueba controlada de ciclo de vida SaveGames en PS4 (2026-11-09)
+- Conexión FTP confirmada a `192.168.20.39:2121`. El escaneo leyó GTA V `CUSA00419` en el perfil local `xAJx`, sin aplicación instalada asociada: 12 archivos de guardado, 7 de metadatos y 116,463,658 bytes totales.
+- Se creó un ZIP nuevo (`save_CUSA00419_20261109_054957_0d6d75`) y se verificaron sus 19 entradas contra tamaño y SHA-256.
+- Prueba real autorizada: el backend comparó rutas, tamaños y hashes remotos contra el ZIP antes de borrar. El siguiente escaneo confirmó que la partida ya no estaba listada.
+- Se restauró desde el ZIP; el backend verificó el SHA-256 y tamaño de todos los archivos escritos. El escaneo posterior encontró otra vez GTA V en `xAJx` con los mismos 12 archivos de guardado, 7 de metadatos y 116,463,658 bytes.
+- No se dejó eliminado el guardado. El ZIP verificado se conserva en `user/backups/saves/` como punto de recuperación adicional.
+- Rebranding adicional: el título de pestaña pasó de “PS4 Manager Tool | GoldHEN Edition” a “PS4 Manager Tool | Consola PS4”; los nombres de GoldHEN permanecen en descripciones técnicas de las funciones que realmente lo requieren.
+
+### Correcciones de Almacenamiento y actualización de Capturas (2026-11-09)
+- La prueba en PC detectó que `total_bytes` se convertía a entero de 32 bits y podía desbordarse a un valor negativo. Ahora las sumas acumuladas conservan valores grandes como números de precisión suficiente y el parser acepta tamaños FTP mayores que `PHP_INT_MAX`.
+- Almacenamiento ahora enumera capturas con FTP EPSV, igual que la galería, y mantiene la vista limitada a imágenes JPG/JPEG/PNG, excluyendo auxiliares `.dat/.ext`.
+- La API de galería, forzada contra FTP, encontró cero imágenes visibles; el resultado previo de una imagen provenía de caché antigua. Al abrir el módulo Capturas, el launcher ahora fuerza una lectura nueva y evita mostrar esa caché obsoleta.
+- Lectura real en PS4 `192.168.20.39:2121`: 38 juegos/aplicaciones, 62 partidas, 0 capturas JPG/PNG accesibles en la ruta inspeccionada. Los tamaños de juegos dan una estimación mínima porque FTP satura algunos tamaños; `total_bytes` es positivo (640,008,351,612 bytes) y suma las categorías reportadas.
+- Precisión en Limpieza: el acceso del menú y el contador ahora dicen “partidas sin juego instalado”; se evita llamar “huérfanos” o “inútiles” a guardados que siguen perteneciendo a un perfil y podrían ser valiosos.
+- El verificador local también comprueba los accesos independientes de Partidas, Limpieza, Almacenamiento, Capturas y Parches; la capa de Parches; la lectura fresca de Capturas; el texto de clasificación prudente en Limpieza y el título visible del producto.
+- Prueba HTTP del paquete Windows en `127.0.0.1:8080`: `index.php`, manifiesto, los cinco módulos nuevos, sus controladores JS y ambos iconos PWA respondieron HTTP 200 con tipos MIME esperados.
+- Prueba de integración de solo lectura servida por ese paquete contra la PS4 `192.168.20.39:2121`: SaveGames devolvió 62 partidas y perfiles `xAJx`/`User-2`; GTA V CUSA00419 apareció asociado a xAJx y sin app instalada. Parches devolvió 38 apps instaladas, 387 XML, 10 juegos con opciones; Hogwarts Legacy CUSA12824 presentó 7 opciones. Almacenamiento respondió total positivo y 38 juegos, 62 partidas, 0 capturas JPG/PNG disponibles. No se alteraron datos con estas lecturas.
+- Prueba de protección de borrado: se solicitó `cleanup_delete` permanente para Hogwarts Legacy, que sí está instalado; el backend lo rechazó antes de enumerar/borrar archivos con “este CUSA aparece instalado”. No se borró nada.
+- La UI de Biblioteca no contiene botón de capturas por juego; la galería global está disponible en el acceso principal Capturas. La lógica legacy de galería por título se conserva en JS, pero no tiene control visible en la ficha.
+- Auditoría de marca en intros: se corrigieron las variantes HUD, Onda y Classic Boot que aún decían GoldHen Manager; la animación CRT ahora describe el inicio de PS4 Manager Tool y no afirma ejecutar un payload que no envía.
+- El verificador ahora valida que las preferencias de vista vertical, forma, movimiento, tratamiento de iconos y diseño de dispositivo aparezcan en Ajustes y persistan en localStorage; también exige que las intros no muestren el nombre antiguo.
+
+### Descarga por lote en Capturas (2026-11-09)
+- La galería de Capturas ahora permite marcar varias imágenes y descargarlas juntas en un ZIP, además de mantener la descarga individual y el borrado seleccionado.
+- La API limita cada ZIP a 100 rutas, acepta únicamente archivos de imagen bajo `/user/av_contents/photo/`, rechaza segmentos `.`/`..` y caracteres de control, y guarda el ZIP/las imágenes intermedias en temporales que elimina al terminar.
+- El paquete de descarga tiene límite de 1 GB y cURL interrumpe una imagen que lo exceda durante la descarga. Un manejador de cierre elimina temporales incluso si la solicitud termina de forma inesperada; si el ZIP falla, no elimina capturas.
+- Se añadió un ensayo automatizado del controlador JS con DOM simulado. La descarga en hardware queda pendiente: la lectura actual de la PS4 no encontró imágenes JPG/PNG accesibles para probar un ZIP real.
+
+### Verificación de Parches y captura ZIP en vivo (2026-11-09)
+- La solicitud de solo lectura contra `192.168.20.39:2121`, servida por el paquete PC, devolvió correctamente 38 juegos visibles, 387 XML y 10 juegos con parches. No se activó ni modificó ningún parche.
+- Se agregó un ensayo del controlador real `parches_juego.js` que confirma que una respuesta de juego/parche llena la lista visible de la capa. Esto verifica el render lógico con DOM simulado, no sustituye la inspección en navegador real.
+- Nueva lectura de partidas: 62 guardados, nombres `xAJx` y `User-2`; ninguno se etiqueta como “Perfil 1/2”. Limpieza mostró 35 candidatas ligadas a juegos no instalados; no se borró ninguna. El filtro no prueba que sean inútiles, por eso la pantalla mantiene advertencia y selección explícita.
+- Almacenamiento respondió un mínimo estimado de 640,008,351,612 bytes y no incluye una lista de archivos grandes. Capturas encontró 0 JPG/PNG accesibles en la consola durante esta lectura.
+- La API rechazó una ruta de descarga fuera del directorio de fotos. Como la galería actual no tiene imágenes accesibles, no fue posible crear y abrir un ZIP con una captura real; la descarga del controlador se probó con DOM simulado y el endpoint pasó PHP lint.
+- Prueba de integración repetible `node scripts/test-descarga-capturas-api.cjs`: un FTP local simulado sirve dos imágenes; el PHP incluido genera el ZIP y `ZipArchive` verifica rutas y bytes exactos. El ensayo no toca ni representa una lectura de la PS4.
+- `scripts/verificar-proyecto.ps1 -TestCaptureApi` ejecuta también esa prueba integrada; requiere que el servidor local de PS4 Manager Tool esté escuchando en `127.0.0.1:8080`.
+
+### Diagnóstico de la galería real de PS4 (2026-11-09)
+- Lectura FTP de solo consulta encontró las carpetas de capturas bajo `/user/av_contents/photo/NPXS20001/`, pero en ellas solo hay 20 auxiliares `.dat/.ext` y ninguna imagen JPG/PNG accesible. Los `.dat` de muestra medían 592 bytes y no tenían firma de imagen; no se descargó ni abrió ninguna captura visual.
+- La galería ahora informa ese diagnóstico cuando no encuentra imágenes y muestra el número de auxiliares detectados, en vez de presentar únicamente una lista vacía. No los clasifica como capturas ni ofrece borrarlos automáticamente.
+- El endpoint forzado en vivo devolvió `success`, cero imágenes y 20 auxiliares detectados. La consola no se modificó.
+
+### Claridad del formato de exportación para Apollo (2026-11-09)
+- Revisión del ZIP verificado de GTA V mostró `savedata/CUSA00419/...`, `savedata_meta/CUSA00419/...` y `manifest.json`; no contiene la estructura `PS4/APOLLO/...` que Apollo documenta para partidas descifradas.
+- Partidas ahora llama al archivo «ZIP de respaldo» y avisa que solo sirve para respaldar/restaurar desde el Manager, no para importarlo directamente en Apollo. La pantalla explica el flujo Apollo `HDD Saves → Copy save game` y recomienda verificarlo antes de borrar el original.
+- README especifica los formatos de Apollo y la diferencia con el ZIP de respaldo del Manager. No se afirma descifrado ni compatibilidad de importación que no se haya probado.
+
+### Recarga de scripts para evitar módulos antiguos en caché (2026-11-09)
+- `index.php` entrega el HTML con `no-store/no-cache`; las URLs de los scripts JavaScript, el manifiesto y el icono táctil ahora llevan una versión derivada de `filemtime`.
+- La apertura de Parches ya llamaba a `parchesRecargar`; el versionado asegura que, al volver a abrir/actualizar la aplicación, el navegador no reutilice un archivo JS antiguo con la misma URL. Se aplica al resto de módulos para que reciban el mismo tratamiento.
+- Verificación HTTP del paquete local: `index.php` respondió 200 con título PS4 Manager Tool, `Cache-Control: no-store` y `parches_juego.js?v=<filemtime>`; el escaneo de solo lectura de la PS4 volvió a entregar 38 apps, 387 XML y 10 juegos con parches.
+
+### Lectura integral de módulos contra PS4 (2026-11-09)
+- Se consultaron desde el paquete PC los endpoints de SaveGames, Parches, Almacenamiento y Capturas contra `192.168.20.39:2121`; todas las respuestas fueron `success`. La operación fue de solo lectura.
+- SaveGames devolvió 62 partidas con los perfiles locales `xAJx` y `User-2`; GTA V `CUSA00419` sigue presente como guardado y no se detectó juego instalado para ese CUSA. La partida no se borró en esta comprobación.
+- Parches devolvió 38 títulos instalados, 387 XML y 10 juegos con parches; la capa usa el ID que solicita la navegación y el JavaScript versionado contiene el cargador.
+- Almacenamiento devolvió 640,008,351,612 bytes estimados, 38 elementos de juegos/aplicaciones y 62 partidas. Capturas encontró cero imágenes JPG/PNG disponibles y 20 auxiliares DAT/EXT; no se borró ni descargó ningún archivo.
+- `scripts/verificar-proyecto.ps1` pasó: 51 archivos PHP, 18 JavaScript, 17 destinos de navegación, pruebas DOM simuladas, validación de PWA y sincronización SHA-256 del paquete PC.
+
+### Auditoría de marca en README (2026-11-09)
+- Se retiró de la presentación pública del README la frase que describía el producto como derivado de `GoldHenManager-v3`; ahora la introducción presenta directamente PS4 Manager Tool y sus funciones. Las rutas técnicas de Termux y la carpeta Android anterior se conservan para mantener compatibilidad con instalaciones existentes.
+
+### Acceso a módulos desde la búsqueda global (2026-11-09)
+- La búsqueda global ahora incluye SaveGames, Limpieza, Almacenamiento, Capturas y Parches de Juego, además de sus tarjetas del menú principal.
+- Se añadió al verificador una comprobación de que los cinco módulos independientes sigan estando indexados para búsqueda.
+
+### Auditoría de caché del Service Worker (2026-11-09)
+- El Service Worker solo reenvía las solicitudes a la red; no almacena HTML, scripts ni APIs. Se retiró una constante antigua de caché que no se utilizaba y se explicó la política en el propio archivo.
+- Se añadió al verificador una comprobación para impedir que reaparezca una caché local que pueda servir módulos obsoletos. La corrección de Parches sigue dependiendo de la capa con ID correcto, la lectura al abrir y las URLs de scripts versionadas.
+
+### Cobertura de controles del menú y borrados por lote (2026-11-09)
+- El verificador revisa que el launcher mantenga desplazamiento vertical con los 18 accesos actuales y que Limpieza exponga selección total, respaldo descargable, respaldo+borrado y borrado permanente con confirmación.
+- También comprueba que Capturas mantenga selección total, descarga ZIP y borrado de selección.
+- `scripts/verificar-proyecto.ps1 -TestCaptureApi` pasó todas las comprobaciones y la integración del ZIP con FTP simulado.
+
+### Prueba FTP para borrar capturas (2026-11-09)
+- La prueba de integración FTP simulado ahora también ejerce `delete_capture`: verifica el comando `DELE` sin comillas, confirma la ausencia del archivo en el siguiente LIST y comprueba que una ruta con `..` se rechace antes de enviar un segundo borrado.
+- `scripts/verificar-proyecto.ps1 -TestCaptureApi` ejecuta el caso junto con la creación y lectura del ZIP. La prueba opera sobre dos imágenes de fixture y no accede a la PS4.
+
+### Actualización del contexto técnico para agentes (2026-11-09)
+- `CONTEXTO_PROYECTO_PARA_NUEVO_AGENTE.md` ahora refleja el BAT PC principal y el wrapper heredado, el runner automatizado actual, las cifras recientes de sintaxis/pruebas, módulos independientes, y las lecturas de solo consulta más recientes de la PS4.
+- Se retiraron afirmaciones antiguas de que no había pruebas o acceso a consola y se conservó como histórico lo que sí corresponde a fechas anteriores. Se aclaró que `GoldHenManager-v3` es procedencia documentada, no la marca visible actual.
+
+### Verificación de iconos reales en Almacenamiento (2026-11-09)
+- Una nueva lectura FTP/API devolvió 38 juegos/aplicaciones y 38 URL de icono. Se probaron cinco vistas previas servidas por el paquete PC; Itemzflow, Control, PS4-Xplorer, PS4 Cheats Manager y Store respondieron HTTP 200 con `image/png` (de 25 KB a 354 KB).
+- Esta comprobación fue de lectura; Capturas sigue sin imágenes JPG/PNG disponibles en la ruta inspeccionada, por lo que el render de capturas se mantiene validado con código/fixtures, no con una imagen real de esa PS4.
+
+### Validación de URL y texto en la galería de Capturas (2026-11-09)
+- Las URL para visualizar/descargar capturas ahora solo aceptan rutas locales de caché con nombre hash o el endpoint local de streaming; se escapan al insertarlas en atributos HTML. Los mensajes de galería vacía también se escapan.
+- La prueba de controlador rechaza `javascript:`, verifica escape de comillas y ampersands, y exige que ambas galerías usen el helper en `src` y `href`. Pasaron además `node --check` y la prueba FTP de ZIP/borrado.
+
+### Protección de contenido dinámico de Biblioteca (2026-11-09)
+- Los títulos de juego ahora se insertan con `textContent`; las imágenes usan una lista permitida de rutas locales/caché o HTTPS sin caracteres de control. Se eliminó el `onerror` inline y las imágenes 3D usan un listener separado.
+- El nombre de categoría se escapa antes de mostrarlo. Los botones de borrado DLC/Update ya no interpolan rutas o IDs de la consola dentro de `onclick`; los listeners capturan los datos desde el resultado validado.
+- `scripts/test-biblioteca-safe-render.cjs` prueba metadatos con HTML, URL `javascript:` y rutas de borrado; se integró en el verificador principal.
+
+### Protección de operaciones API frente a solicitudes de otro origen (2026-11-09)
+- Se añadió `api/request_guard.php` a los endpoints operativos. Los `POST` requieren un encabezado Origin del mismo esquema, host y puerto, y un host local/privado; las lecturas GET y el servicio RPI de descargas no se bloquean.
+- El guard se carga desde cada endpoint para que también se aplique al ejecutar PHP directamente sin `server-router.php`; el router lo carga de forma central y oculta el archivo del guard.
+- Se añadieron comprobaciones estáticas de cobertura y `scripts/test-api-request-guard.cjs`, que levanta un servidor PHP temporal sin router, exige 403 para un POST cruzado y verifica que el POST local alcanza la validación normal. No conecta con ni modifica la PS4.
+- El guard reduce el riesgo de CSRF desde páginas ajenas; no es autenticación para clientes deliberados de la LAN ni sustituye las reglas de firewall. `scripts/verificar-proyecto.ps1 -TestCaptureApi` pasó con 52 archivos PHP, 18 JS, pruebas de origen, y la fixture FTP de ZIP/borrado/traversal.
+
+### Capturas independiente de Biblioteca y personalización ampliada (2026-11-09)
+- La galería global, selección múltiple, ZIP, borrado y visor se movieron al controlador `js/capturas.js`. `js/biblioteca.js` dejó de incluir lógica de capturas y la ruta antigua de galería por juego; la tarjeta Capturas del menú principal abre su propia sección.
+- El controlador de Capturas crea tarjetas DOM con texto e imágenes validados, valida rutas de imagen antes de asignarlas y conserva confirmación individual y por lote antes de borrar.
+- La personalización del menú principal suma animaciones Deslizamiento alternado e Inclinación al señalar, y acabados Sólido limpio, Borde aurora y Degradado sutil. Respeta `prefers-reduced-motion`.
+- Se actualizaron las pruebas simuladas de descarga ZIP, preferencias y el verificador de separación entre Biblioteca y Capturas. En la primera lectura no había imágenes para probar la operación de extremo a extremo; una lectura posterior encontró una (detalle abajo), pero no se ejecutó su borrado.
+- Relectura posterior de solo consulta: SaveGames devolvió 62 partidas asociadas a los perfiles `User-2` y `xAJx`; Parches devolvió 38 títulos instalados, 387 XML y 10 juegos con parches; Almacenamiento agrupó 38 juegos/apps, 62 partidas y una captura (total estimado 640,009,762,021 bytes).
+- Capturas devolvió una foto real `[237] 20261109_020835_00202148.jpg` (CUSA02299); el thumbnail local respondió HTTP 200 como `image/jpeg` y 1,410,409 bytes. No se descargó al dispositivo del usuario ni se borró de la consola.
+- Revisión FTP de solo consulta de Apollo: `/data/apollo/` contiene `cache`, `data` y `mount`, y `/data/apollo/data/` tiene archivos `.savepatch/.keystone`; `/data/fakeusb/` está vacío y no se encontró staging de exportación descifrada. SaveGames sigue entregando su ZIP de respaldo del Manager, no un paquete Apollo; la conversión debe hacerse con Apollo en la consola.
+- El escaneo de Parches confirmó `plugins.ini` legible, `game_patch.prx` ausente en `[default]` y el indicador global de Game Patch activo. La interfaz ofrece añadir el plugin con respaldo; esta lectura no alteró `plugins.ini` ni cambió el estado de ningún parche.
+
+### Partidas sin instalar: nombres, iconos y compatibilidad de IDs antiguos (2026-11-09)
+- La Biblioteca de SaveGames ahora obtiene el nombre desde `MAINTITLE`/`TITLE` en los SFO de `savedata_meta` cuando el título instalado no está disponible, y usa los `*_icon0.png` de esos metadatos en una caché distinta a los iconos de apps instaladas. Descarta etiquetas genéricas como “Ajustes” y “Settings”.
+- Una lectura FTP de solo consulta devolvió 62 partidas: 45 con título descriptivo y 59 con icono; 35 están asociadas a IDs no detectados como instalados. El tamaño de estas partidas es orientativo, pues el total del save y sus metadatos se informa por separado.
+- La ruta segura de borrado admitía únicamente `CUSA`, aunque lectura y respaldo ya admitían Title IDs PS4/PS2 de nueve caracteres. Se unificó a cuatro letras más cinco dígitos, manteniendo bloqueo de `.`/`..`, caracteres de ruta y rutas fuera de `savedata`/`savedata_meta/user`.
+- Prueba real y reversible solicitada: se respaldó una partida de GTA V no instalada (116,392,512 bytes de guardado, 71,146 de metadatos; 12 + 7 archivos), se verificó el ZIP y sus hashes, se borró y el escaneo confirmó su ausencia; después se restauró desde el respaldo y otro escaneo confirmó que reapareció con los mismos tamaños y cantidades. No se tocó otra partida. La prueba no convierte el ZIP del Manager en un formato Apollo: para instalar desde Apollo se requiere la exportación descifrada que genera Apollo en la consola.
+- PHP lint y prueba de rutas: `CUSA00419` y `SLUS21004` aceptados; traversal y Title IDs malformados rechazados. No se ejecutó ninguna otra operación de escritura en la consola.
+
+### Verificación en vivo de Parches de Juego (2026-11-09)
+- El endpoint de Parches respondió desde la copia de PC conectada a la PS4: 38 juegos instalados detectados, directorio XML legible con 387 archivos, 10 juegos con parches y 33 opciones. Hogwarts Legacy aparece con 7 opciones (incluye 60 FPS, forzar salida 1080p y el código maestro de resolución).
+- Se ejecutó el controlador `js/parches_juego.js` contra esa API real con el DOM simulado: las 10 tarjetas se renderizaron y al abrir Hogwarts aparecieron las 7 opciones. No se activó/desactivó ningún parche ni se escribió `plugins.ini`.
+- La interfaz obtiene IP/puerto de la conexión guardada; si no hay IP almacenada muestra un aviso de configuración en lugar de una lista. La lectura real confirma que la consola y los XML responden con la IP/puerto actuales.
+
+### Prueba permanente de rutas seguras para partidas (2026-11-09)
+- Se extrajo a `api/save_paths.php` la validación común de IDs de título, rutas FTP y rutas internas de respaldos. Tanto el borrado en consola como la verificación del ZIP usan ahora el mismo guard.
+- `scripts/test-save-paths.php` cubre rutas válidas CUSA/SLUS, rechazo de traversal (`.`/`..`), separadores alternativos, IDs malformados, rutas fuera de savedata y borrado de la carpeta raíz. Se añadió al verificador general; la prueba pasó con 4 rutas FTP válidas, 8 inválidas, 2 rutas ZIP válidas y 6 inválidas.
+
+### Limpieza: etiquetas de perfil y términos de IDs genéricos (2026-11-09)
+- Los mensajes y la advertencia de Limpieza hablan de “ID de juego” en vez de “CUSA”, ya que también se admiten IDs antiguos como SLUS.
+- Se añadió `scripts/test-limpieza-render.cjs` al verificador: simula dos perfiles con nombre (`Pepe`, `Luna`), confirma que aparece SLUS21004, excluye un guardado de un juego instalado y verifica la selección total. La prueba pasó.
+- Prueba de integración de solo lectura contra la PS4: Limpieza mostró 35 partidas candidatas, representó el nombre que devuelve `username.dat` y no generó “Perfil 1/2”. No se borró ni modificó ningún dato en esta comprobación.
+
+### Descarga ZIP de una captura real (2026-11-09)
+- El endpoint de Capturas enumeró una imagen de la PS4 y `download_selected` produjo una respuesta `application/zip`; se verificó un único JPEG de 1,410,409 bytes en el archivo. La prueba fue solo de lectura y no ejecutó borrado en consola.
+
+### Estado real del plugin de parches en plugins.ini (2026-11-09)
+- `pa_default_has_loader()` ya no confunde `/data/GoldHEN/plugins/game_patch.prx=false` con un loader activo. La detección considera solo la sección `[default]` y distingue valor ausente/true de false.
+- Se extrajeron las rutinas puras de lectura y activación de `game_patch.prx` a `api/patches_ini_helpers.php`. Habilitarlo conserva el INI y modifica solo la línea de `[default]`; las entradas del CUSA permanecen intactas.
+- `scripts/test-patches-ini.php` prueba estado true/false, línea por juego, preservación CRLF y el ajuste global. Se añadió a la suite; la prueba pasó sin escribir en la PS4.
+
+### Etiqueta PWA de Android unificada con el nombre del proyecto (2026-11-09)
+- El `short_name` del manifiesto pasó de “PS4 Tool” a “PS4 Manager Tool”, de modo que la etiqueta del acceso instalado coincide con el nombre completo.
+- El verificador comprueba ahora tanto `name` como `short_name`, además de integridad de iconos y espejo PC.
+
+### Higiene de datos locales en el paquete PC (2026-11-09)
+- Se detectaron datos de ejecución de pruebas dentro de `GoldHenPC-Release-v1.0/user`: 3 respaldos (47,509,028 bytes), 270 cachés (36,147,882 bytes), un log PHP con rutas locales y 2 marcadores de portadas.
+- Los directorios se trasladaron de forma reversible a `temporal carpeta/artefactos locales PC 2026-11-09/`; no se eliminaron los respaldos ni la caché original. En la carpeta distribuible solo quedan `.gitkeep` en `backups`, `cache`, `logs`, `portadas_custom`, `pkgs_rpi`, `plugins` y `payloads`.
+- `.gitignore` excluye datos runtime tanto del proyecto fuente como del paquete PC para reducir el riesgo de incluir partidas, cachés o PKG personales en un commit.
+
+### Flujo completo de acciones de Limpieza en prueba de interfaz (2026-11-09)
+- `test-limpieza-render.cjs` ahora ejecuta el controlador con fixtures: genera enlaces ZIP para ambas partidas seleccionadas, simula respaldo+borrado y comprueba que cada borrado lleve un respaldo, y simula borrado permanente verificando `permanent=1` sin ID de respaldo.
+- La prueba también valida nombres de perfil, IDs SLUS/CUSA, exclusión de partidas instaladas y selección múltiple. No envía solicitudes a la PS4.
+
+### Comprobador previo al ZIP portable de PC (2026-11-09)
+- Se añadió `scripts/verificar-release-pc-limpio.ps1`, una comprobación de solo lectura para ejecutar antes de comprimir el paquete. Permite únicamente `.gitkeep`, `.nomedia` y `.last_cleanup` en `user/`; falla y muestra la ruta/tamaño si detecta respaldos, capturas en caché, PKG, logs u otros datos.
+- También valida el nombre PWA e iconos obligatorios. La carpeta actual respondió `PC_RELEASE_READY_TO_ZIP`.
+
+### Analizador de almacenamiento: archivos grandes identificables (2026-11-09)
+- El módulo Almacenamiento ahora lista hasta 30 archivos individuales más pesados encontrados dentro de los árboles medidos de juegos, partidas y capturas. Muestra nombre, juego/perfil, ruta FTP y tamaño para localizar qué ocupa el espacio.
+- La lista es una vista secundaria de elementos ya contados por categoría y no se suma otra vez al total. Sigue siendo de solo lectura; no ofrece borrado automático ni acciones destructivas.
+- El recorrido reutiliza el escaneo existente, limita los candidatos retenidos y aplica el límite de entradas por árbol. Se añadió una comprobación al verificador del proyecto.
+
+### Robustez de apertura de Parches de Juego (2026-11-09)
+- La tarjeta principal abre Parches directamente por el despachador nativo, igual que los demás módulos.
+- La lectura FTP ahora comienza después de que la capa de Parches se vuelve visible, evitando iniciar el escaneo mientras la transición oculta aún está en curso.
+- La verificación del proyecto comprueba la ruta de apertura y el orden de activación/carga.
+### Diagnóstico visible de Parches (2026-11-09)
+- El módulo expone la IP y el puerto FTP usados, además del conteo de juegos instalados y XML leídos. Si no hay IP guardada, lo explica; si falla el servidor o el JSON, muestra el error y un botón de reintento.
+- El estado vacío ahora dice que no se hallaron parches disponibles, sin llamarlos “activos”. El mensaje de configuración GoldHEN solo aparece cuando la API terminó de leer correctamente y no halló XML coincidentes.
+- Se añadió cobertura DOM para verificar el indicador de conexión y el render de un juego con parche. Se sincronizó HTML/JS del paquete PC.
+### Diagnóstico visible y manejo de errores en Parches (2026-11-09)
+- La pantalla muestra la IP/puerto FTP usados y los conteos de juegos instalados y XML. Si no hay IP o falla el servidor/JSON, queda un mensaje explícito con acción de reintento.
+- El estado sin resultados ahora dice “parches disponibles”, sin confundirlo con parches activos; la recomendación de GoldHEN se presenta tras una respuesta correcta sin coincidencias.
+- `test-parches-render.cjs` cubre el conteo, conexión usada y render de Hogwarts con parche. HTML/JS del paquete PC se sincronizaron.
+- El caso sin IP limpia el estado anterior para evitar conservar tarjetas de un escaneo viejo. La prueba DOM también fuerza respuesta JSON inválida y verifica que se informe el error de servidor y el reintento.
+### Precisión de la estimación de almacenamiento (2026-11-09)
+- La lectura real de solo consulta mostró 38 juegos/apps, 62 partidas, una captura y 30 archivos mayores; no hubo errores de recorrido ni límite de directorios.
+- Antes, cualquier archivo de 2 GiB o más hacía que el total apareciera como “mínimo”, aun cuando el FTP reportaba tamaños completos. Ahora solo se marca posible saturación al encontrar valores exactos en límites enteros típicos (32/64 bits).
+- Se añadieron `api/storage_helpers.php` y una prueba que distingue dichos límites de archivos grandes con tamaño normal. No se modificaron datos de la PS4.
+- La segunda lectura real tras el cambio conservó el total de 640,009,762,021 bytes y devolvió 38 juegos/apps, 62 partidas, una captura y 30 archivos mayores; `scan_errors` quedó vacío, `limited=false` y `lower_bound=false`. La consulta solo leyó FTP; sus imágenes de caché se archivaron fuera del paquete PC.
+### Conexión FTP editable desde Parches (2026-11-09)
+- Se añadió un panel compacto en Parches para consultar y cambiar la IP y el puerto FTP compartidos con el resto de módulos.
+- La IP se valida como IPv4 y el puerto se limita a 2121/2122 antes de guardar en localStorage. La prueba DOM confirma que una IP inválida no altera la conexión ni dispara una solicitud, y que una configuración válida queda guardada y vuelve a escanear.
+- El usuario confirmó que tras recargar Parches ya muestra la IP y los juegos. Este panel permite recuperarse directamente si la PS4 cambia de dirección.
+### Confirmación de Parches y conexión editable (2026-11-09)
+- El usuario verificó tras recargar que Parches muestra la IP y los juegos. La API ya había confirmado 10 títulos con XML coincidente.
+- Se añadió un panel opcional de conexión FTP dentro del módulo. Valida IPv4 y limita el puerto a 2121/2122; una IP inválida no se guarda ni genera solicitudes, y una válida actualiza la conexión compartida y vuelve a escanear. La prueba `test-parches-render.cjs` cubre estos flujos.
+- Se endureció el fixture FTP de Capturas: ECONNRESET ahora se maneja en sockets del test y el resultado se verifica mediante sus aserciones. Prueba aislada y suite completa pasaron.
+- La revisión final detectó 89 imágenes/SFO runtime en caché bajo la carpeta PC. Se conservaron fuera del paquete en `temporal carpeta/artefactos locales PC 2026-11-09/cache-biblioteca-patches-confirmed/`; no se eliminaron. El paquete volvió a pasar el checker de distribución.
+### Almacenamiento ajustado al alcance solicitado (2026-11-09)
+- Se retiró la sección “archivos grandes detectados” del endpoint y de la interfaz. Almacenamiento vuelve a mostrar únicamente juegos/aplicaciones, partidas y capturas, con sus iconos/metadatos disponibles.
+
+### Avatar de perfil en Organizar Apps (2026-11-09)
+- La lectura de perfiles deriva el ID hexadecimal de `/user/home/` desde la tabla de `app.db` y lo devuelve junto al perfil.
+- Se añadió `api/organizador_profile_icon_api.php`, limitado a leer `avatar.png` en `/system_data/priv/cache/profile/0x<ID_HEX>/`; valida IP, puerto, ID hexadecimal, firma PNG y tamaño máximo de 4 MiB. Guarda la imagen en caché local y usa la inicial como fallback.
+- El primer intento devolvió 404 porque los directorios de perfil del FTP incluyen el prefijo `0x`; tras corregirlo, la prueba de solo lectura encontró 2 perfiles y ambos avatares respondieron HTTP 200 con firma PNG válida (17,511 y 118,664 bytes). La respuesta visual está implementada y ya no depende solo de las iniciales.
+- Se sincronizaron API y JavaScript con `GoldHenPC-Release-v1.0`. PHP lint y `node --check` pasaron en ambos árboles.
+- La revisión integral `scripts/verificar-proyecto.ps1 -TestCaptureApi` concluyó sin errores después del ajuste del prefijo: 57 PHP, 20 JavaScript y las comprobaciones funcionales simuladas.
+
+### Límite de medición del espacio libre en Almacenamiento (2026-11-09)
+- Repetidas pruebas FTP de solo lectura a `192.168.20.39:2121`: `STAT /` devuelve `502 Command not implemented` y `SITE AVBL /` devuelve `504 Command not implemented for that parameter`.
+- La consola no publica capacidad libre por las órdenes FTP probadas. El módulo conserva capacidad/libre como desconocida y muestra tamaños medidos de las categorías enumeradas; no inventa un total de disco. La investigación de un gestor externo de PS4 encontró medición `statfs` solo mediante un payload experimental que también puede gestionar tareas BGFT y ubicación de instalación; no se reutilizó ni se envió ese payload.
+- La implementación de una lectura fiable de espacio libre sigue pendiente de un payload mínimo, revisado y específico por firmware, con confirmación de riesgo y prueba separada en la consola. No se envió payload durante esta auditoría.
+- También se eliminó del recorrido la recolección de cada archivo candidato, evitando trabajo y memoria para una sección que el usuario pidió excluir.
+- `test-almacenamiento-render.cjs` garantiza que se presenten las tres categorías y que se descarte una eventual categoría “archivos grandes” enviada por una respuesta antigua o incompatible.
+- Esta entrada supersede los anexos inmediatamente anteriores que describían el listado de archivos grandes. Se conserva el cálculo de posibles límites FTP para reportar una estimación mínima cuando hay evidencia de saturación.
+- Verificación FTP real posterior al retiro de la lista de archivos grandes: el endpoint devolvió exactamente las categorías `juegos y aplicaciones`, `partidas`, `capturas`; 38 juegos/apps, 62 partidas, 1 captura, 640,009,762,021 bytes, sin errores, sin límite y `lower_bound=false`. No se modificó la consola. Las cachés runtime creadas en la copia PC se conservaron fuera del paquete; checker PC respondió `PC_RELEASE_READY_TO_ZIP`.
+
+### Revalidación de perfiles y Limpieza (2026-11-09)
+- La API actual de SaveGames, consultada contra la PS4 por FTP, devolvió 62 partidas con los nombres de perfil `User-2` y `xAJx`; ninguna apareció como “Perfil 1/2”.
+- Limpieza identificó 35 partidas asociadas a títulos que no aparecen en las ubicaciones de aplicaciones internas o extendidas que FTP pudo leer. La lectura no demuestra que sean prescindibles: se mantienen selección explícita, respaldo opcional verificado y borrado permanente separado.
+- La consola reportó `/mnt/ext0/user/app` legible. `/mnt/ext1` no está montado; el inventario de `/mnt` sí fue legible y Limpieza verifica de nuevo IDs instalados antes de cualquier borrado. Esta comprobación fue de solo lectura.
+### Revisión del adjunto de mejoras y estado Parches (2026-11-09)
+
+- SaveGames incorpora loader visual, etiqueta clara para títulos no instalados y acción explícita de borrado permanente sin crear ni descargar respaldo. El servidor exige un indicador de confirmación en esa acción; el flujo protegido existente de respaldo y borrado sigue separado.
+- Limpieza tiene estado de lectura con loader y reemplaza la frase de confirmación escrita por una confirmación simple que identifica cantidad/tamaño y advierte que el borrado es permanente.
+- Almacenamiento incorpora resumen superior y pestañas horizontales para juegos/apps, partidas y capturas. Por juego enumera base, actualizaciones y DLC en memoria interna/almacenamiento extendido, y expone tamaños de elementos. El reporte declara capacidad/libre como `null`: el FTP de GoldHEN observado no implementa `STAT`/`SITE STAT`, así que no existe una medida fiable de espacio libre en este canal.
+- Capturas deja de abrir un segundo modal de pantalla completa por encima de su propio módulo; la galería, controles de actualización, descarga y borrado permanecen en una sola capa. El botón de casa regresa al launcher.
+- Parches compara `APP_VER` de la PS4 con `Metadata AppVer` del XML. Versiones exactas equivalentes se clasifican como compatibles; `mask` se indica como patrón que requiere validación, y versiones distintas/desconocidas muestran advertencia antes de activar. El backend vuelve a exigir esa aceptación para activar una variante que no coincide y permite desactivarla sin confirmación adicional.
+- Ajustes añade selector español/inglés (beta) y un traductor dinámico para los controles/pantallas cubiertos por el diccionario, conservando los nombres de juegos/archivos. La cobertura no abarca aún toda la interfaz: algunos módulos y respuestas del backend permanecen en español, y Ajustes lo indica al usuario.
+- Organizar Apps hace más visible la selección de perfil e incluye un avatar con iniciales. No se halló un recurso de avatar de perfil expuesto por la API actual; se conserva icono de usuario si no hay nombre.
+- Se creó `temporal carpeta/objetivo-adjunto-2026-11-09/INVESTIGACION_APK_ANDROID.md`. Con Java y Node disponibles, pero sin Android SDK, Gradle ni ADB, y debido a que las APIs dependen de PHP, no se generó un APK inválido de WebView. El informe propone una ruta de arquitectura/actualización desde GitHub Releases.
+- Verificación final local: PHP lint (56 archivos), JavaScript syntax (19 archivos), guard de SaveGames, tres categorías de Almacenamiento, compatibilidad de Parches, cambio de idioma, flujos de Limpieza, galería/ZIP y simulador FTP de capturas pasaron con `scripts/verificar-proyecto.ps1 -TestCaptureApi`. El espejo PC verificó sincronización y `PC_RELEASE_READY_TO_ZIP`. Las cachés de usuario (88 archivos, ~10.2 MB en biblioteca) se preservaron fuera del ZIP en `temporal carpeta/objetivo-adjunto-2026-11-09/cache-pc-preservada`; no se borraron.
+- No se ejecutó una operación de escritura en la PS4 durante esta revisión. La compatibilidad exacta de versiones y el comportamiento de lectura tras instalar un juego nuevo están cubiertos por código/unidades y por escaneo fresco al actualizar; no se pudo verificar una instalación nueva en consola en este turno.
+
+### Continuación de traducción y estudio de APK (2026-11-09)
+- Se amplió el diccionario inglés para errores, confirmaciones y estados generados durante Radar/RPI, plugins, partidas y Organización de Apps. Las frases variables ahora cubren, entre otros, IP/conteos FTP, eliminaciones seleccionadas y mensajes de carpeta. La opción sigue marcada beta porque hay textos dinámicos del backend y nombres externos que aún pueden quedar en español.
+- La prueba de idioma verifica alternar español/inglés con una frase dinámica realista (`FTP 192.168.20.39:2121 · 38 juegos · 387 XML`) y restaurar el texto original al volver a español.
+- Se actualizó `temporal carpeta/objetivo-adjunto-2026-11-09/INVESTIGACION_APK_ANDROID.md`: NativePHP Mobile empaqueta PHP, pero la ruta documentada exige Laravel 11+, PHP 8.3+, licencia activa y toolchain Android; no es conversión directa de este backend procedural. Se recomienda evaluar una migración gradual a puente nativo Android si se quiere APK sin Termux. El flujo de Releases debe conservar ID y clave de firma, elevar versionCode y validar SHA-256.
+- Fuentes oficiales revisadas: documentación de entorno, licencia/instalación e inicio rápido de NativePHP Mobile v2, y guía Android de condiciones para actualizar una app.
+- No se generó APK: el proyecto no tiene estructura Android y el equipo de desarrollo comprobado carece de SDK/Gradle/ADB. No se presentó un WebView vacío como app funcional.
+- La verificación integral terminó sin errores. El verificador de release detectó 56 imágenes de caché locales generadas en la copia PC; se preservaron fuera del paquete en `temporal carpeta/objetivo-adjunto-2026-11-09/cache-pc-preservada-20261109-<hora>/` (2,271,114 bytes). Después respondió `PC_RELEASE_READY_TO_ZIP`.
+
+### Personalización con vistas previas y loaders (2026-11-09)
+- La vista previa del launcher muestra tarjetas de ejemplo y comparte clases CSS con el menú real para forma, tema, iconos, movimiento y orientación. El botón la abre/cierra; al abrir vuelve a disparar las animaciones de entrada.
+- Fondos e intros ahora tienen estado provisional. El fondo elegido se muestra temporalmente con Ajustes transparente, y la intro se reproduce como muestra; las preferencias solo se guardan al pulsar **Aplicar**. **Cancelar** restaura el fondo anterior o detiene la intro provisional. Volver al menú cancela cualquier vista previa sin aplicar.
+- Se incorporó `js/loaders.js` con cuatro estilos (Órbita, Pulso, Escáner y Minimal), selector persistente y muestra en Ajustes. SaveGames, Limpieza, Almacenamiento y Parches usan el estilo elegido; el movimiento respeta `prefers-reduced-motion`.
+- Las pruebas `test-loaders.cjs`, `test-preferencias-menu.cjs` y `test-custom-previews.cjs` cubren las cuatro variantes, persistencia, clases compartidas y confirmar/cancelar fondos e intros sin guardar antes de Aplicar.
+- Verificación integral posterior a la sincronización: 56 PHP, 20 JavaScript y todas las pruebas estáticas/DOM/API simuladas pasaron sin errores. La distribución PC coincidió con el código fuente.
+- `verificar-release-pc-limpio.ps1` detectó 91 imágenes de caché locales (~10.23 MB) creadas durante las pruebas; se conservaron fuera del paquete en `temporal carpeta/objetivo-adjunto-2026-11-09/cache-pc-preservada-20261109-120702/`. El paquete respondió `PC_RELEASE_READY_TO_ZIP`.
+- Se amplió la investigación APK en `temporal carpeta/objetivo-adjunto-2026-11-09/INVESTIGACION_APK_ANDROID.md` con PAM Native: posible candidato de spike por PHP embebido y salida APK, pero su UI es nativa y no convierte el frontend web actual. Hay que validar extensión FTP/cURL/ZIP y servidor local. En este equipo no hay WSL/SDK/Gradle listos para esa build; no se creó una APK vacía o no funcional.
+- Una repetición final del verificador generó además 15 imágenes locales de caché del Organizador (~1.30 MB); se preservaron fuera del paquete en `temporal carpeta/objetivo-adjunto-2026-11-09/cache-pc-preservada-20261109-121343/`. El release limpio volvió a pasar.
+
+### Ampliación de traducciones dinámicas al inglés (2026-11-09)
+- Se añadieron traducciones para confirmaciones de borrado, advertencias de firmware, mensajes de progreso BGFT, estados del radar y resultados del Organizador, manteniendo intactos nombres de juegos, perfiles, rutas e identificadores.
+- Los diálogos nativos `alert`, `confirm` y `prompt` se traducen según el idioma activo; conservan los valores de retorno y el modo español al volver a cambiar de idioma.
+- `scripts/test-i18n.cjs` valida cambio de idioma en mensajes con variables, progreso BGFT y diálogos nativos de advertencia.
+- El usuario confirmó que Parches muestra IP y juegos tras recargar; esto verifica que el módulo y su lectura inicial están visibles en su sesión. No implica que se haya confirmado compatibilidad de cada parche desde la consola.
+
+### Traducción de respuestas PHP y auditoría realista del inglés (2026-11-09)
+- El traductor cubre ahora errores y estados de los endpoints PHP de guardados, FTP, payloads, RPI, plugins, biblioteca y Organización de Apps; los mensajes con valores variables usan patrones y conservan rutas, versiones, CUSA y detalles técnicos.
+- Los cambios de texto y de atributos `title`, `placeholder` y `aria-label` se observan cuando los módulos actualizan nodos existentes, además de traducir contenido recién insertado. Se preserva el texto fuente para restaurar español al cambiar de idioma.
+- Se amplió `scripts/audit-i18n-static.cjs` para revisar respuestas `message`/excepciones de `api/*.php` y evaluar cada frase con el mismo traductor del navegador. La auditoría evita contar comentarios, clases CSS, literales fragmentarios de concatenación y nombres de juegos como texto sin traducir; resultado actual: cero candidatos estáticos sin correspondencia.
+- `scripts/test-i18n.cjs` cubre mensajes API variables de incompatibilidad de parche, error FTP 550, BinLoader, BGFT, Organización de Apps, cambios dinámicos de texto/atributos y alternancia del idioma en diálogos nativos.
+- Actualizado el informe Android: PAM 2.2.4 declara runtime Android con PHP 8.4/8.5 para ARM64/x86_64 y WebView explícito bajo allowlist; se mantiene pendiente validar la extensión FTP y el servidor local. El equipo de desarrollo comprobado no tiene SDK Android, Gradle, PAM CLI ni WSL, y `adb devices -l` no mostró un teléfono; todavía no puede construirse y validarse un APK que ejecute el backend completo.
+- Se corrigió la ruta recomendada del informe APK: se consolidó en siete fases y se eliminaron los pasos duplicados que quedaban debajo de la lista. El flujo ahora va desde preparar host/runtime y probar extensiones hasta validar HTTP local, dispositivo, Range/RPI y firma de releases.
+
+
+### Mapa técnico de dependencias para APK Android (2026-11-09)
+- La investigación temporal ahora relaciona las llamadas reales del backend con los requisitos de runtime Android: cURL con FTP, sockets, ZIP, SimpleXML, archivos temporales, SQLite CLI y ejecución de workers.
+- Se aclaró que el proyecto opera FTP mediante cURL y no invoca la extensión `ftp` directamente; la compatibilidad depende del protocolo FTP habilitado en el build de cURL.
+- Se documentaron límites probables que requieren spike o adaptación: `sqlite3`/`proc_open` en Organizar Apps, tareas RPI que crean procesos, y actualización/configuración que hoy llaman herramientas del host.
+- Confirmado por el usuario que Parches carga la IP y la lista de juegos tras recargar. Esto verifica visibilidad/lectura inicial en su sesión, no compatibilidad individual de cada parche.
+
+### Verificación de almacenamiento frente al FTP de la consola (2026-11-09)
+- Una consulta FTP de solo lectura al servidor de la consola respondió `GoldHEN FTP server v2.2`; `SITE AVBL /` devolvió `504 Command not implemented for that parameter` (respuesta FTP). El FTP probado no ofrece espacio libre; la interfaz conserva `no disponible` y no infiere capacidad total a partir de juegos, guardados y capturas.
+- El inventario calcula archivos, juegos/apps y contenido de actualizaciones/DLC por suma de entradas FTP, además de partidas y capturas; los tamaños son el espacio medido de esas categorías, no una cifra global de disco.
+- Se anotó el reporte upstream de desbordamiento de FTP `SIZE` en archivos mayores de 4 GiB en versiones anteriores; como el módulo usa `LIST`, ese reporte no prueba un error idéntico en su cálculo. Se evita afirmar exactitud física o de capacidad global.
+- El usuario confirmó que Parches muestra IP y juegos tras recargar; esto verifica la lectura inicial visible en su sesión, no la compatibilidad parche por parche.
+
+### Validación de solo lectura en PS4 192.168.20.39:2121 (2026-11-09)
+- La API de Parches leyó 38 juegos instalados, 387 XML disponibles y 10 juegos con parches publicados; los estados de compatibilidad se compararon con APP_VER leído del SFO. Hogwarts Legacy (01.05) devolvió siete opciones con `AppVer=mask`, clasificadas como patrón y sujetas a confirmación de riesgo; también se encontraron parches compatibles y con versión distinta en otros juegos.
+- La API de SaveGames leyó 62 partidas entre perfiles; 35 se clasificaron como huérfanas respecto de la lista de juegos instalados, con 1,787,028,486 bytes medidos. Esta lectura no borró ni respaldó datos.
+- Se contrastaron los 8 registros instalados que inicialmente solo mostraban CUSA con la lectura de solo consulta de `app.db`: los nombres de 7 IDs únicos están presentes (incluidos Apollo Save Tool, Resident Evil 7, JUMP FORCE y PS4 Toolset). SaveGames ahora completa esos nombres desde Organizar Apps cuando existen en `app.db`; conserva el CUSA si el título no aparece en la base.
+- Se agregó una prueba con DOM simulado para comprobar el enriquecimiento de nombre/icono desde `app.db`, el fallback CUSA para partidas no instaladas y el envío de IP/puerto; integrada en `scripts/verificar-proyecto.ps1`.
+- Almacenamiento leyó 38 juegos/apps con 899,046,898,676 bytes sumados; God of War Ragnarök registró 123,829,307,270 bytes (90,562,776,695 base y 33,266,530,575 actualización). Partidas: 3,274,438,123 bytes en 62 entradas. Capturas: 1,410,409 bytes en una entrada.
+- El FTP probó no proporcionar capacidad total ni espacio libre (`capacity_bytes` y `free_bytes` nulos); el desglose describe solo las rutas enumeradas y no debe presentarse como ocupación global del disco.
+- Se documentó en `temporal carpeta/objetivo-adjunto-2026-11-09/ANALISIS_ESPACIO_LIBRE_GOLDHEN.md` por qué no debe reutilizarse como lectura inocua el payload multifunción experimental de DPI: además de `statfs`, acepta órdenes de instalación/cambio de destino. Una futura consulta requiere payload mínimo propio, aviso, compilación compatible y comparación contra la pantalla Almacenamiento de PS4.
+- La vista de Almacenamiento ahora etiqueta como KiB/MiB/GiB/TiB los tamaños que convierte con base 1024, evitando llamar GB a valores binarios.
+- La misma convención binaria se aplicó a los tamaños de SaveGames, Limpieza, transferencias y Explorador FTP; las velocidades calculadas con divisor 1024² ahora se muestran como MiB/s.
+
+### Nueva alternativa Android evaluada: Phphone (2026-11-09)
+- Se revisó el repositorio y su documentación oficial. Phphone anuncia PHP 8.4 embebido y un build APK desde CLI Windows, pero todavía no se ejecutó su instalador ni código de terceros.
+- La documentación declara tres límites que bloquean el backend actual sin adaptación: cuerpos POST pueden perderse en Release; evita `exit()`/`die()` dentro de endpoints; extensiones que requieran compilación nativa C no están soportadas. Las APIs actuales dependen intensamente de POST/exit y de cURL FTP, sockets, ZIP/SimpleXML y SQLite CLI.
+- El proyecto está en una fase pública temprana y requiere Android Studio/SDK. Se documentó Phphone como prototipo descartable, sujeto a pruebas de cuerpo POST, control de flujo PHP, extensiones, FTP y almacenamiento antes de considerar un APK completo.
+- Estado del host revalidado: no hay Android SDK/Gradle ni runtime `phphone`; WSL está disponible solo como característica de Windows sin distribución configurada; `adb devices -l` no lista dispositivos.
+
+### Revisión actualizada de NativePHP Mobile v4 (2026-11-09)
+- Se corrigió la investigación APK con los requisitos vigentes de NativePHP v4: PHP 8.3+, Laravel 10+, Android Studio 2024.2.1+, Android SDK API 29+ y 7-Zip en Windows.
+- El núcleo de NativePHP Mobile v3+ ya no requiere licencia de pago según el anuncio oficial; la migración sigue siendo sustancial porque PS4 Manager Tool no usa Laravel y el renderer de NativePHP es nativo.
+- Actualizadas las fuentes primarias y descartada como desfasada la conclusión anterior sobre licencia y requisitos de v2.
+
+### Revisión adicional de capacidad libre y APK (2026-11-09)
+- Se reejecutó `scripts/verificar-proyecto.ps1`: 57 archivos PHP y 20 JavaScript pasan sintaxis; los chequeos de SaveGames, Limpieza, Almacenamiento, Capturas, Parches, inglés, personalización y espejo PC terminaron sin errores.
+- El usuario confirmó que Parches muestra IP y juegos; esto verifica conexión/listado inicial en su sesión, no el funcionamiento de cada parche.
+- El README oficial de `ps4-payload-dev/sdk` documenta un ZIP binario para entorno POSIX, requisitos `bash`, `clang-18` y `lld-18`, y soporte de offsets para 9.00. El host actual sigue sin esos compiladores/herramientas, sin distribución WSL y sin dispositivo Android conectado; no se compiló ni envió payload.
+- Se añadió este hallazgo y la ruta de validación pendiente a `temporal carpeta/objetivo-adjunto-2026-11-09/ANALISIS_ESPACIO_LIBRE_GOLDHEN.md`. El APK completo sigue sin poder acreditarse mientras no se pruebe runtime Android y compatibilidad de las APIs PHP.
+- Se evaluó WebToApp como empaquetador potencial mediante su código upstream en carpeta temporal. La revisión de runtime y los intentos fallidos de build se actualizaron en `temporal carpeta/objetivo-adjunto-2026-11-09/INVESTIGACION_APK_ANDROID.md`; no se generó APK.
+- Se descargó el Android command-line tools oficial; su SHA-256 coincide con el publicado. El usuario aceptó la licencia y se instalaron API 36, Build Tools, platform-tools, NDK, CMake, Emulator e imagen x86_64 dentro de la carpeta temporal. La compilación completa WebToApp no produjo APK por falta de memoria nativa del host.
+- Se creó `temporal carpeta/objetivo-adjunto-2026-11-09/AUDITORIA_OBJETIVO.md` con evidencia por cada uno de los nueve requisitos del adjunto, distinguiendo verificación estática, fixtures, lectura de solo consulta y validación manual pendiente.
+
+- 2026-11-09: Tras la aceptación del usuario de las licencias Android SDK, se instalaron API 36, Build Tools 36.0.0, platform-tools, Emulator e imagen x86_64 en `temporal carpeta/objetivo-adjunto-2026-11-09/android-build-tools/android-sdk`. Se creó AVD `GoldHenTest36`; `emulator-check accel` indica que el host no tiene Android Emulator hypervisor driver.
+- 2026-11-09: Se clonó WebToApp upstream completo para un intento de compilación Gradle 9.4.1. La compilación activa es solo del empaquetador; no debe confundirse con una APK GoldHEN Manager.
+- 2026-11-09: La revisión estática de WebToApp encontró límites de PHP (`memory_limit=256M`, POST/upload 64 MiB) y buffering de la respuesta completa. Antes de considerar una APK final hay que verificar/ajustar PKG grandes, Range RPI, descargas grandes, extensiones PHP requeridas, SQLite/procesos y SAF en Android. Detalles en `temporal carpeta/objetivo-adjunto-2026-11-09/webtoapp-source-review/README_ANALISIS.md`.
+
+### Android SDK / WebToApp: cierre de esta fase (2026-11-09)
+- El usuario aprobó expresamente la licencia. Se instalaron API 36, Build Tools 36, platform-tools, NDK 28.2, CMake 3.22.1, Emulator 37.2.13 e imagen x86_64 en la ruta temporal aislada; creado AVD `GoldHenTest36`. El host no tiene hypervisor del emulador.
+- En el upstream temporal WebToApp (Gradle 9.4.1), se corrigieron rutas de herramientas Windows solo dentro del spike y pasó la tarea de empaquetar AdMob. La compilación completa falló tres veces en `compileStandardDebugKotlin` por asignación de memoria nativa, en un host con 5.9 GiB RAM. Los logs `hs_err_pid344/668/88.log` guardan la evidencia. No se generó APK.
+- El router PHP upstream limita POST/upload a 64 MiB, configura 256 MiB de memoria y acumula toda respuesta en memoria. Esto debe resolver para PKG grandes, RPI por rangos y ZIP antes de plantear una APK completa; faltan pruebas de extensiones, SAF, workers y FTP en teléfono Android.
+- Informe de investigación actualizado: `temporal carpeta/objetivo-adjunto-2026-11-09/INVESTIGACION_APK_ANDROID.md`. El runtime genérico no demuestra funcionalidad plena del Manager.
+
+### Revisión integral, identidad y distribución 4.5.0 (2026-11-10)
+- Se sustituyeron los iconos PWA de 192 y 512 px por el icono AJ entregado por el usuario; se recortó a cuadrado conservando el símbolo completo.
+- Se actualizaron `goldhen.sh` y las instrucciones de distribución para clonar `AJfiles/PS4-MANAGER-TOOL-AJ`, conservando la carpeta de instalación existente en Termux para no romper actualizaciones de usuarios actuales.
+- La comprobación automatizada encontró desajustes en la copia Windows de `api/android_release_api.php`, `js/app.js`, `js/i18n.js` y `README.md`; se sincronizó el código fuente distribuible con la versión principal sin copiar runtime state del usuario.
+- El actualizador Android ahora intenta GitHub Releases con cURL HTTPS y verificación de certificado si el wrapper HTTPS de PHP Android no está disponible. Falta validar este fallback en el APK recompilado y confirmar un Release con APK/SHA-256 en GitHub.
+- La lectura de GitHub en el runtime Android detectó que cURL no confiaba en el certificado por falta de bundle CA. Se incorporó `api/certs/cacert.pem` del bundle Mozilla distribuido por curl.se, con su hash SHA-256 y aviso MPL-2.0; el código conserva la validación TLS estricta.
+- El APK WebToApp solo sirve su backend en loopback; por eso la PS4 no puede descargar el PKG directamente desde el teléfono por RPI en este formato. FTP manual y lecturas iniciadas desde la app sí se pueden verificar por separado; RPI en Android requiere Termux o una app que exponga un servidor LAN compatible.
+- El registro de la revisión distingue análisis automatizado, lecturas FTP de solo lectura, pruebas del APK y acciones que requieren interacción visual o confirmación en PS4. La comprobación sintáctica no equivale a una prueba funcional de cada botón ni a compatibilidad de todos los firmware.
+
+### Publicación de mantenimiento 4.5.1 (2026-11-10)
+- Se actualizó el número de versión del producto a 4.5.1 para que los APK 4.5.0 ya instalados puedan detectar esta actualización en GitHub Releases.
+- Se probó desde el APK instalado la consulta de Releases. Tras añadir `api/certs/cacert.pem`, GitHub respondió por HTTPS con validación de certificado activa y el endpoint informó que todavía no hay APK publicado.
+- Se comprobó en el APK mediante solo lectura FTP: Biblioteca 45 juegos/apps; SaveGames 62 partidas; Parches 10 juegos con XML; Organizar Apps 2 perfiles; Plugins 16 archivos PRX; Payloads 8 archivos remotos; Capturas 1 imagen; Explorador FTP `/user/` 1 elemento.
+- El test automatizado PHP/JavaScript y la sincronización de archivos con PC pasan tras actualizar la versión. La revisión del almacenamiento sigue siendo una operación larga de solo lectura; no se habilita borrado automático.
+- La publicación GitHub con APK y paquete PC, y la verificación final del botón de actualización contra ese Release, quedan pendientes hasta terminar el empaquetado y la publicación del tag 4.5.1.

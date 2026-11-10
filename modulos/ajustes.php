@@ -1,7 +1,7 @@
 <?php
 /**
  * ====================================================================
- * GOLDHEN MANAGER AJ 🚀 - MÓDULO DE CONFIGURACIÓN Y TEMAS GAMING
+ * PS4 Manager Tool 🚀 - MÓDULO DE CONFIGURACIÓN Y TEMAS GAMING
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: modulos/ajustes.php
  * ====================================================================
@@ -25,6 +25,14 @@
     </div>
 
     <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-4 pb-10 z-20">
+
+        <section class="w-full rounded-[1.5rem] border border-sky-400/15 bg-[#0a0f1a] p-4 shadow-lg">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-language text-sky-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Idioma / Language</span></div>
+            <label class="mt-3 flex items-center justify-between gap-3 text-[10px] text-gray-300" for="cfg-language">Idioma de la interfaz
+                <select id="cfg-language" onchange="ghmSetLanguage(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[10px] text-white"><option value="es">Español</option><option value="en">English (beta)</option></select>
+            </label>
+            <p class="mt-2 text-[8px] leading-relaxed text-gray-500">La traducción está en beta: algunos módulos y mensajes del servidor pueden seguir en español. Los nombres de juegos y archivos conservan el texto de la consola.</p>
+        </section>
 
         <!-- Notificaciones -->
         <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3 relative z-[100]">
@@ -94,6 +102,11 @@
             </div>
         </div>
 
+        <div id="visual-preview-actions" class="hidden w-full rounded-2xl border border-cyan-400/20 bg-[#07111d]/95 p-4 shadow-2xl backdrop-blur-md">
+            <div class="flex items-start gap-3"><i class="fa-solid fa-eye mt-0.5 text-cyan-200"></i><div class="min-w-0 flex-1"><b class="block text-[10px] font-black uppercase tracking-widest text-cyan-100">Vista previa en curso</b><p id="visual-preview-description" class="mt-1 text-[9px] leading-relaxed text-gray-300">Revisa el aspecto antes de guardarlo.</p></div></div>
+            <div class="mt-3 flex gap-2"><button type="button" onclick="aplicarPrevisualizacionVisual()" class="flex-1 rounded-xl bg-cyan-400/15 px-3 py-2.5 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-check mr-1"></i> Aplicar</button><button type="button" onclick="cancelarPrevisualizacionVisual()" class="flex-1 rounded-xl bg-white/5 px-3 py-2.5 text-[9px] font-bold text-gray-300"><i class="fa-solid fa-xmark mr-1"></i> Cancelar</button></div>
+        </div>
+
         <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
             <div class="flex items-center gap-2 border-b border-white/5 pb-2">
                 <i class="fas fa-wand-magic-sparkles text-pink-400 text-sm"></i>
@@ -116,10 +129,40 @@
         <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
             <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fas fa-grip text-cyan-300"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Vista del menú principal</span></div>
             <label class="flex items-center justify-between gap-3"><span class="text-[10px] text-gray-300">Vista vertical tipo lista</span><input id="cfg-launcher-vertical" type="checkbox" class="h-5 w-5 accent-cyan-500" onchange="alternarVistaLauncher(this.checked)"></label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Forma exterior de las tarjetas e iconos
+                <select id="cfg-launcher-shape" onchange="cambiarEstiloIconosLauncher()" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="rounded">Redondeado</option><option value="circle">Circular</option><option value="square">Cuadrado suave</option><option value="diamond">Diamante</option><option value="pill">Cápsula</option><option value="squircle">Superelipse</option><option value="hexagon">Hexágono</option></select>
+            </label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Animación de las tarjetas
+                <select id="cfg-launcher-motion" onchange="cambiarAnimacionLauncher(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="none">Sin animación</option><option value="rise">Entrada suave</option><option value="glide">Deslizamiento alternado</option><option value="float">Elevación al tocar</option><option value="tilt">Inclinación al señalar</option><option value="pulse">Pulso ambiental</option></select>
+            </label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Acabado de las tarjetas
+                <select id="cfg-launcher-theme" onchange="cambiarTemaLauncher(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="glass">Cristal oscuro</option><option value="solid">Sólido limpio</option><option value="aurora">Borde aurora</option><option value="gradient">Degradado sutil</option></select>
+            </label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Tratamiento de los iconos
+                <select id="cfg-launcher-icons" onchange="cambiarEstiloIconosLauncher()" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="color">Color original</option><option value="glow">Neón suave</option><option value="outline">Contorno</option><option value="mono">Monocromo</option></select>
+            </label>
             <label class="flex flex-col gap-2 text-[9px] text-gray-300">Diseño del dispositivo
                 <select id="cfg-device-layout" onchange="cambiarDisenoDispositivo(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="auto">Automático</option><option value="mobile">Teléfono / Android</option><option value="desktop">PC</option></select>
             </label>
             <p class="text-[8px] text-gray-500">Automático adapta la distribución al tamaño de pantalla y al tipo de entrada. Puedes fijar el diseño manualmente.</p>
+            <button id="launcher-preview-toggle" type="button" onclick="toggleLauncherPreview()" aria-expanded="false" class="self-start rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-eye mr-1"></i> Ver vista previa</button>
+            <div id="launcher-preview-panel" class="hidden rounded-2xl border border-white/10 bg-[#050914] p-3">
+                <p class="mb-3 text-[8px] font-bold uppercase tracking-[.18em] text-gray-500">Vista previa del launcher · se actualiza al cambiar las opciones</p>
+                <div id="launcher-preview-grid" class="grid grid-cols-2 gap-2">
+                    <div class="launcher-card p-3 rounded-[2rem] flex flex-col items-center justify-center cursor-default aspect-square"><div class="w-10 h-10 rounded-[1rem] bg-cyan-900/30 text-cyan-300 flex items-center justify-center mb-2 border border-cyan-500/10"><i class="fa-solid fa-gamepad"></i></div><span class="text-[9px] font-black tracking-wider uppercase text-white">Biblioteca</span><span class="text-[7px] font-bold tracking-widest text-gray-500 uppercase mt-1">Juegos e iconos</span></div>
+                    <div class="launcher-card p-3 rounded-[2rem] flex flex-col items-center justify-center cursor-default aspect-square"><div class="w-10 h-10 rounded-[1rem] bg-violet-900/30 text-violet-300 flex items-center justify-center mb-2 border border-violet-500/10"><i class="fa-solid fa-plug"></i></div><span class="text-[9px] font-black tracking-wider uppercase text-white">Plugins</span><span class="text-[7px] font-bold tracking-widest text-gray-500 uppercase mt-1">Gestión</span></div>
+                    <div class="launcher-card p-3 rounded-[2rem] flex flex-col items-center justify-center cursor-default aspect-square"><div class="w-10 h-10 rounded-[1rem] bg-rose-900/30 text-rose-300 flex items-center justify-center mb-2 border border-rose-500/10"><i class="fa-solid fa-folder-open"></i></div><span class="text-[9px] font-black tracking-wider uppercase text-white">Explorador FTP</span><span class="text-[7px] font-bold tracking-widest text-gray-500 uppercase mt-1">Archivos</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-spinner text-cyan-300"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Animación de carga</span></div>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Estilo de los loaders
+                <select id="cfg-loader-style" onchange="cambiarEstiloLoader(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="orbit">Órbita · anillos y núcleo</option><option value="pulse">Pulso · ondas concéntricas</option><option value="scan">Escáner · barrido HUD</option><option value="minimal">Minimal · arco limpio</option></select>
+            </label>
+            <p class="text-[8px] text-gray-500">Se usa al leer partidas, Limpieza, Almacenamiento y Parches. Puedes previsualizarlo antes de salir de Ajustes.</p>
+            <div id="loader-preview" aria-label="Vista previa de animación de carga"></div>
         </div>
 
         <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
@@ -147,8 +190,8 @@
                 <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Acerca de</span>
             </div>
             <div class="flex flex-col items-center py-2">
-                <span class="text-[9px] font-mono text-gray-500 tracking-widest">GoldHen Manager AJ</span>
-                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.0 • Mantenido por AJ</span>
+                <span class="text-[9px] font-mono text-gray-500 tracking-widest">PS4 Manager Tool</span>
+                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.1 • Mantenido por AJ</span>
                 <span class="text-[7px] font-mono text-gray-700 mt-1">Basado en el trabajo original de SeBaS</span>
                 <div class="flex gap-3 mt-2">
                     <span class="text-[8px] font-mono text-cyan-500/50">❤️ Comunidad</span>
@@ -161,7 +204,7 @@
             <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fas fa-cloud-arrow-down text-emerald-400 text-sm"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Actualizaciones</span></div>
             <p id="update-status" class="text-[9px] text-gray-500 font-mono">Comprueba cambios publicados en GitHub.</p>
             <div class="grid grid-cols-2 gap-2"><button onclick="comprobarActualizacion()" class="py-3 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-wider text-gray-300"><i class="fas fa-rotate-right"></i> Verificar</button><button id="btn-aplicar-update" onclick="aplicarActualizacion()" disabled class="py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider text-emerald-400 opacity-40">Actualizar</button></div>
-            <button onclick="mostrarInstalacionPWA()" class="py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black uppercase tracking-wider text-cyan-400"><i class="fas fa-mobile-screen-button"></i> Instalar app en el teléfono</button>
+            <button id="btn-instalar-pwa" onclick="mostrarInstalacionPWA()" class="py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black uppercase tracking-wider text-cyan-400"><i class="fas fa-mobile-screen-button"></i> Instalar app en el teléfono</button>
         </div>
 
         <div class="w-full rounded-[1.5rem] border border-amber-500/25 bg-amber-950/20 p-4 shadow-lg">

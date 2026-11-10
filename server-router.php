@@ -6,6 +6,12 @@ if (strpos($uriPath, "\0") !== false || strpos($uriPath, '\\') !== false || in_a
     exit;
 }
 
+if (strcasecmp($uriPath, '/api/request_guard.php') === 0) {
+    http_response_code(404);
+    exit;
+}
+if (preg_match('#^/api(?:/|$)#i', $uriPath)) require_once __DIR__ . '/api/request_guard.php';
+
 if (preg_match('#^/user(?:/|$)#i', $uriPath)) {
     // Solo imágenes de caché se sirven al navegador. PKG se entrega mediante
     // api/rpi_file.php, que valida el nombre y nunca lista la carpeta privada.
