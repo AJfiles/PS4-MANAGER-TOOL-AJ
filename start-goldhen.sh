@@ -2,13 +2,14 @@
 # Lanzador explícito y fiable para Termux. El servidor se deja en segundo plano
 # y escucha en la red local para que la PS4 pueda descargar PKG por RPI.
 set -u
-PROJECT_DIR="${HOME}/GoldHenManagerAJ"
+PROJECT_DIR="${HOME}/PS4ManagerToolsAJ"
+if [ ! -f "$PROJECT_DIR/index.php" ] && [ -f "${HOME}/GoldHenManagerAJ/index.php" ]; then PROJECT_DIR="${HOME}/GoldHenManagerAJ"; fi
 PORT="${GOLDHEN_PORT:-8080}"
-LOG_FILE="${HOME}/.goldhen-server.log"
-PID_FILE="${HOME}/.goldhen-server.pid"
+LOG_FILE="${HOME}/.ps4-manager-tools-server.log"
+PID_FILE="${HOME}/.ps4-manager-tools-server.pid"
 
 if [ ! -f "$PROJECT_DIR/index.php" ]; then
-  echo "PS4 Manager Tool no se encontró en $PROJECT_DIR. Ejecuta primero goldhen.sh."
+  echo "PS4 Manager Tools no se encontró en $PROJECT_DIR. Ejecuta primero goldhen.sh."
   exit 1
 fi
 if ! command -v php >/dev/null 2>&1; then
@@ -16,7 +17,7 @@ if ! command -v php >/dev/null 2>&1; then
   exit 1
 fi
 if command -v curl >/dev/null 2>&1 && curl -fsS --max-time 1 "http://127.0.0.1:${PORT}/index.php" >/dev/null 2>&1; then
-  echo "PS4 Manager Tool ya está abierto: http://127.0.0.1:${PORT}/index.php"
+  echo "PS4 Manager Tools ya está abierto: http://127.0.0.1:${PORT}/index.php"
   command -v termux-open-url >/dev/null 2>&1 && termux-open-url "http://127.0.0.1:${PORT}/index.php"
   exit 0
 fi
@@ -41,7 +42,7 @@ for _ in $(seq 1 30); do
 done
 
 if [ "$READY" -eq 1 ]; then
-  echo "PS4 Manager Tool v4.5.3 abierto en http://127.0.0.1:${PORT}/index.php"
+  echo "PS4 Manager Tools v4.5.4 abierto en http://127.0.0.1:${PORT}/index.php"
   command -v termux-open-url >/dev/null 2>&1 && termux-open-url "http://127.0.0.1:${PORT}/index.php"
   exit 0
 fi

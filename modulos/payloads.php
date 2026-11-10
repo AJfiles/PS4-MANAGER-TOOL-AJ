@@ -13,6 +13,6 @@
             </div>
         </div>
         <div id="payload-remote-card" class="bg-[#0a0f1a] border border-white/5 rounded-2xl p-4"><span class="text-[10px] uppercase font-black tracking-widest text-white">Payloads en PS4</span><div id="payload-remote-list" class="flex flex-col gap-2 mt-3"></div></div>
-        <div id="payload-local-card" class="bg-[#0a0f1a] border border-white/5 rounded-2xl p-4"><div class="flex justify-between mb-3"><span class="text-[10px] uppercase font-black tracking-widest text-white">Payloads del PS4 Manager Tool</span><label class="text-[9px] text-amber-400 cursor-pointer"><i class="fa-solid fa-plus"></i> Añadir<input id="payload-upload" type="file" accept=".bin,.payload,.elf" class="hidden" onchange="payloadSubir(event)"></label></div><div id="payload-local-list" class="flex flex-col gap-2"></div></div>
+        <div id="payload-local-card" class="bg-[#0a0f1a] border border-white/5 rounded-2xl p-4"><div class="flex justify-between mb-3"><span class="text-[10px] uppercase font-black tracking-widest text-white">Payloads del PS4 Manager Tools</span><label class="text-[9px] text-amber-400 cursor-pointer"><i class="fa-solid fa-plus"></i> Añadir<input id="payload-upload" type="file" accept=".bin,.payload,.elf" class="hidden" onchange="payloadSubir(event)"></label></div><div id="payload-local-list" class="flex flex-col gap-2"></div></div>
     </div>
 </div>

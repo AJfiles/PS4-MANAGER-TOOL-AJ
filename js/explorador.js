@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * PS4 Manager Tool V3.0 🚀 - CONTROLADOR DEL EXPLORADOR FTP
+ * PS4 Manager Tools V3.0 🚀 - CONTROLADOR DEL EXPLORADOR FTP
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: js/explorador.js
  * ====================================================================
  */

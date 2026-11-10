@@ -3,7 +3,7 @@ require_once __DIR__ . '/request_guard.php';
 require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * PS4 Manager Tool 🚀 - API: DETECTOR DE PESO Y ESPACIO
+ * PS4 Manager Tools 🚀 - API: DETECTOR DE PESO Y ESPACIO
  * DEVELOPED By SeBaS - Mod AJ
  * RUTA: api/tech_info_biblioteca.php
  * ====================================================================

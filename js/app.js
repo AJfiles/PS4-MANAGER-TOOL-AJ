@@ -1,11 +1,11 @@
 /**
  * ====================================================================
- * PS4 Manager Tool 🚀 (PS4) - NÚCLEO DE CONTROL CENTRAL (CORE)
+ * PS4 Manager Tools 🚀 (PS4) - NÚCLEO DE CONTROL CENTRAL (CORE)
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * ====================================================================
  */
 const CREATOR_ATTRIBUTION = "by AJ · basado en el trabajo original de SeBaS";
-console.log(`%c PS4 Manager Tool - Developed ${CREATOR_ATTRIBUTION} `, "background: #111827; color: #22d3ee; font-weight: bold; padding: 4px;");
+console.log(`%c PS4 Manager Tools - Developed ${CREATOR_ATTRIBUTION} `, "background: #111827; color: #22d3ee; font-weight: bold; padding: 4px;");
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -23,6 +23,7 @@ let globalAppConfig = {
 };
 
 let globalAudioCtx = null;
+let globalAudioUnlock = Promise.resolve();
 let ultimoEfectoAudioAt = 0;
 let radarTimeoutId = null; // Para controlar el cierre automático del radar
 let pwaInstallPrompt = null;
@@ -369,11 +370,18 @@ function inicializarValoresInterfazAjustes() {
 function inicializarContextoAudio() {
     if (!globalAudioCtx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) throw new Error('El navegador no ofrece Web Audio.');
         globalAudioCtx = new AudioContext();
     }
     if (globalAudioCtx.state === 'suspended') {
-        globalAudioCtx.resume();
+        globalAudioUnlock = globalAudioCtx.resume().catch(() => {});
     }
+    return globalAudioCtx;
+}
+
+function desbloquearAudioInterfaz() {
+    if (!globalAppConfig.sonidosActivos || globalAppConfig.volumenSfx <= 0) return;
+    try { inicializarContextoAudio(); } catch (_) {}
 }
 
 function emitirEfectoSonidoNativo(tipo, force = false) {
@@ -382,8 +390,7 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
     if (!force && now - ultimoEfectoAudioAt < 45) return;
     ultimoEfectoAudioAt = now;
     try {
-        inicializarContextoAudio();
-        const ctx = globalAudioCtx, style = globalAppConfig.estiloSfx || 'soft';
+        const ctx = inicializarContextoAudio(), style = globalAppConfig.estiloSfx || 'soft';
         const presets = {
             soft: { wave:'sine', click:[520,360,.075], open:[660,990,.18] },
             console: { wave:'sine', click:[720,180,.095], open:[540,1480,.24] },
@@ -391,12 +398,19 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
             minimal: { wave:'triangle', click:[420,320,.05], open:[700,900,.12] }
         };
         const preset = presets[style] || presets.soft, values = tipo === 'ps-ui' ? preset.open : preset.click;
-        const osc = ctx.createOscillator(), gain = ctx.createGain(), start = ctx.currentTime, duration = values[2];
-        osc.type = preset.wave; osc.frequency.setValueAtTime(values[0], start); osc.frequency.exponentialRampToValueAtTime(values[1], start + duration);
-        gain.gain.setValueAtTime(0.22 * globalAppConfig.volumenSfx, start); gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-        osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
+        const volumen = globalAppConfig.volumenSfx;
+        Promise.resolve(globalAudioUnlock).then(() => {
+            if (!globalAppConfig.sonidosActivos || ctx.state !== 'running') return;
+            const osc = ctx.createOscillator(), gain = ctx.createGain(), start = ctx.currentTime, duration = values[2];
+            osc.type = preset.wave; osc.frequency.setValueAtTime(values[0], start); osc.frequency.exponentialRampToValueAtTime(values[1], start + duration);
+            gain.gain.setValueAtTime(0.32 * volumen, start); gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+            osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
+        }).catch(() => {});
     } catch (e) {}
 }
+
+document.addEventListener('pointerdown', desbloquearAudioInterfaz, { capture: true, passive: true });
+document.addEventListener('keydown', desbloquearAudioInterfaz, { capture: true });
 
 function cambiarEstiloSonido(style) { globalAppConfig.estiloSfx = ['soft','console','arcade','minimal'].includes(style) ? style : 'soft'; localStorage.setItem('cfg_sfx_style', globalAppConfig.estiloSfx); emitirEfectoSonidoNativo('ps-ui', true); }
 function probarSonidoSeleccionado() { emitirEfectoSonidoNativo('ps-ui', true); }
@@ -828,6 +842,9 @@ const ghmNativeAndroidShell = /Android/i.test(navigator.userAgent)
         // WebToApp serves this APK on its private loopback port. Its UA does
         // not always include the Android WebView "wv" marker.
         || (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === '18500'));
+const ghmNativeAndroidApk = /Android/i.test(navigator.userAgent)
+    && (/;\s*wv\)/i.test(navigator.userAgent)
+        || (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === '18500'));
 
 function ocultarInstalacionPWAEnAPK() {
     if (!ghmNativeAndroidShell) return;
@@ -880,15 +897,24 @@ window.mostrarInstalacionPWA = async function() {
 };
 
 window.androidReleaseCandidate = null;
+window.pcReleaseCandidate = null;
+let comprobacionActualizacionEnCurso = false;
 window.comprobarActualizacion = async function() {
     const estado = document.getElementById('update-status');
     const boton = document.getElementById('btn-aplicar-update');
+    const verificar = document.getElementById('btn-verificar-update');
     const tr = value => window.ghmTranslateText ? window.ghmTranslateText(value) : value;
+    if (comprobacionActualizacionEnCurso) return;
+    comprobacionActualizacionEnCurso = true;
+    window.androidReleaseCandidate = null;
+    window.pcReleaseCandidate = null;
+    if (verificar) { verificar.disabled = true; verificar.setAttribute('aria-busy', 'true'); verificar.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${tr('Consultando…')}`; }
+    if (boton) { boton.disabled = true; boton.classList.add('opacity-40'); }
     if (estado) estado.innerText = tr('Consultando GitHub…');
     try {
-        if (/Android/i.test(navigator.userAgent)) {
+        if (ghmNativeAndroidApk) {
             const fd = new FormData(); fd.append('action', 'check');
-            const res = await fetch('api/android_release_api.php', { method: 'POST', body: fd });
+            const res = await fetch('api/android_release_api.php', { method: 'POST', body: fd, cache: 'no-store' });
             const data = await res.json();
             if (data.status !== 'success') throw new Error(data.message || 'No se pudo comprobar la APK.');
             window.androidReleaseCandidate = data.apk_available ? data.release : null;
@@ -911,16 +937,34 @@ window.comprobarActualizacion = async function() {
         }
 
         const fd = new FormData(); fd.append('action', 'check');
-        const res = await fetch('api/update_api.php', { method: 'POST', body: fd }); const data = await res.json();
+        const res = await fetch('api/update_api.php', { method: 'POST', body: fd, cache: 'no-store' }); const data = await res.json();
         if (data.status !== 'success') throw new Error(data.message);
-        if (data.update_available) { if (estado) estado.innerText = `Nueva versión disponible (${data.remote}).`; if (boton) { boton.disabled=false; boton.classList.remove('opacity-40'); } }
-        else { if (estado) estado.innerText = `Ya tienes la versión más reciente (${data.current}).`; if (boton) { boton.disabled=true; boton.classList.add('opacity-40'); } }
-    } catch (error) { if (estado) estado.innerText = error.message || 'No se pudo comprobar la actualización.'; }
+        if (data.asset_url) {
+            window.pcReleaseCandidate = data.update_available ? data : null;
+            if (data.update_available) {
+                if (estado) estado.innerText = `${tr('PS4 Manager Tools')} ${data.current_version}: ${tr('nueva versión')} ${data.version}. ${tr('Descarga el ZIP; cierra el servidor y extrae sobre la carpeta actual, conservando user.')}`;
+                if (boton) { boton.disabled = false; boton.innerText = tr('Descargar ZIP'); boton.classList.remove('opacity-40'); }
+            } else {
+                if (estado) estado.innerText = `${tr('PS4 Manager Tools')} ${data.current_version}: ${tr('ya tienes la versión más reciente')}.`;
+                if (boton) { boton.disabled = true; boton.innerText = tr('Descargar ZIP'); boton.classList.add('opacity-40'); }
+            }
+        } else if (data.update_available) {
+            if (estado) estado.innerText = `${tr('Nueva versión disponible')} (${data.remote}).`;
+            if (boton) { boton.disabled = false; boton.innerText = tr('Actualizar'); boton.classList.remove('opacity-40'); }
+        } else {
+            if (estado) estado.innerText = `${tr('Ya tienes la versión más reciente')} (${data.current}).`;
+            if (boton) { boton.disabled = true; boton.innerText = tr('Actualizar'); boton.classList.add('opacity-40'); }
+        }
+    } catch (error) { if (estado) estado.innerText = error.message || tr('No se pudo comprobar la actualización.'); }
+    finally {
+        comprobacionActualizacionEnCurso = false;
+        if (verificar) { verificar.disabled = false; verificar.removeAttribute('aria-busy'); verificar.innerHTML = `<i class="fas fa-rotate-right"></i> ${tr('Verificar')}`; }
+    }
 };
 
 window.aplicarActualizacion = async function() {
     const estado = document.getElementById('update-status');
-    if (/Android/i.test(navigator.userAgent)) {
+    if (ghmNativeAndroidApk) {
         const tr = value => window.ghmTranslateText ? window.ghmTranslateText(value) : value;
         const release = window.androidReleaseCandidate;
         if (!release || !/^[a-f0-9]{64}$/i.test(release.sha256 || '')) {
@@ -934,7 +978,32 @@ window.aplicarActualizacion = async function() {
             if (estado) estado.innerText = tr('El enlace de actualización no pertenece al repositorio oficial.');
             return;
         }
-        if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Al terminar, abre la notificación de Android para revisar e instalar la actualización.')}`;
+        if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Se guardará en Descargas. Abre el APK y confirma la instalación en Android.')}`;
+        const link = document.createElement('a');
+        link.href = url.href;
+        link.download = release.asset_name;
+        link.rel = 'noopener';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+    }
+
+    if (window.pcReleaseCandidate) {
+        const release = window.pcReleaseCandidate;
+        let url;
+        try { url = new URL(release.asset_url); } catch (_) { url = null; }
+        if (!url || url.protocol !== 'https:' || url.hostname !== 'github.com'
+            || !url.pathname.startsWith('/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/PS4-Manager-Tools-AJ-PC-v')) {
+            if (estado) estado.innerText = 'El enlace de actualización no pertenece al repositorio oficial.';
+            return;
+        }
+        if (!/^[a-f0-9]{64}$/i.test(release.sha256 || '')) {
+            if (estado) estado.innerText = 'El ZIP no tiene un SHA-256 válido; no se habilitó la descarga.';
+            return;
+        }
+        if (estado) estado.innerText = `Descargando ${release.asset_name} (${release.sha256}). Al terminar, cierra el servidor y extrae el ZIP sobre la carpeta actual; conserva user.`;
         const link = document.createElement('a');
         link.href = url.href;
         link.download = release.asset_name;

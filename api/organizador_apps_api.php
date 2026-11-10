@@ -30,6 +30,23 @@ function oa_sqlite($db, $sql) {
             $ok=$conn->exec($sql);$err=$conn->lastErrorMsg();$conn->close();return $ok?['ok'=>true,'data'=>[]]:['ok'=>false,'error'=>'SQLite rechazó la operación: '.substr($err,0,500)];
         } catch (Throwable $e) { return ['ok'=>false,'error'=>'SQLite no pudo abrir app.db: '.substr($e->getMessage(),0,300)]; }
     }
+    // WebToApp on Android commonly ships PDO_SQLite without the separate
+    // SQLite3 class (or a sqlite3 CLI binary). Use the available PDO driver so
+    // app.db reads and integrity checks work in the APK as well as on PC.
+    if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+        try {
+            $conn = new PDO('sqlite:' . $db, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $first = strtoupper((string)strtok(ltrim($sql), " \t\r\n"));
+            if (in_array($first, ['SELECT','PRAGMA','WITH','EXPLAIN'], true)) {
+                $result = $conn->query($sql);
+                return ['ok'=>true,'data'=>$result ? $result->fetchAll(PDO::FETCH_ASSOC) : []];
+            }
+            $conn->exec($sql);
+            return ['ok'=>true,'data'=>[]];
+        } catch (Throwable $e) {
+            return ['ok'=>false,'error'=>'PDO_SQLite no pudo abrir app.db: '.substr($e->getMessage(),0,300)];
+        }
+    }
     $bin = oa_sqlite_bin();
     if (!$bin) return ['ok'=>false, 'error'=>'Falta SQLite CLI. En Termux ejecuta el actualizador del Manager para instalar sqlite; en PC usa el paquete portable completo.'];
     $cmd = [$bin, '-batch', '-bail', '-json', $db];

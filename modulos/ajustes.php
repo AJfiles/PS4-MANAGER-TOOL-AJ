@@ -1,7 +1,7 @@
 <?php
 /**
  * ====================================================================
- * PS4 Manager Tool 🚀 - MÓDULO DE CONFIGURACIÓN Y TEMAS GAMING
+ * PS4 Manager Tools 🚀 - MÓDULO DE CONFIGURACIÓN Y TEMAS GAMING
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: modulos/ajustes.php
  * ====================================================================
@@ -32,6 +32,16 @@
                 <select id="cfg-language" onchange="ghmSetLanguage(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[10px] text-white"><option value="es">Español</option><option value="en">English (beta)</option></select>
             </label>
             <p class="mt-2 text-[8px] leading-relaxed text-gray-500">La traducción está en beta: algunos módulos y mensajes del servidor pueden seguir en español. Los nombres de juegos y archivos conservan el texto de la consola.</p>
+        </section>
+
+        <section class="w-full rounded-[1.5rem] border border-emerald-400/15 bg-[#0a0f1a] p-4 shadow-lg">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-folder-tree text-emerald-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Archivos y respaldos</span></div>
+            <div class="mt-3 space-y-2 text-[9px] leading-relaxed text-gray-400">
+                <p><b class="text-emerald-200">Termux:</b> Almacenamiento interno/PS4 Manager Tools AJ/user/</p>
+                <p><b class="text-emerald-200">APK:</b> los datos de trabajo se conservan en el almacenamiento privado de la app; las exportaciones se descargan en la carpeta Descargas de Android.</p>
+                <p><b class="text-emerald-200">PC:</b> carpeta user/ junto al programa. Consérvala al reemplazar archivos durante una actualización.</p>
+                <p class="text-gray-500">Android restringe la escritura directa en la raíz compartida. Descarga los ZIP de respaldo que quieras conservar fuera de la app.</p>
+            </div>
         </section>
 
         <!-- Notificaciones -->
@@ -190,8 +200,8 @@
                 <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Acerca de</span>
             </div>
             <div class="flex flex-col items-center py-2">
-                <span class="text-[9px] font-mono text-gray-500 tracking-widest">PS4 Manager Tool</span>
-                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.3 • Mantenido por AJ</span>
+                <span class="text-[9px] font-mono text-gray-500 tracking-widest">PS4 Manager Tools</span>
+                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.4 • Mantenido por AJ</span>
                 <span class="text-[7px] font-mono text-gray-700 mt-1">Basado en el trabajo original de SeBaS</span>
                 <div class="flex gap-3 mt-2">
                     <span class="text-[8px] font-mono text-cyan-500/50">❤️ Comunidad</span>
@@ -202,8 +212,8 @@
 
         <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
             <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fas fa-cloud-arrow-down text-emerald-400 text-sm"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Actualizaciones</span></div>
-            <p id="update-status" class="text-[9px] text-gray-500 font-mono">Comprueba cambios publicados en GitHub.</p>
-            <div class="grid grid-cols-2 gap-2"><button onclick="comprobarActualizacion()" class="py-3 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-wider text-gray-300"><i class="fas fa-rotate-right"></i> Verificar</button><button id="btn-aplicar-update" onclick="aplicarActualizacion()" disabled class="py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider text-emerald-400 opacity-40">Actualizar</button></div>
+            <p id="update-status" role="status" aria-live="polite" class="text-[9px] text-gray-500 font-mono">Comprueba cambios publicados en GitHub.</p>
+            <div class="grid grid-cols-2 gap-2"><button id="btn-verificar-update" onclick="comprobarActualizacion()" class="py-3 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-wider text-gray-300"><i class="fas fa-rotate-right"></i> Verificar</button><button id="btn-aplicar-update" onclick="aplicarActualizacion()" disabled class="py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider text-emerald-400 opacity-40">Actualizar</button></div>
             <button id="btn-instalar-pwa" onclick="mostrarInstalacionPWA()" class="py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black uppercase tracking-wider text-cyan-400"><i class="fas fa-mobile-screen-button"></i> Instalar app en el teléfono</button>
         </div>
 

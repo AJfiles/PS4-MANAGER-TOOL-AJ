@@ -2,7 +2,7 @@
 require_once __DIR__ . '/request_guard.php';
 /**
  * ====================================================================
- * PS4 Manager Tool V3.0 🚀 - API: VERIFICADOR DE CONEXIÓN EN VIVO
+ * PS4 Manager Tools V3.0 🚀 - API: VERIFICADOR DE CONEXIÓN EN VIVO
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: api/scanner.php
  * ====================================================================
  */

@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * PS4 Manager Tool V2.1 🚀 - CONTROLADOR MAESTRO DE BIBLIOTECA
+ * PS4 Manager Tools V2.1 🚀 - CONTROLADOR MAESTRO DE BIBLIOTECA
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: js/biblioteca.js
  * ====================================================================
  */

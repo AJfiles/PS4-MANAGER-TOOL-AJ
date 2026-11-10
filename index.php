@@ -1,7 +1,7 @@
 <?php
 /**
  * ====================================================================
- * PS4 Manager Tool 🚀 (PS4) - EDICIÓN MODULAR TERMUX
+ * PS4 Manager Tools 🚀 (PS4) - EDICIÓN MODULAR TERMUX
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: index.php
  * ====================================================================
@@ -30,13 +30,13 @@ header('X-Author: ' . $firma);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PS4 Manager Tools AJ | Consola PS4</title>
+    <title>PS4 Manager Tools | Consola PS4</title>
 
     <link rel="manifest" href="<?= app_asset_url('manifest.json') ?>">
     <meta name="theme-color" content="#060913">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="PS4 Manager Tools AJ">
+    <meta name="apple-mobile-web-app-title" content="PS4 Manager Tools">
     <link rel="apple-touch-icon" href="<?= app_asset_url('js/icon-192.png') ?>">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -218,18 +218,18 @@ header('X-Author: ' . $firma);
                 <i class="fa-solid fa-gamepad text-cyan-400 text-[10px] opacity-70"></i>
             </div>
             <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#ffffff] to-[#9aa0ab] uppercase leading-none drop-shadow-md">
-                PS4 Manager Tools AJ
+                PS4 Manager Tools
             </h1>
             <div class="flex items-center justify-center gap-3 mt-2.5 opacity-80">
                 <span class="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-500/80"></span>
-                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.3 • AJ</span>
+                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.4 • AJ</span>
                 <span class="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-500/80"></span>
             </div>
         </div>
 
         <div class="w-full max-w-4xl mx-auto z-20 mt-4 shrink-0">
             <button onclick="abrirBusquedaGlobal()" class="mb-3 flex w-full items-center gap-3 rounded-2xl border border-violet-500/20 bg-violet-500/5 px-4 py-3 text-left active:scale-[.99] transition-all hover:bg-violet-500/10">
-                <i class="fa-solid fa-magnifying-glass text-violet-300"></i><span class="flex-1 text-[10px] font-bold tracking-wide text-violet-100">Buscar en PS4 Manager Tools AJ…</span><span class="text-[8px] uppercase tracking-widest text-violet-300/70">Global</span>
+                <i class="fa-solid fa-magnifying-glass text-violet-300"></i><span class="flex-1 text-[10px] font-bold tracking-wide text-violet-100">Buscar en PS4 Manager Tools…</span><span class="text-[8px] uppercase tracking-widest text-violet-300/70">Global</span>
             </button>
             <div class="glass-premium p-4 rounded-[2rem] flex flex-col gap-3 shadow-2xl">
                 
@@ -281,7 +281,7 @@ header('X-Author: ' . $firma);
             <div onclick="abrirModulo('ajustes')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-gray-700/30 text-gray-300 flex items-center justify-center mb-3 border border-gray-500/10"><i class="fa-solid fa-sliders text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Ajustes</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Live BGs e Intros</span></div>
         </div>
 
-        <div class="w-full text-center pt-2 pb-1 shrink-0 text-[9px] tracking-widest font-mono uppercase text-cyan-300/70">PS4 Manager Tools AJ <span class="text-gray-500">· Base de SeBaS</span></div>
+        <div class="w-full text-center pt-2 pb-1 shrink-0 text-[9px] tracking-widest font-mono uppercase text-cyan-300/70">PS4 Manager Tools <span class="text-gray-500">· Base de SeBaS</span></div>
     </div>
 
     <div id="modal-busqueda-global" class="fixed inset-0 z-[10060] hidden items-start justify-center bg-black/75 backdrop-blur-sm p-4 pt-[12dvh]" onclick="if(event.target===this)cerrarBusquedaGlobal()">

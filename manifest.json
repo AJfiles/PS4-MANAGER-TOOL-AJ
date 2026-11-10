@@ -1,7 +1,7 @@
 {
   "id": "/index.php",
-  "name": "PS4 Manager Tools AJ",
-  "short_name": "PS4 Manager AJ",
+  "name": "PS4 Manager Tools",
+  "short_name": "PS4 Manager",
   "description": "Gestor Autónomo de PS4 y Modding",
   "start_url": "/index.php",
   "scope": "/",

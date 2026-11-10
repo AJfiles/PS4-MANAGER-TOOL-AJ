@@ -56,7 +56,7 @@ Report-Check "JavaScript syntax ($($jsFiles.Count) files)" ($jsErrors.Count -eq 
 $manifestPath = Join-Path $root 'manifest.json'
 $manifest = $null
 try { $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json -ErrorAction Stop } catch { }
-Report-Check 'Manifest y etiqueta PWA usan la marca PS4 Manager Tools AJ' ($null -ne $manifest -and $manifest.name -eq 'PS4 Manager Tools AJ' -and $manifest.short_name -eq 'PS4 Manager AJ')
+Report-Check 'Nombre del proyecto y PWA usa PS4 Manager Tools' ($null -ne $manifest -and $manifest.name -eq 'PS4 Manager Tools' -and $manifest.short_name -eq 'PS4 Manager')
 $iconErrors = [System.Collections.Generic.List[string]]::new()
 if ($null -ne $manifest) {
     foreach ($icon in $manifest.icons) {
@@ -116,7 +116,7 @@ Report-Check 'Todos los endpoints API y el router aplican guard de origen local'
 $projectVersion = Get-Content -LiteralPath (Join-Path $root 'project-version.json') -Raw | ConvertFrom-Json
 $androidReleaseApi = Get-Content -LiteralPath (Join-Path $root 'api\android_release_api.php') -Raw
 $androidReleaseScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
-Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.3' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
+Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.4' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
 $libraryListingTest = Join-Path $PSScriptRoot 'test-library-appmeta-listing.php'
 $libraryListingOutput = & $php $libraryListingTest 2>&1
 $libraryListingPassed = $LASTEXITCODE -eq 0 -and ($libraryListingOutput -join ' ') -match 'LIBRARY_APPMETA_LISTING_OK'
@@ -132,10 +132,13 @@ Report-Check 'Galería, descarga y borrado de capturas viven en su módulo indep
 Report-Check 'Limpieza evita clasificar guardados como inútiles' ($page -notmatch 'Datos huérfanos' -and (Get-Content -LiteralPath (Join-Path $root 'js\limpieza.js') -Raw) -match 'partidas de juegos no instalados')
 $saveWarning = Get-Content -LiteralPath (Join-Path $root 'modulos\saves.php') -Raw
 Report-Check 'SaveGames distingue su ZIP de respaldo del formato de importación Apollo' ($saveWarning -match 'no es una exportación directa para Apollo' -and $saveWarning -match 'HDD Saves' -and $saveWarning -match 'Copy save game' -and $saveWarning -match 'PS4/APOLLO')
-Report-Check 'Título visible usa PS4 Manager Tools AJ' ($page -match '<title>PS4 Manager Tools AJ')
+Report-Check 'Título visible del proyecto usa PS4 Manager Tools' ($page -match '<title>PS4 Manager Tools \| Consola PS4')
 $settingsMarkup = Get-Content -LiteralPath (Join-Path $root 'modulos\ajustes.php') -Raw
 $appScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
 Report-Check 'APK Android oculta instalación PWA y reconoce el servidor WebToApp local' ($appScript -match 'ocultarInstalacionPWAEnAPK' -and $appScript -match "location\.port === '18500'" -and $appScript -match 'btn-instalar-pwa')
+Report-Check 'Audio SFX libera WebAudio en el primer gesto del usuario' ($appScript -match 'desbloquearAudioInterfaz' -and $appScript -match "addEventListener\('pointerdown', desbloquearAudioInterfaz" -and $appScript -match "addEventListener\('keydown', desbloquearAudioInterfaz" -and $appScript -match 'globalAudioUnlock')
+$updateApi = Get-Content -LiteralPath (Join-Path $root 'api\update_api.php') -Raw
+Report-Check 'Actualizador de PC ZIP verifica versión, enlace de Releases y SHA-256' ($updateApi -match 'get_pc_release' -and $updateApi -match 'SHA256SUMS-' -and $updateApi -match 'PS4-Manager-Tools-AJ-PC-v' -and $updateApi -match 'download_required')
 $customizationChecks = @(
     (($settingsMarkup -match 'cfg-launcher-vertical') -and ($appScript -match 'cfg_launcher_vertical'))
     (($settingsMarkup -match 'cfg-launcher-shape') -and ($appScript -match 'cfg_launcher_shape'))
@@ -146,7 +149,7 @@ $customizationChecks = @(
 )
 Report-Check 'Ajustes ofrece y persiste seis preferencias de vista del menú' (@($customizationChecks | Where-Object { -not $_ }).Count -eq 0)
 $introMarkup = Get-Content -LiteralPath (Join-Path $root 'modulos\intros.php') -Raw
-Report-Check 'Animaciones de inicio usan PS4 Manager Tool' ($introMarkup -match 'PS4 Manager Tool|PS4 MANAGER' -and $introMarkup -notmatch '(?i)GoldHen|GOLDHEN')
+Report-Check 'Animaciones de inicio usan PS4 Manager Tools' ($introMarkup -match 'PS4 Manager Tools|PS4 MANAGER' -and $introMarkup -notmatch '(?i)GoldHen|GOLDHEN')
 $preferenceTest = Join-Path $PSScriptRoot 'test-preferencias-menu.cjs'
 $preferenceOutput = & $nodeCommand.Source $preferenceTest 2>&1
 $preferenceTestPassed = $LASTEXITCODE -eq 0 -and ($preferenceOutput -join ' ') -match 'LAUNCHER_PREFERENCES_OK'

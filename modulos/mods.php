@@ -1,7 +1,7 @@
 <?php
 /**
  * ====================================================================
- * PS4 Manager Tool V3.0 🚀 - MÓDULO GESTOR DE MODS MULTIMOTOR
+ * PS4 Manager Tools V3.0 🚀 - MÓDULO GESTOR DE MODS MULTIMOTOR
  * RUTA: modulos/mods.php
  * ====================================================================
  */

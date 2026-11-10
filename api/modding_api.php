@@ -3,7 +3,7 @@ require_once __DIR__ . '/request_guard.php';
 require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * PS4 Manager Tool V2.1 🚀 - API: RESPALDOS Y GALERÍA LOCAL
+ * PS4 Manager Tools V2.1 🚀 - API: RESPALDOS Y GALERÍA LOCAL
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: api/modding_api.php
  * ====================================================================
  */

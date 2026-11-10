@@ -1,5 +1,5 @@
 <?php
-/** Utilidades compartidas para cachés locales de PS4 Manager Tool. */
+/** Utilidades compartidas para cachés locales de PS4 Manager Tools. */
 function limpiar_cache_antigua($directorio, $dias = 30) {
     if (!is_dir($directorio)) return;
 

@@ -3,7 +3,7 @@ require_once __DIR__ . '/request_guard.php';
 require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * PS4 Manager Tool 🚀 - API: INYECTOR DE PORTADAS FTP
+ * PS4 Manager Tools 🚀 - API: INYECTOR DE PORTADAS FTP
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: api/inyector_portadas.php
  * ====================================================================

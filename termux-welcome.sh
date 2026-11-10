@@ -15,8 +15,8 @@ RESET='\033[0m'
 clear
 printf "${CYAN}╭──────────────────────────────────────────────────────╮${RESET}\n"
 printf "${CYAN}│${RESET}                                                      ${CYAN}│${RESET}\n"
-printf "${CYAN}│${RESET}   ${VIOLET}╔═╗╔═╗╦  ╔╦╗╦ ╦╔═╗╔╗╔${RESET}  ${GOLD}PS4 Manager Tool${RESET}   ${CYAN}│${RESET}\n"
-printf "${CYAN}│${RESET}   ${VIOLET}║ ╦║ ║║   ║ ║ ║╠═╣║║║${RESET}  ${WHITE}PS4 · TERMUX · v4.5.3${RESET}  ${CYAN}│${RESET}\n"
+printf "${CYAN}│${RESET}   ${VIOLET}╔═╗╔═╗╦  ╔╦╗╦ ╦╔═╗╔╗╔${RESET}  ${GOLD}PS4 Manager Tools${RESET}   ${CYAN}│${RESET}\n"
+printf "${CYAN}│${RESET}   ${VIOLET}║ ╦║ ║║   ║ ║ ║╠═╣║║║${RESET}  ${WHITE}PS4 · TERMUX · v4.5.4${RESET}  ${CYAN}│${RESET}\n"
 printf "${CYAN}│${RESET}   ${VIOLET}╚═╝╚═╝╩═╝ ╩ ╚═╝╩ ╩╝╚╝${RESET}  ${MUTED}AJ · SeBaS${RESET}           ${CYAN}│${RESET}\n"
 printf "${CYAN}│${RESET}                                                      ${CYAN}│${RESET}\n"
 printf "${CYAN}╰──────────────────────────────────────────────────────╯${RESET}\n\n"
@@ -43,8 +43,8 @@ done
 if ((remaining == 0)); then launch=1; fi
 printf "\n\n"
 if ((launch)); then
-    printf "  ${GREEN}●${RESET} Abriendo PS4 Manager Tool…\n\n"
-    bash "$HOME/GoldHenManagerAJ/start-goldhen.sh"
+    printf "  ${GREEN}●${RESET} Abriendo PS4 Manager Tools…\n\n"
+    if [ -f "$HOME/PS4ManagerToolsAJ/start-goldhen.sh" ]; then bash "$HOME/PS4ManagerToolsAJ/start-goldhen.sh"; else bash "$HOME/GoldHenManagerAJ/start-goldhen.sh"; fi
 else
     clear
     printf "${MUTED}Inicio automático cancelado. Termux está listo.${RESET}\n\n"

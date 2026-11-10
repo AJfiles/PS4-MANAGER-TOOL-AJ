@@ -37,7 +37,7 @@
         <div class="w-full bg-blue-900/20 border border-blue-500/30 rounded-xl p-3 flex gap-3 shrink-0">
             <i class="fa-solid fa-info-circle text-blue-400 mt-0.5"></i>
             <p class="text-[9px] text-blue-200 font-mono leading-relaxed">
-                Deja tus PKG en <b>/storage/emulated/0/GoldHenManager/user/pkgs_rpi/</b> o en Descargas. La PS4 debe estar en la misma red y Package Installer abierto en primer plano.
+                Deja tus PKG en <b>/storage/emulated/0/PS4 Manager Tools AJ/user/pkgs_rpi/</b> o en Descargas. La PS4 debe estar en la misma red y Package Installer abierto en primer plano.
             </p>
         </div>
 
@@ -79,7 +79,7 @@
                 <option value="downloads">Descargas del teléfono o PC</option>
                 <option value="both">Ambas carpetas</option>
             </select>
-            <p class="text-[9px] text-gray-500">En Android: Manager en <b>Almacenamiento interno/GoldHenManager/user/pkgs_rpi/</b>; Descargas en <b>Almacenamiento interno/Download/</b>.</p>
+            <p class="text-[9px] text-gray-500">En Android: Manager en <b>Almacenamiento interno/PS4 Manager Tools AJ/user/pkgs_rpi/</b>; Descargas en <b>Almacenamiento interno/Download/</b>.</p>
             <div class="flex items-center justify-between px-1">
                 <span class="text-[10px] font-black tracking-widest uppercase text-gray-400">PKG disponibles</span>
                 <button onclick="escanearCarpetaRPI()" class="text-[10px] text-cyan-400 font-bold uppercase active:scale-95"><i class="fa-solid fa-sync-alt mr-1"></i> Escanear</button>

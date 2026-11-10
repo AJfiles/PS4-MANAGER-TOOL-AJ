@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const { spawn } = require('node:child_process');
 const net = require('node:net');
 const path = require('node:path');
@@ -34,7 +35,10 @@ async function waitForServer(url, child) {
 (async () => {
   const port = await freePort();
   const base = `http://127.0.0.1:${port}`;
-  const child = spawn(php, ['-S', `127.0.0.1:${port}`, '-t', path.resolve(root)], {
+  const ini = path.join(path.dirname(php), 'php.ini');
+  const args = fs.existsSync(ini) ? ['-c', ini] : [];
+  args.push('-S', `127.0.0.1:${port}`, '-t', path.resolve(root));
+  const child = spawn(php, args, {
     cwd: path.resolve(root), windowsHide: true, stdio: 'ignore'
   });
 

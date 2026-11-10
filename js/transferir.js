@@ -42,7 +42,7 @@ function limpiarLogRPI() {
 }
 
 async function copiarLogRPI() {
-    const text = rpiLogLines.join('\n') || 'PS4 Manager Tool: sin eventos RPI registrados.';
+    const text = rpiLogLines.join('\n') || 'PS4 Manager Tools: sin eventos RPI registrados.';
     try {
         await navigator.clipboard.writeText(text);
     } catch (_) {

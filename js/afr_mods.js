@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * PS4 Manager Tool V3.0 🚀 - MÓDULO GESTOR AFR V3 + PLUGINS (TERMUX)
+ * PS4 Manager Tools V3.0 🚀 - MÓDULO GESTOR AFR V3 + PLUGINS (TERMUX)
  * RUTA: js/afr_mods.js
  * ====================================================================
  */

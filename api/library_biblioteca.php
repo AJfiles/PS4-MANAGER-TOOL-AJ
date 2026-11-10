@@ -2,7 +2,7 @@
 require_once __DIR__ . '/request_guard.php';
 /**
  * ====================================================================
- * PS4 Manager Tool 🚀 - API CORE DE LA BIBLIOTECA
+ * PS4 Manager Tools 🚀 - API CORE DE LA BIBLIOTECA
  * Mantenido por AJ · Basado en proyecto original de SeBaS
  * RUTA: api/library_biblioteca.php
  * ====================================================================

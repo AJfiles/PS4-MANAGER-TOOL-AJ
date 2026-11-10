@@ -2,7 +2,7 @@
 require_once __DIR__ . '/request_guard.php';
 /**
  * ====================================================================
- * PS4 Manager Tool V2.1 🚀 - API: EXCAVADOR DE IMÁGENES MEDIA (SEGURO)
+ * PS4 Manager Tools V2.1 🚀 - API: EXCAVADOR DE IMÁGENES MEDIA (SEGURO)
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: api/ps4_screenshots_api.php
  * ====================================================================
  */

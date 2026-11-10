@@ -18,8 +18,8 @@ if ($unexpected.Count) {
 
 $manifestPath = Join-Path $release 'manifest.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-if ($manifest.name -ne 'PS4 Manager Tools AJ' -or $manifest.short_name -ne 'PS4 Manager AJ') {
-    throw 'El nombre PWA no coincide con PS4 Manager Tools AJ.'
+if ($manifest.name -ne 'PS4 Manager Tools' -or $manifest.short_name -ne 'PS4 Manager') {
+    throw 'El nombre PWA no coincide con PS4 Manager Tools.'
 }
 foreach ($iconPath in @('js\icon-192.png', 'js\icon-512.png')) {
     if (-not (Test-Path -LiteralPath (Join-Path $release $iconPath) -PathType Leaf)) { throw "Falta el icono $iconPath" }

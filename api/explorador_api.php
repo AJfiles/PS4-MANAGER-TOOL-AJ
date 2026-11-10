@@ -3,7 +3,7 @@ require_once __DIR__ . '/request_guard.php';
 require_once __DIR__ . '/ftp_compat.php';
 /**
  * ====================================================================
- * PS4 Manager Tool V3.0 🚀 - API: MOTOR DEL EXPLORADOR Y DESCOMPRESIÓN
+ * PS4 Manager Tools V3.0 🚀 - API: MOTOR DEL EXPLORADOR Y DESCOMPRESIÓN
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: api/explorador_api.php
  * ====================================================================
  */

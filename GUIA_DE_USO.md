@@ -5,7 +5,7 @@
 1. Haz una copia de seguridad de datos importantes de la PS4.
 2. Conecta teléfono y PS4 a la misma Wi-Fi.
 3. Activa GoldHEN y confirma que el servidor FTP responde en el puerto `2121`.
-4. En Termux, ejecuta `bash goldhen.sh` desde `$HOME/GoldHenManagerAJ`.
+4. En Termux, ejecuta el comando de instalación publicado en README; las instalaciones nuevas se guardan en `$HOME/PS4ManagerToolsAJ`.
 
 ## Conectar la consola
 
@@ -77,7 +77,7 @@ Los servicios externos pueden cambiar su disponibilidad o sus condiciones.
 ## Prueba de aceptación en Termux
 
 ```bash
-cd $HOME/GoldHenManagerAJ
+cd $HOME/PS4ManagerToolsAJ
 bash goldhen.sh
 ```
 

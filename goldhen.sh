@@ -1,9 +1,11 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# PS4 Manager Tools AJ v4.5.3 — instalador fiable para Termux
+# PS4 Manager Tools AJ v4.5.4 — instalador fiable para Termux
 set -u
 
 VERDE='\033[1;32m'; CYAN='\033[1;36m'; AMARILLO='\033[1;33m'; ROJO='\033[1;31m'; BLANCO='\033[1;37m'; NC='\033[0m'
-REPO_DIR="$HOME/GoldHenManagerAJ"
+REPO_DIR="$HOME/PS4ManagerToolsAJ"
+LEGACY_REPO_DIR="$HOME/GoldHenManagerAJ"
+if [ ! -e "$REPO_DIR" ] && [ -d "$LEGACY_REPO_DIR/.git" ]; then REPO_DIR="$LEGACY_REPO_DIR"; fi
 INSTALL_LOG="$HOME/.goldhen-install.log"
 
 spinner() {
@@ -47,13 +49,13 @@ actualizar_repositorios() {
 instalar_comandos() {
     # Los ejecutables en PREFIX/bin funcionan de inmediato: no dependen de
     # que Termux cargue ~/.bashrc después de ejecutar `curl | bash`.
-    cat > "$PREFIX/bin/goldhen" <<'EOF'
+    cat > "$PREFIX/bin/goldhen" <<EOF
 #!/data/data/com.termux/files/usr/bin/bash
-exec bash "$HOME/GoldHenManagerAJ/start-goldhen.sh"
+exec bash "$REPO_DIR/start-goldhen.sh"
 EOF
-    cat > "$PREFIX/bin/store-admin" <<'EOF'
+    cat > "$PREFIX/bin/store-admin" <<EOF
 #!/data/data/com.termux/files/usr/bin/bash
-exec bash "$HOME/GoldHenManagerAJ/store/admin.sh"
+exec bash "$REPO_DIR/store/admin.sh"
 EOF
     chmod 755 "$PREFIX/bin/goldhen" "$PREFIX/bin/store-admin"
 }
@@ -76,12 +78,12 @@ configurar_inicio_termux() {
         ' "$bashrc" > "$bashrc.goldhen.tmp" && mv "$bashrc.goldhen.tmp" "$bashrc"
     fi
     if ! grep -Fq "$marker" "$bashrc"; then
-        cat >> "$bashrc" <<'EOF'
+        cat >> "$bashrc" <<EOF
 
 # GOLDHEN_MANAGER_AJ_AUTO_START_V4
-if [[ $- == *i* ]] && [ -t 0 ] && [ -f "$HOME/GoldHenManagerAJ/termux-welcome.sh" ] && [ -z "${GOLDHEN_AUTO_PROMPTED:-}" ]; then
+if [[ \$- == *i* ]] && [ -t 0 ] && [ -f "$REPO_DIR/termux-welcome.sh" ] && [ -z "\${GOLDHEN_AUTO_PROMPTED:-}" ]; then
     export GOLDHEN_AUTO_PROMPTED=1
-    bash "$HOME/GoldHenManagerAJ/termux-welcome.sh"
+    bash "$REPO_DIR/termux-welcome.sh"
 fi
 EOF
     fi
@@ -108,7 +110,7 @@ validar_php() {
 
 clear
 printf "${CYAN}╭────────────────────────────────────╮${NC}\n"
-printf "${CYAN}│${NC}      ${BLANCO}PS4 Manager Tools AJ${NC} ${CYAN}v4.5.3      │${NC}\n"
+printf "${CYAN}│${NC}      ${BLANCO}PS4 Manager Tools AJ${NC} ${CYAN}v4.5.4      │${NC}\n"
 printf "${CYAN}│${NC}       ${AMARILLO}PS4 • Termux • Local FTP${NC}       ${CYAN}│${NC}\n"
 printf "${CYAN}╰────────────────────────────────────╯${NC}\n\n"
 
@@ -148,9 +150,25 @@ if ! ejecutar_paso "Verificando archivos PHP…" validar_php; then
     exit 1
 fi
 
-mkdir -p /sdcard/GoldHenManager/user
-if [ -L "$REPO_DIR/user" ]; then rm "$REPO_DIR/user"; fi
-if [ ! -e "$REPO_DIR/user" ]; then ln -s /sdcard/GoldHenManager/user "$REPO_DIR/user"; fi
+STORAGE_ROOT="/sdcard/PS4 Manager Tools AJ"
+LEGACY_STORAGE_ROOT="/sdcard/GoldHenManager"
+mkdir -p "$STORAGE_ROOT"
+if [ -L "$REPO_DIR/user" ]; then
+    OLD_USER_TARGET="$(readlink -f "$REPO_DIR/user" 2>/dev/null || true)"
+    case "$OLD_USER_TARGET" in
+        */GoldHenManager/user)
+            if [ ! -e "$STORAGE_ROOT/user" ] && [ -d "$OLD_USER_TARGET" ]; then
+                if mv "$OLD_USER_TARGET" "$STORAGE_ROOT/user"; then
+                    ln -sfn "$STORAGE_ROOT/user" "$REPO_DIR/user"
+                    mkdir -p "$LEGACY_STORAGE_ROOT"
+                    ln -sfn "$STORAGE_ROOT/user" "$LEGACY_STORAGE_ROOT/user"
+                fi
+            fi
+            ;;
+    esac
+fi
+if [ ! -e "$REPO_DIR/user" ]; then ln -s "$STORAGE_ROOT/user" "$REPO_DIR/user"; fi
+mkdir -p "$REPO_DIR/user"
 chmod +x "$REPO_DIR/start-goldhen.sh" "$REPO_DIR/store/admin.sh" 2>/dev/null || true
 instalar_comandos
 configurar_inicio_termux
@@ -158,5 +176,6 @@ configurar_inicio_termux
 printf "\n${VERDE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
 printf "${VERDE}  ✓ Instalación completada${NC}\n"
 printf "${CYAN}  Abriendo PS4 Manager Tools AJ…${NC}\n"
+printf "${CYAN}  Archivos de la app: Almacenamiento interno/PS4 Manager Tools AJ/user/${NC}\n"
 printf "${VERDE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
 exec bash "$REPO_DIR/start-goldhen.sh"
