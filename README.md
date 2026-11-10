@@ -12,7 +12,7 @@ Elige una de las tres opciones publicadas en [Releases](https://github.com/AJfil
    curl -sL https://raw.githubusercontent.com/AJfiles/PS4-MANAGER-TOOL-AJ/main/goldhen.sh | bash
    ```
 
-2. **APK para Android**: descarga `PS4-Manager-Tools-AJ-v4.5.3.apk` e instálalo. No requiere instalar Termux. Android solicita confirmación del sistema al instalar una actualización descargada desde Ajustes.
+2. **APK para Android**: descarga `PS4-Manager-Tools-AJ-v4.5.3.apk` e instálalo. No requiere instalar Termux. La descarga se guarda en Descargas; abre el APK y confirma la instalación en Android.
 
 3. **Windows**: descarga el ZIP `PS4-Manager-Tools-AJ-PC-v4.5.3.zip`, extráelo y ejecuta `Iniciar-PS4-Manager-Tool.bat`. Mantén abierta la ventana del servidor mientras uses la aplicación.
 

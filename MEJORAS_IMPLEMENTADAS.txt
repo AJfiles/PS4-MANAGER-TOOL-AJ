@@ -1199,10 +1199,10 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 ### Corrección del fallback de actualización y mantenimiento 4.5.2 (2026-11-10)
 - Después de publicar 4.5.1, la consulta móvil recibió HTTP 403 por el límite compartido de la API REST de GitHub. Se agregó un fallback para resolver `/releases/latest`, extraer solo una etiqueta `vMAJOR.MINOR.PATCH` del repositorio exacto y leer el SHA-256 del sidecar de la versión. El APK solo se habilita cuando el nombre esperado y el digest de 64 caracteres coinciden; HTTPS conserva la validación CA estricta.
 - La rama fallback quedó validada con PHP portable contra el Release público: `apk_available=true`, URL bajo el repositorio oficial y SHA-256 idéntico al asset de GitHub. Se incrementa a 4.5.2 para que la instalación anterior reconozca la corrección como actualización.
-- La actualización sigue usando el instalador del sistema Android; confirmar la instalación queda a cargo del usuario. La prueba con el APK 4.5.2 y la cuota real REST agotada se hará después de publicar la versión final.
+- La comprobación del APK 4.5.2 publicado respondió por HTTPS con la versión y el hash de GitHub; cuando se simuló que la app instalada era 4.5.1, el endpoint marcó 4.5.2 como actualización disponible. Android conserva la confirmación de instalación en manos del usuario.
 
 
 ### Corrección de instalación PWA en APK y parche 4.5.3 (2026-11-10)
 - La revisión visual del APK 4.5.2 encontró que el botón «Instalar app en el teléfono» seguía visible en Ajustes. El WebView de WebToApp no siempre incluye `wv` en su User-Agent; se añadió la detección segura de su servidor local Android (`127.0.0.1`/`localhost`, puerto `18500`) y se conserva la opción PWA en navegadores y servidores Termux/PC.
 - Se actualizó la versión del proyecto a 4.5.3 para que las instalaciones 4.5.2 puedan obtener la corrección mediante Ajustes → Actualizaciones → Verificar/Actualizar.
-- Verificación pendiente para el APK 4.5.3: reconstruir e instalar en el teléfono, confirmar que ya no aparece el botón PWA y comprobar la consulta GitHub contra el nuevo Release.
+- Se reconstruyó e instaló el APK 4.5.3 en el teléfono. Se confirmó que desaparece «Instalar app en el teléfono», que la consulta real devuelve latest_version=4.5.3 y update_available=false, y que al simular 4.5.2 devuelve update_available=true con el APK 4.5.3 y hash correcto. El botón descargó el APK en Descargas con SHA-256 coincidente; Android requiere abrir el archivo y confirmar la instalación.
