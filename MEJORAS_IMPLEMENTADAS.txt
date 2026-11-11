@@ -1246,4 +1246,9 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Se habilitó Folder en WebToApp. En el Galaxy S23 Ultra se seleccionó y concedió acceso a `PS4 Manager Tools AJ`; se corrigió la escritura en la carpeta elegida y el flujo de exportación de respaldo que iniciaba navegación directa. Se recompiló 4.5.7/40507 y se instaló sobre la APK existente conservando paquete y firma. Play Protect indicó «Esta app parece segura»; el usuario confirmó que se escucha la prueba de sonido.
 - La prueba automatizada cubre escritura SAF en fragmentos, colisiones de nombres y enlaces externos. La exportación real en la APK guardó `ps4-manager-tools-backup.zip` en la carpeta SAF elegida y la pantalla confirmó el guardado. Esto valida ese flujo concreto, no todos los módulos ni su conexión a la PS4. El paquete Windows se valida aparte.
 
-\n
+### Revisión pública y documentación 4.5.7 (2026-11-10)
+- Se mejoró el README principal con las tres vías de uso, requisitos, módulos, actualización, almacenamiento, privacidad y advertencias de seguridad; los accesos de descarga apuntan a los assets 4.5.7 publicados.
+- Se sincronizó el README y el registro de mejoras con el contenido distribuido para Windows. Se corrigieron los textos de versión residuales del paquete PC.
+- La auditoría automatizada pasó: 60 archivos PHP, 21 archivos JavaScript y las comprobaciones de módulos, seguridad, audio, almacenamiento Android e identidad visual. El paquete PC pasó la revisión previa a distribución.
+- Se verificaron contra GitHub los hashes del APK y ZIP PC 4.5.7. Los endpoints de Android y Windows reportaron la versión actual y detectaron correctamente 4.5.7 cuando se simuló una instalación 4.5.6.
+- El usuario confirmó que el tono de prueba se escucha. La publicación mantiene la versión 4.5.7; no se generó una versión nueva de la app en esta revisión.

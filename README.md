@@ -3,16 +3,18 @@
 </p>
 
 <h1 align="center">🎮 PS4 Manager Tools AJ 4.5.7</h1>
-<p align="center"><strong>Tu consola, tus herramientas, tu red local.</strong><br>Administra y consulta una PS4 con GoldHEN desde Android o Windows.</p>
+<p align="center"><strong>Tu PS4, administrada desde tu red local.</strong><br>Consulta y organiza tu consola con GoldHEN desde Termux, la APK Android o Windows.</p>
 
 <p align="center">
   <a href="https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest"><img alt="Última versión" src="https://img.shields.io/github/v/release/AJfiles/PS4-MANAGER-TOOL-AJ?label=versi%C3%B3n&color=7c3aed"></a>
   <a href="https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases"><img alt="Descargas" src="https://img.shields.io/github/downloads/AJfiles/PS4-MANAGER-TOOL-AJ/total?color=0891b2"></a>
-  <img alt="Android y Windows" src="https://img.shields.io/badge/Android%20%7C%20Windows-disponible-16a34a">
+  <img alt="Termux, Android y Windows" src="https://img.shields.io/badge/Termux%20%7C%20Android%20%7C%20Windows-disponible-16a34a">
   <img alt="Interfaz en español e inglés" src="https://img.shields.io/badge/idiomas-espa%C3%B1ol%20%7C%20ingl%C3%A9s-f59e0b">
 </p>
 
-PS4 Manager Tools es una aplicación local que reúne herramientas de biblioteca, partidas, capturas, organización XMB, plugins, parches, payloads, ventilador, transferencias y archivos. Se conecta a la PS4 directamente por la red local; no requiere una cuenta ni sube el contenido de la consola a un servicio en la nube.
+**PS4 Manager Tools AJ** es una caja de herramientas local para consultar y administrar una PS4 con GoldHEN desde tu teléfono o PC. Reúne biblioteca, partidas guardadas, capturas, carpetas XMB, plugins, parches, payloads, ventilador, almacenamiento, transferencias RPI y explorador FTP en una sola interfaz.
+
+La conexión con la consola se realiza por la red local. No necesitas cuenta ni servicio en la nube para usarla; la app consulta GitHub únicamente al comprobar versiones y descargas.
 
 ## 🚀 Descarga y empieza
 
@@ -22,7 +24,7 @@ PS4 Manager Tools es una aplicación local que reúne herramientas de biblioteca
 | **📦 Android · APK** | [Descargar APK 4.5.7](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.7/PS4-Manager-Tools-AJ-v4.5.7.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
 | **🖥️ Windows · PC** | [Descargar paquete PC 4.5.7](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.7/PS4-Manager-Tools-AJ-PC-v4.5.7.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
 
-Consulta los cambios y versiones anteriores en [GitHub Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases).
+Consulta [todos los Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases), sus notas de versión y el archivo de hashes SHA-256.
 
 ### Instalar en Termux
 
@@ -32,13 +34,13 @@ Instala Termux desde una fuente confiable, ábrelo y pega:
 curl -sL https://raw.githubusercontent.com/AJfiles/PS4-MANAGER-TOOL-AJ/main/goldhen.sh | bash
 ```
 
-El instalador prepara PHP y las dependencias, crea el acceso `goldhen` y abre el panel local. En instalaciones nuevas, los archivos del proyecto y respaldos van a **Almacenamiento interno/PS4 Manager Tools AJ/user/**. Al actualizar una instalación antigua, se conservan sus datos y rutas para evitar pérdidas.
+El instalador prepara PHP y las dependencias, crea el acceso `goldhen` y abre el panel local. En instalaciones nuevas, el proyecto se guarda en el espacio de Termux y los archivos de usuario en **Almacenamiento interno/PS4 Manager Tools AJ/user/**. Al actualizar una instalación antigua, conserva sus datos y rutas para evitar pérdidas.
 
 ### Instalar el APK
 
 Descarga el APK desde el botón de arriba, instálalo y confirma el permiso de instalación que muestre Android. El nombre de la app en el teléfono es **PS4 Manager Tools AJ**; el título dentro de la aplicación es **PS4 Manager Tools**.
 
-En la APK, abre **Ajustes → Carpeta de exportaciones → Elegir carpeta** y selecciona la carpeta `PS4 Manager Tools AJ` del almacenamiento compartido (puedes crearla desde el selector). Las exportaciones compatibles se guardan directamente en la carpeta elegida. Android conserva el permiso para esta APK; si no eliges una carpeta, usa su selector normal. Las actualizaciones se descargan mediante el sistema y requieren que confirmes la instalación. Los archivos internos de trabajo siguen en el espacio privado de la app; conserva una copia externa antes de desinstalarla.
+En la APK, abre **Ajustes → Carpeta de exportaciones → Elegir carpeta** y selecciona o crea `PS4 Manager Tools AJ` en el almacenamiento compartido. Las exportaciones compatibles —incluidos los ZIP de respaldo— se guardan allí; Android recuerda el permiso concedido a esta APK. Los archivos internos necesarios para ejecutar el servidor PHP permanecen en el espacio privado de la app. Las APK nuevas se descargan mediante Android y requieren que confirmes su instalación.
 
 ### Ejecutar en Windows
 
@@ -81,7 +83,7 @@ La lectura depende del firmware y las rutas expuestas por GoldHEN. Si el FTP no 
 - **APK Android:** abre `Ajustes → Actualizaciones → Verificar`. Mientras consulta GitHub, el botón muestra una animación. Si Releases contiene una APK más reciente con SHA-256 válido, **Actualizar** descarga el archivo mediante Android. Luego ábrelo desde el gestor de archivos; Android solicita confirmar la instalación. La app no instala APK sin autorización del sistema.
 - **Termux:** desde `Ajustes → Actualizaciones`, verifica y aplica los cambios publicados en la rama principal. También puedes volver a ejecutar el comando de instalación.
 - **Windows:** verifica desde Ajustes. Cuando haya una versión nueva, descarga el ZIP y extráelo sobre la carpeta actual después de cerrar el servidor. Conserva `user/`.
-- **Manual:** descarga la plataforma deseada desde [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest). Los APK y ZIP publicados incluyen SHA-256 en `SHA256SUMS`.
+- **Manual:** descarga la plataforma deseada desde [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest). Cada versión publica `SHA256SUMS-<versión>.txt` con los hashes SHA-256 de APK y ZIP.
 
 El botón muestra **Consultando GitHub…** mientras busca. El APK necesita que Android confirme la instalación; Windows necesita cerrar el servidor para reemplazar archivos en uso.
 
