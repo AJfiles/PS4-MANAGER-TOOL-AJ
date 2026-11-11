@@ -1,0 +1,244 @@
+<?php
+require_once __DIR__ . '/request_guard.php';
+require_once __DIR__ . '/ftp_compat.php';
+/**
+ * ====================================================================
+ * PS4 Manager Tools 🚀 - API: DETECTOR Y GESTOR DE DLCS
+ * Mantenido por AJ · Basado en proyecto original de SeBaS
+ * RUTA: api/dlc_update_biblioteca.php
+ * ====================================================================
+ */
+error_reporting(0);
+@ini_set('display_errors', 0);
+set_time_limit(180); // Elevado para calcular pesos precisos sin cortes
+
+header('Content-Type: application/json; charset=utf-8');
+
+$action = $_POST['action'] ?? 'scan';
+$host_ip = $_POST['host_ip'] ?? '';
+$cusa = strtoupper(trim($_POST['cusa_id'] ?? ''));
+$port = isset($_POST['port']) ? (int)$_POST['port'] : 2121;
+$force = $_POST['force'] ?? '0';
+
+if (!$host_ip || !$cusa) {
+    echo json_encode(['status' => 'error', 'message' => 'Faltan datos de consola.']);
+    exit;
+}
+
+// Directorio de caché (unificado con el resto de la aplicación)
+$cache_dir = __DIR__ . '/../user/cache/biblioteca';
+if (!file_exists($cache_dir)) { 
+    @mkdir($cache_dir, 0777, true); 
+}
+if (!file_exists($cache_dir . '/.nomedia')) { 
+    @file_put_contents($cache_dir . '/.nomedia', ''); 
+}
+$cache_file = $cache_dir . "/dlc_info_{$cusa}.json";
+
+// ==========================================
+// FUNCIONES AUXILIARES FTP
+// ==========================================
+function ftp_check_folder($ip, $port, $path) {
+    if(function_exists('ftp_connect')){$rows=ghm_ftp_list($ip,(int)$port,$path,10);if($rows===false)return false;return array_map(static fn($r)=>['name'=>$r['name'],'is_dir'=>$r['dir'],'size'=>$r['size']],$rows);}
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "ftp://$ip:$port" . rtrim($path, '/') . '/');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $res = curl_exec($ch);
+    curl_close($ch);
+    if ($res === false) return false;
+    
+    $items = [];
+    $lines = explode("\n", trim($res));
+    foreach ($lines as $line) {
+        if (empty(trim($line))) continue;
+        $parts = preg_split('/\s+/', trim($line), 9);
+        if (count($parts) >= 9) {
+            $name = trim($parts[8]);
+            if ($name !== '.' && $name !== '..') {
+                $items[] = ['name' => $name, 'is_dir' => ($parts[0][0] === 'd'), 'size' => (int)$parts[4]];
+            }
+        }
+    }
+    return $items;
+}
+
+function calcular_peso_recursivo_curl($ip, $port, $dir, &$profundidad = 0, $max_profundidad = 20) {
+    if ($profundidad > $max_profundidad) return 0; // Evita bucles por enlaces simbólicos
+    $acumulador = 0;
+    $items = ftp_check_folder($ip, $port, $dir);
+    if ($items === false) return 0;
+    $profundidad++;
+    foreach ($items as $item) {
+        $full_route = rtrim($dir, '/') . '/' . $item['name'];
+        if ($item['is_dir']) {
+            $acumulador += calcular_peso_recursivo_curl($ip, $port, $full_route, $profundidad, $max_profundidad);
+        } else {
+            $acumulador += $item['size'];
+        }
+    }
+    $profundidad--;
+    return $acumulador;
+}
+
+function format_bytes_v2($bytes) {
+    if ($bytes == 0) return '0 KB';
+    if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . ' GB';
+    if ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
+    return number_format($bytes / 1024, 2) . ' KB';
+}
+
+// ==========================================
+// ACCIÓN: ELIMINAR CONTENIDO QUIRÚRGICO (FTP)
+// ==========================================
+if ($action === 'delete_content') {
+    $target_path = $_POST['target_path'] ?? '';
+    
+    // Medida de seguridad: solo permitimos borrar dentro de patch o addcont
+    if (!$target_path || (strpos($target_path, '/patch/') === false && strpos($target_path, '/addcont/') === false)) {
+        echo json_encode(['status' => 'error', 'message' => 'Ruta protegida por el sistema.']);
+        exit;
+    }
+    
+    function curl_ftp_delete_recursive($ip, $port, $dir) {
+        if(function_exists('ftp_connect')){$rows=ghm_ftp_list($ip,(int)$port,$dir,10);if($rows===false)return false;foreach($rows as $row){$path=rtrim($dir,'/').'/'.$row['name'];if($row['is_dir']){if(!curl_ftp_delete_recursive($ip,$port,$path))return false;}elseif(!ghm_ftp_delete($ip,(int)$port,$path))return false;}return ghm_ftp_rmdir($ip,(int)$port,$dir);}
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "ftp://$ip:$port" . rtrim($dir, '/') . '/');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "LIST");
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        $res = curl_exec($ch);
+        curl_close($ch);
+        
+        if ($res !== false) {
+            $lines = explode("\n", trim($res));
+            foreach ($lines as $line) {
+                if (empty(trim($line))) continue;
+                $parts = preg_split('/\s+/', trim($line), 9);
+                if (count($parts) >= 9) {
+                    $name = trim($parts[8]);
+                    if ($name !== '.' && $name !== '..') {
+                        $path = rtrim($dir, '/') . '/' . $name;
+                        if ($parts[0][0] === 'd') {
+                            curl_ftp_delete_recursive($ip, $port, $path);
+                        } else {
+                            $ch_del = curl_init("ftp://$ip:$port/");
+                            curl_setopt($ch_del, CURLOPT_QUOTE, ["DELE $path"]);
+                            curl_setopt($ch_del, CURLOPT_RETURNTRANSFER, true);
+                            curl_exec($ch_del);
+                            curl_close($ch_del);
+                        }
+                    }
+                }
+            }
+            // Borrar la carpeta contenedora final
+            $ch_rmd = curl_init("ftp://$ip:$port/");
+            curl_setopt($ch_rmd, CURLOPT_QUOTE, ["RMD $dir"]);
+            curl_setopt($ch_rmd, CURLOPT_RETURNTRANSFER, true);
+            curl_exec($ch_rmd);
+            curl_close($ch_rmd);
+            return true;
+        }
+        return false;
+    }
+    
+    $exito = curl_ftp_delete_recursive($host_ip, $port, $target_path);
+    if ($exito) {
+        @unlink($cache_file); // Forzar nuevo escaneo
+        echo json_encode(['status' => 'success']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar el contenido.']);
+    }
+    exit;
+}
+
+// ==========================================
+// ACCIÓN: ESCANEO DE RUTAS Y PESOS CON CACHÉ
+// ==========================================
+if ($action === 'scan') {
+    
+    // Si no forzamos y existe caché, lo servimos
+    if ($force === '0' && file_exists($cache_file)) {
+        $cached = json_decode(@file_get_contents($cache_file), true);
+        if ($cached && isset($cached['status']) && $cached['status'] === 'success') {
+            echo json_encode($cached);
+            exit;
+        }
+    }
+
+    $response = [
+        'status' => 'success',
+        'update' => ['installed' => false, 'location' => '', 'size_label' => '', 'path' => ''],
+        'dlcs' => []
+    ];
+
+    // 1. RASTREAR UPDATES (PARCHES)
+    $rutas_patch = [
+        ['loc' => 'Alm. Interno', 'path' => "/user/patch/$cusa"],
+        ['loc' => 'Alm. Ampliado', 'path' => "/mnt/ext0/user/patch/$cusa"],
+        ['loc' => 'Alm. Ampliado', 'path' => "/mnt/ext1/user/patch/$cusa"]
+    ];
+
+    foreach ($rutas_patch as $rp) {
+        $p_items = ftp_check_folder($host_ip, $port, $rp['path']);
+        if ($p_items !== false && count($p_items) > 0) {
+            $response['update']['installed'] = true;
+            $response['update']['location'] = $rp['loc'];
+            $response['update']['path'] = $rp['path'];
+            $profundidad = 0;
+            $bytes = calcular_peso_recursivo_curl($host_ip, $port, $rp['path'], $profundidad);
+            $response['update']['size_label'] = format_bytes_v2($bytes);
+            break;
+        }
+    }
+
+    // 2. RASTREAR CONTENIDO ADICIONAL (DLCs)
+    $dlcs_found = [];
+    $rutas_addcont = [
+        ['loc' => 'Alm. Interno', 'path' => "/user/addcont/$cusa"],
+        ['loc' => 'Alm. Ampliado', 'path' => "/mnt/ext0/user/addcont/$cusa"],
+        ['loc' => 'Alm. Ampliado', 'path' => "/mnt/ext1/user/addcont/$cusa"]
+    ];
+
+    foreach ($rutas_addcont as $ra) {
+        $a_items = ftp_check_folder($host_ip, $port, $ra['path']);
+        if ($a_items !== false) {
+            foreach ($a_items as $item) {
+                if ($item['is_dir']) {
+                    $dlc_path = $ra['path'] . '/' . $item['name'];
+                    $profundidad = 0;
+                    $bytes = calcular_peso_recursivo_curl($host_ip, $port, $dlc_path, $profundidad);
+                    
+                    // Evitar duplicados
+                    $exists = false;
+                    foreach($dlcs_found as $d) { 
+                        if($d['id'] === $item['name']) { $exists = true; break; }
+                    }
+                    
+                    if(!$exists) {
+                        $dlcs_found[] = [
+                            'id' => $item['name'], 
+                            'location' => $ra['loc'],
+                            'path' => $dlc_path,
+                            'size_label' => format_bytes_v2($bytes)
+                        ];
+                    }
+                }
+            }
+        }
+    }
+
+    $response['dlcs'] = $dlcs_found;
+    
+    // Guardar caché
+    @file_put_contents($cache_file, json_encode($response));
+    
+    echo json_encode($response);
+    exit;
+}
+
+// Fallback
+echo json_encode(['status' => 'error', 'message' => 'Acción no válida']);
+exit;
+?>

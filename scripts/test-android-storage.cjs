@@ -1,0 +1,93 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+
+const source = fs.readFileSync('js/android_storage.js', 'utf8');
+const events = {};
+const status = { textContent: '' };
+const section = { classList: { values: new Set(['hidden']), toggle(name, enabled) { enabled ? this.values.add(name) : this.values.delete(name); } } };
+const button = { textContent: '' };
+const clear = { classList: { values: new Set(['hidden']), toggle(name, enabled) { enabled ? this.values.add(name) : this.values.delete(name); } } };
+const writes = [];
+const savedFiles = new Map();
+let selected = false;
+let listingEntries = [];
+const webToAppDirectory = {
+    info: () => ({ ok: true, granted: selected, writable: true, name: selected ? 'Documents' : '' }),
+    pick: async () => { selected = true; return { ok: true, granted: true, name: 'Documents' }; },
+    release: () => { selected = false; return { ok: true }; },
+    list: () => ({ ok: true, entries: listingEntries }),
+    remove: () => ({ ok: true }),
+};
+const nativeBridge = {
+    writeDirectoryFile(path, base64, append) {
+        const bytes = Uint8Array.from(Buffer.from(base64, 'base64'));
+        writes.push({ path, append, bytes: Array.from(bytes) });
+        const previous = append ? (savedFiles.get(path) || new Uint8Array(0)) : new Uint8Array(0);
+        const combined = new Uint8Array(previous.byteLength + bytes.byteLength);
+        combined.set(previous);
+        combined.set(bytes, previous.byteLength);
+        savedFiles.set(path, combined);
+        return JSON.stringify({ ok: true, size: combined.byteLength });
+    },
+};
+const document = {
+    body: { appendChild() {} },
+    addEventListener(name, callback) { events[name] = callback; },
+    getElementById(id) { return ({ 'android-storage-card': section, 'android-storage-status': status, 'android-storage-select': button, 'android-storage-clear': clear })[id] || null; },
+};
+const window = { WtaDirectory: webToAppDirectory, NativeBridge: nativeBridge, sysNotification() {}, addEventListener() {} };
+const sandbox = {
+    window, document, URL, Uint8Array, Promise, btoa: value => Buffer.from(value, 'binary').toString('base64'), location: { href: 'http://127.0.0.1:18500/index.php', origin: 'http://127.0.0.1:18500', hostname: '127.0.0.1', port: '18500' },
+    ghmNativeAndroidApk: true,
+    fetch: async () => new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'content-length': '4' } }),
+};
+vm.runInNewContext(source, sandbox);
+
+(async () => {
+    events.DOMContentLoaded();
+    assert.equal(section.classList.values.has('hidden'), false, 'storage option is shown in supported APK');
+    await window.ghmElegirCarpetaDescargasAndroid();
+    assert.match(status.textContent, /Documents/);
+
+    const anchor = {
+        href: 'http://127.0.0.1:18500/api/config_api.php?action=export',
+        download: 'respaldo.zip', dataset: {}, isConnected: true,
+        click() { throw new Error('fallback should not be used on success'); },
+    };
+    const event = { target: { closest: () => anchor }, prevented: false, stopped: false, preventDefault() { this.prevented = true; }, stopImmediatePropagation() { this.stopped = true; } };
+    events.click(event);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(event.prevented, true, 'same-origin downloads use the selected SAF folder');
+    assert.equal(event.stopped, true, 'native download does not also run after the custom save');
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0].path, 'respaldo.zip');
+    assert.equal(writes[0].append, false);
+    assert.deepEqual(writes[0].bytes, [1, 2, 3, 4]);
+    assert.deepEqual(Array.from(savedFiles.get('respaldo.zip')), [1, 2, 3, 4]);
+
+    listingEntries = [{ name: 'respaldo.zip' }];
+    const collisionAnchor = { ...anchor, click() { throw new Error('fallback should not be used on success'); } };
+    events.click({ target: { closest: () => collisionAnchor }, preventDefault() {}, stopImmediatePropagation() {} });
+    await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(writes[1].path, 'respaldo (2).zip', 'existing exports are never overwritten');
+    listingEntries = [];
+
+    writes.length = 0;
+    const largeBytes = new Uint8Array(2 * 1024 * 1024 + 17).fill(7);
+    sandbox.fetch = async () => new Response(largeBytes, { headers: { 'content-length': String(largeBytes.byteLength) } });
+    const largeAnchor = { href: anchor.href, download: 'large-backup.zip', dataset: {}, isConnected: true, click() {} };
+    events.click({ target: { closest: () => largeAnchor }, preventDefault() {}, stopImmediatePropagation() {} });
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(writes.length, Math.ceil(largeBytes.byteLength / (192 * 1024)), 'large exports are streamed in bounded chunks');
+    assert.equal(writes.map(entry => entry.bytes.length).reduce((a, b) => a + b, 0), largeBytes.byteLength);
+    assert.ok(writes.every(entry => entry.bytes.length <= 192 * 1024));
+    assert.equal(writes[0].append, false);
+    assert.ok(writes.slice(1).every(entry => entry.append === true), 'each later SAF chunk appends instead of truncating the partial ZIP');
+    assert.deepEqual(Array.from(savedFiles.get('large-backup.zip')), Array.from(largeBytes), 'the final file keeps every streamed byte in order');
+
+    let externalPrevented = false;
+    events.click({ target: { closest: () => ({ href: 'https://github.com/file.apk', download: 'file.apk', dataset: {} }) }, preventDefault() { externalPrevented = true; }, stopImmediatePropagation() {} });
+    assert.equal(externalPrevented, false, 'cross-origin updates stay with the Android download handler');
+    console.log('ANDROID_STORAGE_BRIDGE_OK');
+})().catch(error => { console.error(error); process.exitCode = 1; });

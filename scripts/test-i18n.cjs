@@ -55,6 +55,8 @@ assert.equal(context.window.ghmTranslateText('No se envió ningún byte: 192.0.2
 assert.equal(context.window.ghmTranslateText('GoldHEN rechazó el borrado FTP (550). Verifica que la ruta exista y que esa versión de FTP permita borrar capturas. Detalle: QUOT string not accepted'), 'GoldHEN rejected the FTP deletion (550). Verify that the path exists and this FTP version allows deleting captures. Details: QUOT string not accepted');
 assert.equal(context.window.ghmTranslateText('Confirmación requerida: la versión del juego no coincide exactamente con la del parche (1.00 vs 1.02).'), 'Confirmation required: the game version does not exactly match the patch version (1.00 vs 1.02).');
 assert.equal(context.window.ghmTranslateText('Error controlado del gestor de partidas: FTP timeout'), 'Save manager error: FTP timeout');
+assert.equal(context.window.ghmTranslateText('Elige o crea la carpeta'), 'Choose or create the folder');
+assert.equal(context.window.ghmTranslateText('en el almacenamiento compartido. Las exportaciones se guardarán directamente en la carpeta elegida. Android conserva el permiso para esta APK.'), 'in shared storage. Exports will be saved directly in the chosen folder. Android keeps access for this APK.');
 assert.equal(document.documentElement.lang, 'en');
 context.window.ghmSetLanguage('es');
 assert.equal(heading.childNodes[0].nodeValue, 'Configuración');

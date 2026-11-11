@@ -396,10 +396,10 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
     try {
         const ctx = inicializarContextoAudio(), style = globalAppConfig.estiloSfx || 'soft';
         const presets = {
-            soft: { wave:'sine', click:[520,360,.075], open:[660,990,.18] },
-            console: { wave:'sine', click:[720,180,.095], open:[540,1480,.24] },
-            arcade: { wave:'square', click:[440,880,.065], open:[520,1040,.2] },
-            minimal: { wave:'triangle', click:[420,320,.05], open:[700,900,.12] }
+            soft: { wave:'sine', click:[520,360,.11], open:[660,990,.18] },
+            console: { wave:'sine', click:[720,180,.12], open:[540,1480,.24] },
+            arcade: { wave:'square', click:[440,880,.10], open:[520,1040,.2] },
+            minimal: { wave:'triangle', click:[420,320,.09], open:[700,900,.12] }
         };
         const preset = presets[style] || presets.soft, values = tipo === 'ps-ui' ? preset.open : preset.click;
         const play = () => {
@@ -408,7 +408,9 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
             osc.type = preset.wave;
             osc.frequency.setValueAtTime(values[0], start);
             osc.frequency.exponentialRampToValueAtTime(values[1], start + duration);
-            gain.gain.setValueAtTime(0.62 * globalAppConfig.volumenSfx, start);
+            // El tono de navegación original quedaba muy breve en algunos móviles.
+            // Aumentamos presencia y duración; el usuario sigue controlando SFX.
+            gain.gain.setValueAtTime(0.78 * globalAppConfig.volumenSfx, start);
             gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
             osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + duration);
             return true;
@@ -424,7 +426,12 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
     }
 }
 
-document.addEventListener('pointerdown', desbloquearAudioInterfaz, { capture: true, passive: true });
+document.addEventListener('pointerdown', evento => {
+    desbloquearAudioInterfaz();
+    const control = evento.target && evento.target.closest
+        ? evento.target.closest('button, [role="button"], summary, a, .launcher-card') : null;
+    if (control && !control.closest('input, select, textarea, label')) emitirEfectoSonidoNativo('click');
+}, { capture: true, passive: true });
 document.addEventListener('keydown', desbloquearAudioInterfaz, { capture: true });
 
 function cambiarEstiloSonido(style) { globalAppConfig.estiloSfx = ['soft','console','arcade','minimal'].includes(style) ? style : 'soft'; localStorage.setItem('cfg_sfx_style', globalAppConfig.estiloSfx); emitirEfectoSonidoNativo('ps-ui', true); }

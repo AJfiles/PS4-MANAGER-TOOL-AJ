@@ -1,0 +1,20 @@
+PS4 MANAGER TOOLS 4.5.7 — GUÍA DEL PROYECTO
+===========================================
+
+La información vigente para usuarios está en README.md y GUIA_DE_USO.md.
+Ambos documentos describen instalación Termux, APK Android y Windows, módulos,
+ubicación de respaldos, actualizaciones, privacidad y uso seguro.
+
+Módulos principales: Radar y conexión; Biblioteca; Organizar Apps; SaveGames;
+Limpieza; Almacenamiento; Capturas; Parches de Juego; Plugins; Payloads;
+Ventilador; Actualizaciones FW; Transferencias FTP/RPI; Explorador FTP; Modding;
+Respaldo y Ajustes.
+
+El proyecto funciona como interfaz local y usa FTP de GoldHEN para consultar o
+administrar las rutas que el firmware permita. Payloads y escrituras en la PS4
+requieren validar el firmware, leer los avisos y conservar copias de seguridad.
+
+Comprobación local del código en Windows:
+  .\scripts\verificar-proyecto.ps1
+
+El resultado de pruebas locales no sustituye validación específica en consola.

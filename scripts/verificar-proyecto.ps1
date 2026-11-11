@@ -56,6 +56,11 @@ $audioTest = Join-Path $PSScriptRoot 'test-audio.cjs'
 $audioOutput = & $nodeCommand.Source $audioTest 2>&1
 $audioPassed = $LASTEXITCODE -eq 0 -and ($audioOutput -join ' ') -match 'AUDIO_SFX_OK'
 Report-Check 'Audio reproduce SFX, desbloquea contexto suspendido y muestra estado de prueba' $audioPassed ($audioOutput -join ' ')
+$androidStorageScript = Get-Content -LiteralPath (Join-Path $root 'js\android_storage.js') -Raw
+$androidStorageTest = Join-Path $PSScriptRoot 'test-android-storage.cjs'
+$androidStorageOutput = & $nodeCommand.Source $androidStorageTest 2>&1
+$androidStoragePassed = $LASTEXITCODE -eq 0 -and ($androidStorageOutput -join ' ') -match 'ANDROID_STORAGE_BRIDGE_OK'
+Report-Check 'APK guarda descargas same-origin en la carpeta SAF elegida y conserva selector Android para enlaces externos' ($androidStoragePassed -and $androidStorageScript -match 'WtaDirectory' -and $androidStorageScript -match 'const relativePath = destinationName' -and (Get-Content -LiteralPath (Join-Path $root 'index.php') -Raw) -match 'android_storage\.js') ($androidStorageOutput -join ' ')
 
 $manifestPath = Join-Path $root 'manifest.json'
 $manifest = $null
@@ -120,7 +125,7 @@ Report-Check 'Todos los endpoints API y el router aplican guard de origen local'
 $projectVersion = Get-Content -LiteralPath (Join-Path $root 'project-version.json') -Raw | ConvertFrom-Json
 $androidReleaseApi = Get-Content -LiteralPath (Join-Path $root 'api\android_release_api.php') -Raw
 $androidReleaseScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
-Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.6' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
+Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.7' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
 $libraryListingTest = Join-Path $PSScriptRoot 'test-library-appmeta-listing.php'
 $libraryListingOutput = & $php $libraryListingTest 2>&1
 $libraryListingPassed = $LASTEXITCODE -eq 0 -and ($libraryListingOutput -join ' ') -match 'LIBRARY_APPMETA_LISTING_OK'
@@ -140,7 +145,7 @@ Report-Check 'Título visible del proyecto usa PS4 Manager Tools' ($page -match 
 $settingsMarkup = Get-Content -LiteralPath (Join-Path $root 'modulos\ajustes.php') -Raw
 $appScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
 Report-Check 'APK Android oculta instalación PWA y reconoce el servidor WebToApp local' ($appScript -match 'ocultarInstalacionPWAEnAPK' -and $appScript -match "location\.port === '18500'" -and $appScript -match 'btn-instalar-pwa')
-Report-Check 'Audio SFX libera WebAudio en el primer gesto del usuario' ($appScript -match 'desbloquearAudioInterfaz' -and $appScript -match "addEventListener\('pointerdown', desbloquearAudioInterfaz" -and $appScript -match "addEventListener\('keydown', desbloquearAudioInterfaz" -and $appScript -match 'globalAudioUnlock')
+Report-Check 'Audio SFX responde al primer toque y libera WebAudio' ($appScript -match 'desbloquearAudioInterfaz' -and $appScript -match "addEventListener\('pointerdown', evento" -and $appScript -match "addEventListener\('keydown', desbloquearAudioInterfaz" -and $appScript -match "emitirEfectoSonidoNativo\('click'\)" -and $appScript -match 'globalAudioUnlock')
 $updateApi = Get-Content -LiteralPath (Join-Path $root 'api\update_api.php') -Raw
 Report-Check 'Actualizador de PC ZIP verifica versión, enlace de Releases y SHA-256' ($updateApi -match 'get_pc_release' -and $updateApi -match 'SHA256SUMS-' -and $updateApi -match 'PS4-Manager-Tools-AJ-PC-v' -and $updateApi -match 'download_required')
 $customizationChecks = @(

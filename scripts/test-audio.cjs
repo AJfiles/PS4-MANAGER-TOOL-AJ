@@ -8,21 +8,21 @@ const end = source.indexOf('function cambiarVolumenSFX', start);
 assert.ok(start >= 0 && end > start, 'audio engine functions must exist');
 
 function createHarness(initialState = 'running') {
-    const state = { oscillators: 0, resumes: 0, text: '' };
+    const state = { oscillators: 0, resumes: 0, text: '', peak: 0, stopAt: 0, events: {} };
     class FakeAudioContext {
         constructor() { this.state = initialState; this.currentTime = 1; this.destination = {}; }
         resume() { state.resumes++; this.state = 'running'; return Promise.resolve(); }
         createOscillator() {
             state.oscillators++;
-            return { frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {}, start() {}, stop() {} };
+            return { frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {}, start() {}, stop(at) { state.stopAt = at; } };
         }
-        createGain() { return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} }; }
+        createGain() { return { gain: { setValueAtTime(value) { state.peak = value; }, exponentialRampToValueAtTime() {} }, connect() {} }; }
     }
     const sandbox = {
         Date, Promise, console: { warn() {} },
         window: { AudioContext: FakeAudioContext },
         document: {
-            addEventListener() {},
+            addEventListener(name, callback) { (state.events[name] ||= []).push(callback); },
             getElementById() { return { set textContent(value) { state.text = value; } }; },
         },
         globalAppConfig: { sonidosActivos: true, volumenSfx: 0.5, estiloSfx: 'soft' },
@@ -36,6 +36,13 @@ function createHarness(initialState = 'running') {
     const running = createHarness();
     assert.equal(running.api.emitirEfectoSonidoNativo('click'), true);
     assert.equal(running.state.oscillators, 1, 'running context emits immediately');
+    assert.ok(running.state.peak >= 0.39, 'navigation click sound is audible at 50% SFX');
+    assert.ok(running.state.stopAt - 1 >= 0.1, 'navigation click has a perceptible duration');
+
+    const touch = createHarness();
+    const button = { closest: selector => selector.includes('button') ? { closest: () => null } : null };
+    touch.state.events.pointerdown[0]({ target: button });
+    assert.equal(touch.state.oscillators, 1, 'touch feedback is emitted during the user activation gesture');
 
     const suspended = createHarness('suspended');
     assert.equal(await suspended.api.emitirEfectoSonidoNativo('ps-ui', true), true);

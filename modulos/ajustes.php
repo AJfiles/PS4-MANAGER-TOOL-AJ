@@ -38,9 +38,19 @@
             <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-folder-tree text-emerald-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Archivos y respaldos</span></div>
             <div class="mt-3 space-y-2 text-[9px] leading-relaxed text-gray-400">
                 <p><b class="text-emerald-200">Termux:</b> Almacenamiento interno/PS4 Manager Tools AJ/user/</p>
-                <p><b class="text-emerald-200">APK:</b> los archivos internos de trabajo permanecen en el espacio privado de la app. Android gestiona dónde guardar exportaciones y actualizaciones según la configuración del teléfono. Para instalar una actualización, abre el APK desde el gestor de archivos y confirma el aviso de Android.</p>
+                <p><b class="text-emerald-200">APK:</b> los archivos de trabajo permanecen en el espacio privado. Puedes elegir una carpeta de Android para exportaciones y respaldos; las actualizaciones de la APK se descargan mediante Android y requieren confirmación del sistema.</p>
                 <p><b class="text-emerald-200">PC:</b> carpeta user/ junto al programa. Consérvala al reemplazar archivos durante una actualización.</p>
-                <p class="text-gray-500">Android restringe la escritura directa en la raíz compartida. Descarga los ZIP de respaldo que quieras conservar fuera de la app.</p>
+                <p class="text-gray-500">Termux y PC conservan sus rutas actuales; esta selección solo afecta a exportaciones iniciadas desde la APK.</p>
+            </div>
+        </section>
+
+        <section id="android-storage-card" class="hidden w-full rounded-[1.5rem] border border-cyan-400/20 bg-[#0a0f1a] p-4 shadow-lg">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-folder-open text-cyan-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Carpeta de exportaciones</span></div>
+              <p class="mt-3 text-[9px] leading-relaxed text-gray-400">Elige o crea la carpeta <b class="text-cyan-200">PS4 Manager Tools AJ</b> en el almacenamiento compartido. Las exportaciones se guardarán directamente en la carpeta elegida. Android conserva el permiso para esta APK.</p>
+            <p id="android-storage-status" role="status" aria-live="polite" class="mt-3 min-h-8 break-words rounded-xl border border-white/5 bg-black/20 p-3 text-[9px] leading-relaxed text-gray-300">Comprobando acceso…</p>
+            <div class="mt-3 flex gap-2">
+                <button id="android-storage-select" type="button" onclick="ghmElegirCarpetaDescargasAndroid()" class="flex-1 rounded-xl bg-cyan-500/15 px-3 py-3 text-[9px] font-black uppercase tracking-wide text-cyan-200"><i class="fa-solid fa-folder-tree mr-1"></i> Elegir carpeta</button>
+                <button id="android-storage-clear" type="button" onclick="ghmQuitarCarpetaDescargasAndroid()" class="hidden rounded-xl bg-white/5 px-3 py-3 text-[9px] font-bold text-gray-300"><i class="fa-solid fa-link-slash mr-1"></i> Quitar</button>
             </div>
         </section>
 
@@ -202,7 +212,7 @@
             </div>
             <div class="flex flex-col items-center py-2">
                 <span class="text-[9px] font-mono text-gray-500 tracking-widest">PS4 Manager Tools</span>
-                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.6 • Mantenido por AJ</span>
+                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.7 • Mantenido por AJ</span>
                 <span class="text-[7px] font-mono text-gray-700 mt-1">Basado en el trabajo original de SeBaS</span>
                 <div class="flex gap-3 mt-2">
                     <span class="text-[8px] font-mono text-cyan-500/50">❤️ Comunidad</span>

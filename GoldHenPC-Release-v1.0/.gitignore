@@ -1,0 +1,35 @@
+/user/backups/appdb/
+/GoldHenPC-Release-v1.0/user/backups/appdb/
+/user/cache/organizador/*.png
+/GoldHenPC-Release-v1.0/user/cache/organizador/*.png
+
+# Local runtime state and user data must not leak into a source or PC release.
+/user/backups/**
+!/user/backups/.gitkeep
+/user/cache/**
+!/user/cache/.gitkeep
+/user/logs/**
+!/user/logs/.gitkeep
+/user/pkgs_rpi/**
+!/user/pkgs_rpi/.gitkeep
+/user/plugins/**
+!/user/plugins/.gitkeep
+/user/payloads/**
+!/user/payloads/.gitkeep
+/user/portadas_custom/**
+!/user/portadas_custom/.gitkeep
+/GoldHenPC-Release-v1.0/user/backups/**
+!/GoldHenPC-Release-v1.0/user/backups/.gitkeep
+/GoldHenPC-Release-v1.0/user/cache/**
+!/GoldHenPC-Release-v1.0/user/cache/.gitkeep
+/GoldHenPC-Release-v1.0/user/logs/**
+!/GoldHenPC-Release-v1.0/user/logs/.gitkeep
+/GoldHenPC-Release-v1.0/user/pkgs_rpi/**
+!/GoldHenPC-Release-v1.0/user/pkgs_rpi/.gitkeep
+/GoldHenPC-Release-v1.0/user/plugins/**
+!/GoldHenPC-Release-v1.0/user/plugins/.gitkeep
+/GoldHenPC-Release-v1.0/user/payloads/**
+!/GoldHenPC-Release-v1.0/user/payloads/.gitkeep
+/GoldHenPC-Release-v1.0/user/portadas_custom/**
+!/GoldHenPC-Release-v1.0/user/portadas_custom/.gitkeep
+/temporal carpeta/artefactos locales PC 2026-11-09/**

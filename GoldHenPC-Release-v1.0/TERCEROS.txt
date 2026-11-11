@@ -1,0 +1,15 @@
+PS4 Manager Tools AJ 4.5.3 — avisos de componentes de terceros
+
+PHP portable 8.5.11 x86 NTS
+- Redistribución según runtime\license.txt y runtime\readme-redist-bins.txt.
+- PHP Group; consulte esos archivos para licencias de PHP y dependencias incluidas.
+
+SQLite CLI
+- Ejecutable runtime\sqlite3.exe para la lectura y edición transaccional de app.db.
+- Licencia SQLite Public Domain: https://www.sqlite.org/copyright.html
+
+Bundle CA Mozilla (curl.se)
+- api\certs\cacert.pem; MPL-2.0. Aviso, origen y SHA-256 en api\certs\README.txt.
+
+El proyecto PS4 Manager Tools AJ es independiente y no está afiliado a Sony Interactive Entertainment.
+

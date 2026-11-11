@@ -222,7 +222,7 @@ header('X-Author: ' . $firma);
             </h1>
             <div class="flex items-center justify-center gap-3 mt-2.5 opacity-80">
                 <span class="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-500/80"></span>
-                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.6 • AJ</span>
+                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.7 • AJ</span>
                 <span class="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-500/80"></span>
             </div>
         </div>
@@ -349,6 +349,7 @@ header('X-Author: ' . $firma);
     <?php include 'modulos/parches_juego.php'; ?>
 
     <script src="<?= app_asset_url('js/app.js') ?>"></script>
+    <script src="<?= app_asset_url('js/android_storage.js') ?>"></script>
     <script src="<?= app_asset_url('js/loaders.js') ?>"></script>
     <script src="<?= app_asset_url('js/biblioteca.js') ?>"></script>
     <script src="<?= app_asset_url('js/modding.js') ?>"></script>

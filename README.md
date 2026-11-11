@@ -2,7 +2,7 @@
   <img src="js/icon-512.png" width="176" alt="Icono de PS4 Manager Tools AJ">
 </p>
 
-<h1 align="center">🎮 PS4 Manager Tools AJ 4.5.6</h1>
+<h1 align="center">🎮 PS4 Manager Tools AJ 4.5.7</h1>
 <p align="center"><strong>Tu consola, tus herramientas, tu red local.</strong><br>Administra y consulta una PS4 con GoldHEN desde Android o Windows.</p>
 
 <p align="center">
@@ -19,8 +19,8 @@ PS4 Manager Tools es una aplicación local que reúne herramientas de biblioteca
 | Plataforma | Descarga o instalación | Inicio rápido |
 | --- | --- | --- |
 | **📱 Android · Termux** | [Instalar / actualizar desde GitHub](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Pega el comando de abajo en Termux. |
-| **📦 Android · APK** | [Descargar APK 4.5.6](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.6/PS4-Manager-Tools-AJ-v4.5.6.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
-| **🖥️ Windows · PC** | [Descargar paquete PC 4.5.6](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.6/PS4-Manager-Tools-AJ-PC-v4.5.6.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
+| **📦 Android · APK** | [Descargar APK 4.5.7](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.7/PS4-Manager-Tools-AJ-v4.5.7.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
+| **🖥️ Windows · PC** | [Descargar paquete PC 4.5.7](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.7/PS4-Manager-Tools-AJ-PC-v4.5.7.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
 
 Consulta los cambios y versiones anteriores en [GitHub Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases).
 
@@ -38,7 +38,7 @@ El instalador prepara PHP y las dependencias, crea el acceso `goldhen` y abre el
 
 Descarga el APK desde el botón de arriba, instálalo y confirma el permiso de instalación que muestre Android. El nombre de la app en el teléfono es **PS4 Manager Tools AJ**; el título dentro de la aplicación es **PS4 Manager Tools**.
 
-La APK entrega las exportaciones al gestor de descargas de Android, que aplica la ubicación configurada en el teléfono. El almacenamiento de trabajo del servidor permanece privado en la app; conserva una copia externa antes de desinstalarla. Las actualizaciones se descargan mediante Android; ábrelas desde el gestor de archivos y confirma la instalación del sistema.
+En la APK, abre **Ajustes → Carpeta de exportaciones → Elegir carpeta** y selecciona la carpeta `PS4 Manager Tools AJ` del almacenamiento compartido (puedes crearla desde el selector). Las exportaciones compatibles se guardan directamente en la carpeta elegida. Android conserva el permiso para esta APK; si no eliges una carpeta, usa su selector normal. Las actualizaciones se descargan mediante el sistema y requieren que confirmes la instalación. Los archivos internos de trabajo siguen en el espacio privado de la app; conserva una copia externa antes de desinstalarla.
 
 ### Ejecutar en Windows
 
@@ -88,7 +88,7 @@ El botón muestra **Consultando GitHub…** mientras busca. El APK necesita que 
 ## 📂 Dónde se guardan los datos
 
 - **Termux:** archivos y respaldos del Manager en `Almacenamiento interno/PS4 Manager Tools AJ/user/`.
-- **APK:** Android gestiona las descargas de exportaciones y actualizaciones según la configuración del teléfono. El almacenamiento de trabajo del servidor permanece en el espacio privado de la app.
+- **APK:** elige o crea `PS4 Manager Tools AJ` en `Ajustes → Carpeta de exportaciones`; las exportaciones compatibles se guardan directamente en esa carpeta. Los archivos de trabajo del servidor permanecen en el almacenamiento privado de la app. Las descargas externas de actualización siguen el selector de Android.
 - **Windows:** `user/` dentro de la carpeta descomprimida. Mantén esta carpeta al actualizar.
 
 ## 🔐 Datos y privacidad

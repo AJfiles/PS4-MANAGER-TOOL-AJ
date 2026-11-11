@@ -441,10 +441,26 @@ async function procesarColaDescargasFtp() {
 function descargarArchivoFtp(path) {
     return new Promise((resolve, reject) => {
         const ip = localStorage.getItem('sebas_ip_final_libre'); if (!ip) { reject(new Error('Sin IP')); return; }
+        const downloadUrl = `api/explorador_api.php?action=download_file&host_ip=${encodeURIComponent(ip)}&path=${encodeURIComponent(path)}`;
+        // En la APK, entregar el archivo al manejador de descargas permite que
+        // el destino SAF elegido en Ajustes lo guarde sin copiarlo antes a otra
+        // carpeta temporal del teléfono. Web/Termux/PC conservan el iframe.
+        if (typeof ghmNativeAndroidApk !== 'undefined' && ghmNativeAndroidApk
+            && window.WtaDirectory && window.WtaDirectory.info?.().granted) {
+            const frame = document.createElement('a');
+            frame.href = downloadUrl;
+            frame.download = String(path).split('/').filter(Boolean).pop() || 'archivo';
+            frame.style.display = 'none';
+            document.body.appendChild(frame);
+            frame.click();
+            frame.remove();
+            setTimeout(resolve, 250);
+            return;
+        }
         const frame = document.createElement('iframe'); frame.style.display = 'none';
         const timeout = setTimeout(() => { frame.remove(); reject(new Error('Tiempo agotado')); }, 10 * 60 * 1000);
         frame.onload = () => { clearTimeout(timeout); setTimeout(() => frame.remove(), 1000); resolve(); };
-        frame.src = `api/explorador_api.php?action=download_file&host_ip=${encodeURIComponent(ip)}&path=${encodeURIComponent(path)}`;
+        frame.src = downloadUrl;
         document.body.appendChild(frame);
     });
 }

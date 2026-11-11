@@ -1,0 +1,242 @@
+<?php
+/**
+ * ====================================================================
+ * PS4 Manager Tools 🚀 - MÓDULO DE CONFIGURACIÓN Y TEMAS GAMING
+ * Mantenido por AJ · Basado en proyecto original de SeBaS
+ * RUTA: modulos/ajustes.php
+ * ====================================================================
+ */
+?>
+<div id="layer-ajustes" class="app-layer flex flex-col p-4 h-[100dvh] w-full overflow-hidden bg-[#02040a] relative hidden">
+    
+    <div class="w-full flex items-center justify-between z-30 shrink-0 pt-1 mb-4">
+        <div class="flex items-center gap-3">
+            <button onclick="volverAlLauncher()" class="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center active:scale-90 transition-all hover:bg-white/5">
+                <i class="fas fa-arrow-left text-gray-300"></i>
+            </button>
+            <div class="flex flex-col">
+                <h2 class="text-[17px] font-black tracking-tighter uppercase text-white leading-none">Configuración</h2>
+                <span class="text-[9px] font-mono text-cyan-400 tracking-widest mt-0.5">Entorno, Audio y SFX</span>
+            </div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+            <i class="fas fa-sliders text-lg"></i>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-4 pb-10 z-20">
+
+        <section class="w-full rounded-[1.5rem] border border-sky-400/15 bg-[#0a0f1a] p-4 shadow-lg">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-language text-sky-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Idioma / Language</span></div>
+            <label class="mt-3 flex items-center justify-between gap-3 text-[10px] text-gray-300" for="cfg-language">Idioma de la interfaz
+                <select id="cfg-language" onchange="ghmSetLanguage(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[10px] text-white"><option value="es">Español</option><option value="en">English (beta)</option></select>
+            </label>
+            <p class="mt-2 text-[8px] leading-relaxed text-gray-500">La traducción está en beta: algunos módulos y mensajes del servidor pueden seguir en español. Los nombres de juegos y archivos conservan el texto de la consola.</p>
+        </section>
+
+        <section class="w-full rounded-[1.5rem] border border-emerald-400/15 bg-[#0a0f1a] p-4 shadow-lg">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-folder-tree text-emerald-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Archivos y respaldos</span></div>
+            <div class="mt-3 space-y-2 text-[9px] leading-relaxed text-gray-400">
+                <p><b class="text-emerald-200">Termux:</b> Almacenamiento interno/PS4 Manager Tools AJ/user/</p>
+                <p><b class="text-emerald-200">APK:</b> los archivos de trabajo permanecen en el espacio privado. Puedes elegir una carpeta de Android para exportaciones y respaldos; las actualizaciones de la APK se descargan mediante Android y requieren confirmación del sistema.</p>
+                <p><b class="text-emerald-200">PC:</b> carpeta user/ junto al programa. Consérvala al reemplazar archivos durante una actualización.</p>
+                <p class="text-gray-500">Termux y PC conservan sus rutas actuales; esta selección solo afecta a exportaciones iniciadas desde la APK.</p>
+            </div>
+        </section>
+
+        <section id="android-storage-card" class="hidden w-full rounded-[1.5rem] border border-cyan-400/20 bg-[#0a0f1a] p-4 shadow-lg">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-folder-open text-cyan-300"></i><span class="text-[10px] font-black uppercase tracking-wider text-gray-300">Carpeta de exportaciones</span></div>
+              <p class="mt-3 text-[9px] leading-relaxed text-gray-400">Elige o crea la carpeta <b class="text-cyan-200">PS4 Manager Tools AJ</b> en el almacenamiento compartido. Las exportaciones se guardarán directamente en la carpeta elegida. Android conserva el permiso para esta APK.</p>
+            <p id="android-storage-status" role="status" aria-live="polite" class="mt-3 min-h-8 break-words rounded-xl border border-white/5 bg-black/20 p-3 text-[9px] leading-relaxed text-gray-300">Comprobando acceso…</p>
+            <div class="mt-3 flex gap-2">
+                <button id="android-storage-select" type="button" onclick="ghmElegirCarpetaDescargasAndroid()" class="flex-1 rounded-xl bg-cyan-500/15 px-3 py-3 text-[9px] font-black uppercase tracking-wide text-cyan-200"><i class="fa-solid fa-folder-tree mr-1"></i> Elegir carpeta</button>
+                <button id="android-storage-clear" type="button" onclick="ghmQuitarCarpetaDescargasAndroid()" class="hidden rounded-xl bg-white/5 px-3 py-3 text-[9px] font-bold text-gray-300"><i class="fa-solid fa-link-slash mr-1"></i> Quitar</button>
+            </div>
+        </section>
+
+        <!-- Notificaciones -->
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3 relative z-[100]">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fas fa-bell text-cyan-400 text-sm"></i>
+                <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Alertas del Sistema</span>
+            </div>
+            <div class="flex items-center justify-between p-1">
+                <div class="flex flex-col flex-1 pr-4">
+                    <span class="text-[11px] font-bold text-gray-200 uppercase">Notificaciones Flotantes</span>
+                    <span class="text-[8.5px] font-mono text-gray-500 mt-0.5">Activa las burbujas flotantes estilo consola.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" id="cfg-switch-notificaciones" class="sr-only peer" checked onchange="guardarAjustesNotificaciones(this)">
+                    <div class="w-11 h-6 bg-gray-800 border border-white/5 rounded-full peer peer-checked:after:translate-x-full peer-checked:peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600 peer-checked:after:bg-white"></div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Sonido -->
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fas fa-volume-up text-amber-400 text-sm"></i>
+                <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Motor de Audio (SFX)</span>
+            </div>
+            <label class="flex items-center justify-between gap-3 text-[10px] text-gray-300">Sonidos de interfaz activos<input type="checkbox" id="cfg-switch-sonidos" class="h-5 w-5 accent-amber-500" checked onchange="guardarAjustesSonidos(this)"></label>
+            <div class="flex flex-col px-1 mt-1">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Volumen SFX</span>
+                    <span id="lbl-volumen-sfx" class="text-[9px] font-bold text-amber-400">50%</span>
+                </div>
+                <input type="range" id="cfg-slider-volumen" min="0" max="100" value="50" oninput="cambiarVolumenSFX(this.value)" class="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+            </div>
+            <label class="flex items-center justify-between gap-3 text-[9px] font-mono text-gray-400 uppercase tracking-wider">Estilo de sonido
+                <select id="cfg-sound-style" onchange="cambiarEstiloSonido(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="soft">Suave</option><option value="console">Consola</option><option value="arcade">Arcade</option><option value="minimal">Minimal</option></select>
+            </label>
+            <button onclick="probarSonidoSeleccionado()" class="rounded-lg border border-amber-500/20 bg-amber-500/10 py-2 text-[9px] font-bold text-amber-300"><i class="fa-solid fa-play mr-1"></i> Probar sonido</button>
+            <p id="cfg-audio-status" role="status" aria-live="polite" class="min-h-4 text-[9px] leading-relaxed text-gray-500">Los efectos usan el volumen multimedia del dispositivo.</p>
+        </div>
+
+        <!-- Fondos Animados (Wallpapers) -->
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fas fa-desktop text-purple-400 text-sm"></i>
+                <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Fondos Animados (Wallpapers)</span>
+            </div>
+            
+            <div class="w-full mt-1">
+                <button type="button" onclick="abrirSelectorFondo()" class="w-full bg-[#111827] border border-white/10 rounded-xl px-4 py-3.5 text-[11px] font-bold text-white flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors shadow-inner">
+                    <span id="custom-select-label" class="uppercase tracking-wider">Olas Líquidas (PS4)</span>
+                    <i class="fas fa-chevron-right text-cyan-400"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Animaciones de Inicio (Boot) -->
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3 relative z-[90]">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fas fa-play-circle text-green-400 text-sm"></i>
+                <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Animaciones de Inicio (Boot)</span>
+            </div>
+            
+            <div class="w-full mt-1">
+                <button type="button" onclick="abrirSelectorIntro()" class="w-full bg-[#111827] border border-white/10 rounded-xl px-4 py-3.5 text-[11px] font-bold text-white flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors shadow-inner">
+                    <span id="custom-select-intro-label" class="uppercase tracking-wider">Sin Intro (Rápido)</span>
+                    <i class="fas fa-chevron-right text-green-400"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="visual-preview-actions" class="hidden w-full rounded-2xl border border-cyan-400/20 bg-[#07111d]/95 p-4 shadow-2xl backdrop-blur-md">
+            <div class="flex items-start gap-3"><i class="fa-solid fa-eye mt-0.5 text-cyan-200"></i><div class="min-w-0 flex-1"><b class="block text-[10px] font-black uppercase tracking-widest text-cyan-100">Vista previa en curso</b><p id="visual-preview-description" class="mt-1 text-[9px] leading-relaxed text-gray-300">Revisa el aspecto antes de guardarlo.</p></div></div>
+            <div class="mt-3 flex gap-2"><button type="button" onclick="aplicarPrevisualizacionVisual()" class="flex-1 rounded-xl bg-cyan-400/15 px-3 py-2.5 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-check mr-1"></i> Aplicar</button><button type="button" onclick="cancelarPrevisualizacionVisual()" class="flex-1 rounded-xl bg-white/5 px-3 py-2.5 text-[9px] font-bold text-gray-300"><i class="fa-solid fa-xmark mr-1"></i> Cancelar</button></div>
+        </div>
+
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fas fa-wand-magic-sparkles text-pink-400 text-sm"></i>
+                <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Accesos rápidos de estilo</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <span class="col-span-2 px-1 text-[8px] font-black tracking-[.25em] text-gray-500">FONDOS</span>
+                <button onclick="seleccionarFondoCustom('bg-ps5','Órbitas PS5')" class="selector-ajuste text-cyan-300">Órbitas PS5</button>
+                <button onclick="seleccionarFondoCustom('bg-ps3','Ondas PS3')" class="selector-ajuste text-gray-200">Ondas PS3</button>
+                <button onclick="seleccionarFondoCustom('bg-synth','Synthwave')" class="selector-ajuste text-pink-300">Synthwave</button>
+                <button onclick="seleccionarFondoCustom('bg-starfield','Campo estelar')" class="selector-ajuste text-indigo-300">Campo estelar</button>
+                <button onclick="seleccionarFondoCustom('bg-minimal','Órbita minimal')" class="selector-ajuste text-cyan-200">Órbita minimal</button>
+                <span class="col-span-2 mt-1 px-1 text-[8px] font-black tracking-[.25em] text-gray-500">ANIMACIONES DE INICIO</span>
+                <button onclick="seleccionarIntroCustom('intro-aurora','Aurora AJ')" class="selector-ajuste text-cyan-300">Boot Aurora</button>
+                <button onclick="seleccionarIntroCustom('intro-wave','Onda clásica')" class="selector-ajuste text-sky-300">Boot Onda</button>
+                <button onclick="seleccionarIntroCustom('intro-minimal','Pulso minimal')" class="selector-ajuste text-violet-200">Boot Pulso minimal</button>
+            </div>
+        </div>
+
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fas fa-grip text-cyan-300"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Vista del menú principal</span></div>
+            <label class="flex items-center justify-between gap-3"><span class="text-[10px] text-gray-300">Vista vertical tipo lista</span><input id="cfg-launcher-vertical" type="checkbox" class="h-5 w-5 accent-cyan-500" onchange="alternarVistaLauncher(this.checked)"></label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Forma exterior de las tarjetas e iconos
+                <select id="cfg-launcher-shape" onchange="cambiarEstiloIconosLauncher()" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="rounded">Redondeado</option><option value="circle">Circular</option><option value="square">Cuadrado suave</option><option value="diamond">Diamante</option><option value="pill">Cápsula</option><option value="squircle">Superelipse</option><option value="hexagon">Hexágono</option></select>
+            </label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Animación de las tarjetas
+                <select id="cfg-launcher-motion" onchange="cambiarAnimacionLauncher(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="none">Sin animación</option><option value="rise">Entrada suave</option><option value="glide">Deslizamiento alternado</option><option value="float">Elevación al tocar</option><option value="tilt">Inclinación al señalar</option><option value="pulse">Pulso ambiental</option></select>
+            </label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Acabado de las tarjetas
+                <select id="cfg-launcher-theme" onchange="cambiarTemaLauncher(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="glass">Cristal oscuro</option><option value="solid">Sólido limpio</option><option value="aurora">Borde aurora</option><option value="gradient">Degradado sutil</option></select>
+            </label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Tratamiento de los iconos
+                <select id="cfg-launcher-icons" onchange="cambiarEstiloIconosLauncher()" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="color">Color original</option><option value="glow">Neón suave</option><option value="outline">Contorno</option><option value="mono">Monocromo</option></select>
+            </label>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Diseño del dispositivo
+                <select id="cfg-device-layout" onchange="cambiarDisenoDispositivo(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="auto">Automático</option><option value="mobile">Teléfono / Android</option><option value="desktop">PC</option></select>
+            </label>
+            <p class="text-[8px] text-gray-500">Automático adapta la distribución al tamaño de pantalla y al tipo de entrada. Puedes fijar el diseño manualmente.</p>
+            <button id="launcher-preview-toggle" type="button" onclick="toggleLauncherPreview()" aria-expanded="false" class="self-start rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-eye mr-1"></i> Ver vista previa</button>
+            <div id="launcher-preview-panel" class="hidden rounded-2xl border border-white/10 bg-[#050914] p-3">
+                <p class="mb-3 text-[8px] font-bold uppercase tracking-[.18em] text-gray-500">Vista previa del launcher · se actualiza al cambiar las opciones</p>
+                <div id="launcher-preview-grid" class="grid grid-cols-2 gap-2">
+                    <div class="launcher-card p-3 rounded-[2rem] flex flex-col items-center justify-center cursor-default aspect-square"><div class="w-10 h-10 rounded-[1rem] bg-cyan-900/30 text-cyan-300 flex items-center justify-center mb-2 border border-cyan-500/10"><i class="fa-solid fa-gamepad"></i></div><span class="text-[9px] font-black tracking-wider uppercase text-white">Biblioteca</span><span class="text-[7px] font-bold tracking-widest text-gray-500 uppercase mt-1">Juegos e iconos</span></div>
+                    <div class="launcher-card p-3 rounded-[2rem] flex flex-col items-center justify-center cursor-default aspect-square"><div class="w-10 h-10 rounded-[1rem] bg-violet-900/30 text-violet-300 flex items-center justify-center mb-2 border border-violet-500/10"><i class="fa-solid fa-plug"></i></div><span class="text-[9px] font-black tracking-wider uppercase text-white">Plugins</span><span class="text-[7px] font-bold tracking-widest text-gray-500 uppercase mt-1">Gestión</span></div>
+                    <div class="launcher-card p-3 rounded-[2rem] flex flex-col items-center justify-center cursor-default aspect-square"><div class="w-10 h-10 rounded-[1rem] bg-rose-900/30 text-rose-300 flex items-center justify-center mb-2 border border-rose-500/10"><i class="fa-solid fa-folder-open"></i></div><span class="text-[9px] font-black tracking-wider uppercase text-white">Explorador FTP</span><span class="text-[7px] font-bold tracking-widest text-gray-500 uppercase mt-1">Archivos</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fa-solid fa-spinner text-cyan-300"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Animación de carga</span></div>
+            <label class="flex flex-col gap-2 text-[9px] text-gray-300">Estilo de los loaders
+                <select id="cfg-loader-style" onchange="cambiarEstiloLoader(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="orbit">Órbita · anillos y núcleo</option><option value="pulse">Pulso · ondas concéntricas</option><option value="scan">Escáner · barrido HUD</option><option value="minimal">Minimal · arco limpio</option></select>
+            </label>
+            <p class="text-[8px] text-gray-500">Se usa al leer partidas, Limpieza, Almacenamiento y Parches. Puedes previsualizarlo antes de salir de Ajustes.</p>
+            <div id="loader-preview" aria-label="Vista previa de animación de carga"></div>
+        </div>
+
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fas fa-font text-violet-300"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Fuente experimental</span></div>
+            <label class="flex items-center justify-between gap-3 text-[9px] text-gray-300">Fuente global
+                <select id="cfg-app-font" onchange="cambiarFuenteApp(this.value)" class="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-[9px] text-white"><option value="outfit">Outfit (predeterminada)</option><option value="system">Sistema</option><option value="arial">Arial</option><option value="mono">Monoespaciada</option></select>
+            </label><p class="text-[8px] text-gray-500">La fuente Outfit requiere conexión para cargar Google Fonts; las demás usan fuentes del dispositivo.</p>
+        </div>
+
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fas fa-text-height text-violet-400 text-sm"></i>
+                <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Tamaño de texto</span>
+            </div>
+            <label class="flex flex-col gap-2 text-[9px] font-mono text-gray-400 uppercase tracking-wider">
+                Tamaño del texto <span id="lbl-tamano-texto" class="text-cyan-400">100%</span>
+                <input id="cfg-tamano-texto" type="range" min="85" max="130" step="5" value="100" oninput="guardarTamanoTexto(this.value)" class="w-full accent-cyan-500">
+            </label>
+        </div>
+
+        <!-- Créditos (nuevo) -->
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-2">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fas fa-code text-cyan-400 text-sm"></i>
+                <span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Acerca de</span>
+            </div>
+            <div class="flex flex-col items-center py-2">
+                <span class="text-[9px] font-mono text-gray-500 tracking-widest">PS4 Manager Tools</span>
+                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.7 • Mantenido por AJ</span>
+                <span class="text-[7px] font-mono text-gray-700 mt-1">Basado en el trabajo original de SeBaS</span>
+                <div class="flex gap-3 mt-2">
+                    <span class="text-[8px] font-mono text-cyan-500/50">❤️ Comunidad</span>
+                    <span class="text-[8px] font-mono text-cyan-500/50">🔓 Código Abierto</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fas fa-cloud-arrow-down text-emerald-400 text-sm"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Actualizaciones</span></div>
+            <p id="update-status" role="status" aria-live="polite" class="text-[9px] text-gray-500 font-mono">Comprueba cambios publicados en GitHub.</p>
+            <div class="grid grid-cols-2 gap-2"><button id="btn-verificar-update" onclick="comprobarActualizacion()" class="py-3 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-wider text-gray-300"><i class="fas fa-rotate-right"></i> Verificar</button><button id="btn-aplicar-update" onclick="aplicarActualizacion()" disabled class="py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider text-emerald-400 opacity-40">Actualizar</button></div>
+            <button id="btn-instalar-pwa" onclick="mostrarInstalacionPWA()" class="py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black uppercase tracking-wider text-cyan-400"><i class="fas fa-mobile-screen-button"></i> Instalar app en el teléfono</button>
+        </div>
+
+        <div class="w-full rounded-[1.5rem] border border-amber-500/25 bg-amber-950/20 p-4 shadow-lg">
+            <h3 class="mb-2 text-[10px] font-black uppercase tracking-wider text-amber-300">⚠️ Advertencia legal y de seguridad</h3>
+            <p class="text-[9px] leading-relaxed text-gray-300">Este software se proporciona "tal cual", sin garantías y es de código abierto. El mantenedor "AJ" no se responsabiliza por daños a tu PS4, pérdida de datos o violación de términos de servicio. Usar payloads de firmware o Ventilador puede brickear tu consola si no se usan como debe ser. Úsalo bajo tu propio riesgo. Se recomienda que los usuarios tengan una copia de seguridad del firmware original antes de aplicar cualquier parche.</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Selectores en modal: no quedan recortados por el scroll del módulo. -->
+<div id="modal-selector-fondo" class="fixed inset-0 z-[10050] hidden items-end sm:items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)cerrarSelectorFondo()"><div class="w-full max-w-md max-h-[82dvh] overflow-y-auto rounded-3xl border border-white/10 bg-[#0a0f1a] p-4 shadow-2xl"><div class="mb-3 flex items-center justify-between"><div><b class="text-sm text-white">Fondos animados</b><p class="text-[9px] text-gray-500">Elige el estilo visual del host.</p></div><button onclick="cerrarSelectorFondo()" class="h-9 w-9 rounded-xl bg-white/5 text-gray-300"><i class="fas fa-xmark"></i></button></div><div class="grid grid-cols-1 gap-2"><button onclick="seleccionarFondoCustom('none','Apagar fondos')" class="selector-ajuste text-left text-gray-300">Apagar fondos</button><button onclick="seleccionarFondoCustom('bg-ps4','Olas líquidas (PS4)')" class="selector-ajuste text-left text-blue-300">Olas líquidas (PS4)</button><button onclick="seleccionarFondoCustom('bg-ps2','Cubos 3D (PS2)')" class="selector-ajuste text-left text-indigo-300">Cubos 3D (PS2)</button><button onclick="seleccionarFondoCustom('bg-matrix','Lluvia de código (Matrix)')" class="selector-ajuste text-left text-emerald-300">Lluvia de código (Matrix)</button><button onclick="seleccionarFondoCustom('bg-warp','Velocidad Warp')" class="selector-ajuste text-left text-white">Velocidad Warp</button><button onclick="seleccionarFondoCustom('bg-plasma','Fluido plasma')" class="selector-ajuste text-left text-pink-300">Fluido plasma</button><button onclick="seleccionarFondoCustom('bg-network','Red neuronal')" class="selector-ajuste text-left text-sky-300">Red neuronal</button><button onclick="seleccionarFondoCustom('bg-aurora','Aurora polar')" class="selector-ajuste text-left text-cyan-300">Aurora polar</button><button onclick="seleccionarFondoCustom('bg-ocean','Océano nocturno')" class="selector-ajuste text-left text-sky-300">Océano nocturno</button><button onclick="seleccionarFondoCustom('bg-minimal','Órbita minimal')" class="selector-ajuste text-left text-cyan-200">Órbita minimal · nuevo</button></div></div></div>
+<div id="modal-selector-intro" class="fixed inset-0 z-[10050] hidden items-end sm:items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)cerrarSelectorIntro()"><div class="w-full max-w-md max-h-[82dvh] overflow-y-auto rounded-3xl border border-white/10 bg-[#0a0f1a] p-4 shadow-2xl"><div class="mb-3 flex items-center justify-between"><div><b class="text-sm text-white">Animación de inicio</b><p class="text-[9px] text-gray-500">Se reproduce al abrir la aplicación y se previsualiza al elegirla.</p></div><button onclick="cerrarSelectorIntro()" class="h-9 w-9 rounded-xl bg-white/5 text-gray-300"><i class="fas fa-xmark"></i></button></div><div class="grid grid-cols-1 gap-2"><button onclick="seleccionarIntroCustom('none','Sin intro (rápido)')" class="selector-ajuste text-left text-gray-300">Sin intro (rápido)</button><button onclick="seleccionarIntroCustom('intro-ps4','PlayStation 4')" class="selector-ajuste text-left text-blue-300">PlayStation 4</button><button onclick="seleccionarIntroCustom('intro-glitch','Glitch Hacker')" class="selector-ajuste text-left text-fuchsia-300">Glitch Hacker</button><button onclick="seleccionarIntroCustom('intro-ps2','PlayStation 2 clásica')" class="selector-ajuste text-left text-indigo-300">PlayStation 2 clásica</button><button onclick="seleccionarIntroCustom('intro-hud','Sci-Fi HUD')" class="selector-ajuste text-left text-sky-300">Sci-Fi HUD</button><button onclick="seleccionarIntroCustom('intro-neon','Cyberpunk Neon')" class="selector-ajuste text-left text-pink-300">Cyberpunk Neon</button><button onclick="seleccionarIntroCustom('intro-decrypt','Decrypt System')" class="selector-ajuste text-left text-green-300">Decrypt System</button><button onclick="seleccionarIntroCustom('intro-arcade','Retro Arcade')" class="selector-ajuste text-left text-yellow-300">Retro Arcade</button><button onclick="seleccionarIntroCustom('intro-matrix-rain','Matrix Rain')" class="selector-ajuste text-left text-emerald-300">Matrix Rain</button><button onclick="seleccionarIntroCustom('intro-crt','Terminal CRT (Boot)')" class="selector-ajuste text-left text-orange-300">Terminal CRT (Boot)</button><button onclick="seleccionarIntroCustom('intro-gb','Game Boy clásica')" class="selector-ajuste text-left text-lime-300">Game Boy clásica</button><button onclick="seleccionarIntroCustom('intro-breach','System Breach')" class="selector-ajuste text-left text-red-300">System Breach</button><button onclick="seleccionarIntroCustom('intro-aurora','Aurora AJ')" class="selector-ajuste text-left text-cyan-300">Aurora AJ</button><button onclick="seleccionarIntroCustom('intro-wave','Onda clásica')" class="selector-ajuste text-left text-sky-300">Onda clásica</button><button onclick="seleccionarIntroCustom('intro-classic','Boot clásico')" class="selector-ajuste text-left text-blue-200">Boot clásico</button><button onclick="seleccionarIntroCustom('intro-ai','Inicio IA')" class="selector-ajuste text-left text-violet-300">Inicio IA</button><button onclick="seleccionarIntroCustom('intro-minimal','Pulso minimal')" class="selector-ajuste text-left text-cyan-100">Pulso minimal · nuevo</button></div></div></div>
+<style>.selector-ajuste{padding:.85rem 1rem;border:1px solid rgba(255,255,255,.08);border-radius:.8rem;background:rgba(255,255,255,.035);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.selector-ajuste:hover{background:rgba(255,255,255,.09)}</style>

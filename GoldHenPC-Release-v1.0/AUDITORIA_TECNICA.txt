@@ -1,0 +1,25 @@
+AUDITORÍA TÉCNICA · PS4 MANAGER TOOLS AJ 4.5.7
+================================================
+
+El código es una aplicación web local distribuida para Termux, APK Android y
+Windows. Las tres opciones usan el mismo núcleo PHP/JavaScript; el empaquetado
+Android y el servidor portable de Windows agregan adaptaciones del host.
+
+Áreas cubiertas por el verificador local:
+- Sintaxis PHP y JavaScript.
+- Guardas de origen de los endpoints API.
+- Navegación, renderizado y pruebas simuladas de módulos.
+- Flujo de versiones y checksum de Releases.
+- Sincronización del paquete PC con los archivos fuente.
+- Prueba unitaria del motor de audio Web Audio.
+
+La revisión automatizada no puede certificar toda operación en PS4. Lecturas
+FTP, escrituras, restauraciones, borrados, RPI y payloads se deben comprobar
+según firmware, versión de GoldHEN, permisos FTP y tipo de distribución. El
+resultado de red solo confirma la respuesta del servicio consultado.
+
+Ejecuta en Windows desde la raíz:
+  .\scripts\verificar-proyecto.ps1
+
+Los datos `user/`, respaldos, IP y perfiles de consola son datos locales y no
+deben incluirse en publicaciones o paquetes distribuidos.

@@ -1,0 +1,8 @@
+PS4 MANAGER TOOLS AJ 4.5.7 — WINDOWS
+
+1. Descomprime el ZIP completo en una carpeta.
+2. Ejecuta Iniciar-PS4-Manager-Tool.bat.
+3. Espera a que se abra el navegador y mantén la ventana del servidor abierta.
+4. Para salir, cierra la ventana del servidor.
+
+La carpeta user contiene datos locales. No la borres al actualizar.
