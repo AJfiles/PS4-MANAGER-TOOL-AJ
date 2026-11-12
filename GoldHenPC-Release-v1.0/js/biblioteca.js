@@ -124,13 +124,14 @@ async function ejecutarSincronizacionFantasmasFondo() {
         let procesadosEscaneo = 0;
         if (estadoSync) estadoSync.innerText = totalEscaneo ? `Cargando títulos: 0/${totalEscaneo}` : 'Biblioteca actualizada.';
 
-        // Una lectura válida es la autoridad sobre qué títulos siguen instalados.
-        // Antes solo se filtraba cuando había más de diez resultados y los
-        // títulos antiguos quedaban visibles como si siguieran en la consola.
-        listadoJuegos = listadoJuegos.filter(localG => {
-            if (localG.id === 'APOLO0004') return true;
-            return mapJuegosDetectados[localG.id] !== undefined;
-        });
+        // Conservamos entradas antiguas para que el usuario pueda identificarlas
+        // como «No instalado»; solo una lectura no vacía permite afirmar el
+        // estado. Así no se confunde una caché local con un título presente.
+        if (colaTrabajoCUSAs.length > 0) {
+            listadoJuegos.forEach(localG => {
+                localG.installed = localG.id === 'APOLO0004' || mapJuegosDetectados[localG.id] !== undefined;
+            });
+        }
 
         const CONCURRENCIA_MAXIMA = 3;
         let huboCambiosNuevos = false;
@@ -230,7 +231,11 @@ async function forzarSincronizacionManual() {
         if (total === 0) { closeSincronizacionModal(); listadoJuegos = []; recompilarTodo(); return; }
 
         let procesados = 0;
-        listadoJuegos = listadoJuegos.filter(lg => lg.id === 'APOLO0004' || mapJuegos[lg.id] !== undefined);
+        if (colaCUSA.length > 0) {
+            listadoJuegos.forEach(lg => {
+                lg.installed = lg.id === 'APOLO0004' || mapJuegos[lg.id] !== undefined;
+            });
+        }
 
         while (colaCUSA.length > 0) {
             if (signal.aborted) break;

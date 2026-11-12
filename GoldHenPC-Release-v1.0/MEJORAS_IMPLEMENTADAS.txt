@@ -3,12 +3,12 @@ PS4 Manager Tools - CAMBIOS Y PRUEBAS
 
 PS4 Manager Tools AJ 4.5.8: consulta Android más rápida (2026-11-12)
 --------------------------------------------------------------------
-- Biblioteca: una lectura válida de appmeta ahora elimina del inventario local
-  los títulos que ya no aparecen instalados, incluso cuando la consola devuelve
-  diez o menos resultados. Las tarjetas muestran borde verde para títulos
-  instalados y borde rojo con «No instalado» para entradas conservadas cuando
-  la lectura remota no pudo confirmarse. La etiqueta nueva también se traduce
-  correctamente al inglés y el cambio se sincronizó con el paquete PC.
+- Biblioteca: una lectura válida de appmeta ahora marca cada título confirmado
+  con borde verde y conserva las entradas antiguas como borde rojo con «No
+  instalado», incluso cuando la consola devuelve diez o menos resultados. Así
+  el usuario puede identificar la caché que ya no está presente sin borrar
+  información local. La etiqueta nueva también se traduce correctamente al
+  inglés y el cambio se sincronizó con el paquete PC.
 - Notificaciones internas: los mensajes largos ahora se ajustan en varias líneas
   y conservan título y detalle completos. Limpieza muestra el espacio liberado
   calculado después de verificar cada borrado.
