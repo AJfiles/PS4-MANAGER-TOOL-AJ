@@ -14,14 +14,16 @@ PS4 Manager Tools AJ 4.5.8: consulta Android más rápida (2026-11-12)
   pantallas y metadatos actuales se alinearon a 4.5.8.
 - Se compiló e instaló 4.5.8 (código 40508) sobre 4.5.7 conservando package ID
   y firma. Play Protect informó «Esta app parece segura» antes de actualizar.
-- En 4.5.8, el chequeo real de GitHub mostró el spinner y terminó en menos de
-  5 segundos con el estado correcto: el release público todavía era 4.5.7.
+- En 4.5.8, el chequeo real de GitHub mostró el spinner y terminó con el estado
+  correcto. La prueba del endpoint contra el release público v4.5.8 confirma
+  que una instalación 4.5.7 recibe `update_available=true` y que una 4.5.8 ya
+  instalada recibe `update_available=false`.
 - La APK lleva `notificationEnabled: false` y Android reporta
   `POST_NOTIFICATIONS: granted=false`; esto no impide el chequeo, el audio ni la
   notificación flotante interna. La notificación externa de instalación depende
   de Android/Download Manager y requiere confirmación del usuario.
-- La suite local y la validación del paquete de PC pasan. Queda validar la
-  descarga desde el enlace de Releases después de publicar la versión 4.5.8.
+- La suite local y la validación del paquete de PC pasan. El release público
+  v4.5.8 está publicado con APK, ZIP de PC y `SHA256SUMS-4.5.8.txt`.
 
 Organizar Apps: visibilidad y grupos XMB
 ----------------------------------------
