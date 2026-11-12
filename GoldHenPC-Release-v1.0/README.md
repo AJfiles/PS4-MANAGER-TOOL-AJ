@@ -2,7 +2,7 @@
   <img src="js/icon-512.png" width="176" alt="Icono de PS4 Manager Tools AJ">
 </p>
 
-<h1 align="center">🎮 PS4 Manager Tools AJ 4.5.8</h1>
+<h1 align="center">🎮 PS4 Manager Tools AJ 4.5.9</h1>
 <p align="center"><strong>Tu PS4, administrada desde tu red local.</strong><br>Consulta y organiza tu consola con GoldHEN desde Termux, la APK Android o Windows.</p>
 
 <p align="center">
@@ -21,8 +21,8 @@ La conexión con la consola se realiza por la red local. No necesitas cuenta ni 
 | Plataforma | Descarga o instalación | Inicio rápido |
 | --- | --- | --- |
 | **📱 Android · Termux** | [Instalar / actualizar desde GitHub](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Pega el comando de abajo en Termux. |
-| **📦 Android · APK** | [Descargar APK 4.5.8](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.8/PS4-Manager-Tools-AJ-v4.5.8.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
-| **🖥️ Windows · PC** | [Descargar paquete PC 4.5.8](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.8/PS4-Manager-Tools-AJ-PC-v4.5.8.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
+| **📦 Android · APK** | [Descargar APK 4.5.9](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.9/PS4-Manager-Tools-AJ-v4.5.9.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
+| **🖥️ Windows · PC** | [Descargar paquete PC 4.5.9](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.9/PS4-Manager-Tools-AJ-PC-v4.5.9.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
 
 Consulta [todos los Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases), sus notas de versión y el archivo de hashes SHA-256.
 

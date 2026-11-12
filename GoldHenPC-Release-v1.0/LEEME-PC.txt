@@ -1,4 +1,4 @@
-PS4 MANAGER TOOLS AJ 4.5.8 — WINDOWS
+PS4 MANAGER TOOLS AJ 4.5.9 — WINDOWS
 
 1. Descomprime el ZIP completo en una carpeta.
 2. Ejecuta Iniciar-PS4-Manager-Tool.bat.
