@@ -227,7 +227,7 @@ header('X-Author: ' . $firma);
             </div>
         </div>
 
-        <div class="w-full max-w-4xl mx-auto z-20 mt-4 shrink-0">
+        <div class="launcher-connection-panel w-full max-w-4xl mx-auto z-20 mt-6 mb-6 shrink-0">
             <button onclick="abrirBusquedaGlobal()" class="mb-3 flex w-full items-center gap-3 rounded-2xl border border-violet-500/20 bg-violet-500/5 px-4 py-3 text-left active:scale-[.99] transition-all hover:bg-violet-500/10">
                 <i class="fa-solid fa-magnifying-glass text-violet-300"></i><span class="flex-1 text-[10px] font-bold tracking-wide text-violet-100">Buscar en PS4 Manager Tools…</span><span class="text-[8px] uppercase tracking-widest text-violet-300/70">Global</span>
             </button>
@@ -260,7 +260,7 @@ header('X-Author: ' . $firma);
             </div>
         </div>
 
-        <div id="launcher-grid" class="grid grid-cols-2 gap-3.5 max-w-sm mx-auto w-full my-auto z-10 shrink-0 px-1">
+        <div id="launcher-grid" class="grid grid-cols-2 gap-4.5 max-w-sm mx-auto w-full my-auto z-10 shrink-0 px-1">
             <div onclick="abrirModulo('biblioteca')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-cyan-900/30 text-cyan-400 flex items-center justify-center mb-3 border border-cyan-500/10"><i class="fa-solid fa-gamepad text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Biblioteca</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Juegos e Iconos</span></div>
             <div onclick="abrirModulo('savegames')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-cyan-900/30 text-cyan-300 flex items-center justify-center mb-3 border border-cyan-500/10"><i class="fa-solid fa-floppy-disk text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">SaveGames</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Partidas y respaldos</span></div>
             <div onclick="abrirModuloNativo('limpieza')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-rose-900/30 text-rose-300 flex items-center justify-center mb-3 border border-rose-500/10"><i class="fa-solid fa-broom text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Limpieza</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Partidas sin juego instalado</span></div>
