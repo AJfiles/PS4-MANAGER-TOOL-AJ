@@ -6,7 +6,7 @@
     const translatingAttributes = new WeakMap();
     const translations = {
         'PS4 Manager Tools AJ | Consola PS4': 'PS4 Manager Tools AJ | PS4 Console',
-        'Configuración': 'Settings', 'Entorno, Audio y SFX': 'Interface, audio and SFX', 'Alertas del Sistema': 'System alerts',
+        'Configuración': 'Settings', 'Entorno, Audio y SFX': 'Interface, audio and SFX', 'Alertas del Sistema': 'System alerts', 'No instalado': 'Not installed',
         'Consultando GitHub…': 'Checking GitHub…', 'APK nueva disponible': 'New APK available',
         'Android pedirá confirmar la instalación después de descargarla.': 'Android will ask you to confirm installation after the download.',
         'Versión disponible, pero falta el SHA-256 publicado por GitHub': 'A version is available, but GitHub has not published its SHA-256',

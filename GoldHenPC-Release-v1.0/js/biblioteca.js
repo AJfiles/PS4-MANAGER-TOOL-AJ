@@ -124,12 +124,13 @@ async function ejecutarSincronizacionFantasmasFondo() {
         let procesadosEscaneo = 0;
         if (estadoSync) estadoSync.innerText = totalEscaneo ? `Cargando títulos: 0/${totalEscaneo}` : 'Biblioteca actualizada.';
 
-        if (colaTrabajoCUSAs.length > 10) {
-            listadoJuegos = listadoJuegos.filter(localG => {
-                if (localG.id === 'APOLO0004') return true;
-                return mapJuegosDetectados[localG.id] !== undefined;
-            });
-        }
+        // Una lectura válida es la autoridad sobre qué títulos siguen instalados.
+        // Antes solo se filtraba cuando había más de diez resultados y los
+        // títulos antiguos quedaban visibles como si siguieran en la consola.
+        listadoJuegos = listadoJuegos.filter(localG => {
+            if (localG.id === 'APOLO0004') return true;
+            return mapJuegosDetectados[localG.id] !== undefined;
+        });
 
         const CONCURRENCIA_MAXIMA = 3;
         let huboCambiosNuevos = false;
@@ -163,6 +164,7 @@ async function ejecutarSincronizacionFantasmasFondo() {
                         listadoJuegos[idx].nombre = res.game.nombre;
                         huboCambiosNuevos = true;
                     }
+                    if (idx >= 0) listadoJuegos[idx].installed = true;
                 }
             });
             if (estadoSync) estadoSync.innerText = `Cargando títulos: ${procesadosEscaneo}/${totalEscaneo}`;
@@ -266,6 +268,7 @@ async function forzarSincronizacionManual() {
                     } else if (listadoJuegos[idx].nombre !== res.game.nombre && res.game.nombre !== res.game.id) {
                         listadoJuegos[idx].nombre = res.game.nombre;
                     }
+                    if (idx >= 0) listadoJuegos[idx].installed = true;
                 }
             });
         }
@@ -349,7 +352,8 @@ function renderizarGridDOM(visibles) {
     
     visibles.forEach((jg) => {
         const divCard = document.createElement('div');
-        divCard.className = "grid-card-modern rounded-[1.2rem] p-1.5 flex flex-col justify-between cursor-pointer shadow-lg animate-fade-in";
+        const noInstalado = jg.installed === false;
+        divCard.className = `grid-card-modern ${noInstalado ? 'library-not-installed' : 'library-installed'} rounded-[1.2rem] p-1.5 flex flex-col justify-between cursor-pointer shadow-lg animate-fade-in`;
         divCard.setAttribute('role', 'button');
         divCard.tabIndex = 0;
         divCard.setAttribute('aria-label', `Abrir ${String(jg.nombre || jg.id || '').slice(0, 160)}`);
@@ -362,6 +366,12 @@ function renderizarGridDOM(visibles) {
         title.className = 'text-[9px] font-bold text-center truncate pt-1 text-gray-300 px-0.5 uppercase tracking-wide';
         title.textContent = String(jg.nombre || jg.id || 'Título sin nombre');
         divCard.append(cover, title);
+        if (noInstalado) {
+            const badge = document.createElement('span');
+            badge.className = 'library-status-badge';
+            badge.textContent = 'No instalado';
+            divCard.appendChild(badge);
+        }
         gridDom.appendChild(divCard);
     });
 }
@@ -383,12 +393,13 @@ function construirCoverflowDOMEstatico(visibles) {
     let html3D = "";
     visibles.forEach((jg) => {
         html3D += `
-        <div class="ps4-box-case" role="button" tabindex="0" aria-label="${bibliotecaEscaparHtml(String(jg.nombre || jg.id || 'Título'))}">
+        <div class="ps4-box-case ${jg.installed === false ? 'library-not-installed' : 'library-installed'}" role="button" tabindex="0" aria-label="${bibliotecaEscaparHtml(String(jg.nombre || jg.id || 'Título'))}">
             <div class="ps4-top-ribbon">
                 <i class="fa-brands fa-playstation text-white text-[10px]"></i>
                 <span class="ps4-ribbon-text">PS4</span>
             </div>
             <img src="${bibliotecaEscaparHtml(bibliotecaImagenSegura(jg.cover3d))}" data-fallback="${bibliotecaEscaparHtml(bibliotecaImagenSegura(jg.img))}" class="ps4-img-art" draggable="false">
+            ${jg.installed === false ? '<span class="library-status-badge">No instalado</span>' : ''}
         </div>`;
     });
     target3D.innerHTML = html3D;

@@ -143,6 +143,7 @@ if ($action === 'get_cached_games') {
                     'nombre' => $title, 
                     'tipo' => $tipo_final,
                     'version' => $version,
+                    'installed' => true,
                     'size' => '23.5 GB',
                     'img' => 'user/cache/biblioteca/' . $cusa . '.png?v=' . @filemtime($icon_path)
                 ];
@@ -171,7 +172,7 @@ if ($action === 'scan') {
 
     // Limpiar caché de juegos que ya no están en la consola
     // No borrar caché ante una lectura vacía: puede ser una respuesta FTP incompleta.
-    if (count($cusa_detectados) > 0) {
+        if (count($cusa_detectados) > 0) {
         $sfos_existentes = glob($cache_dir . '/*.sfo');
         if (is_array($sfos_existentes)) {
             foreach ($sfos_existentes as $sfo_path) {
@@ -224,11 +225,12 @@ if ($action === 'get_game_data') {
             echo json_encode([
                 'status' => 'success',
                 'skipped' => true,
-                'game' => [
+                    'game' => [
                     'id' => $cusa_id,
                     'nombre' => $title,
                     'tipo' => $tipo_final,
                     'version' => $version,
+                    'installed' => true,
                     'size' => '23.5 GB',
                     'img' => 'user/cache/biblioteca/' . $cusa_id . '.png?v=' . @filemtime($local_icon)
                 ]
@@ -320,6 +322,7 @@ if ($action === 'get_game_data') {
             'nombre' => $title,
             'tipo' => $tipo_final,
             'version' => $version,
+            'installed' => true,
             'size' => '23.5 GB',
             'img' => $final_img
         ]

@@ -3,6 +3,12 @@ PS4 Manager Tools - CAMBIOS Y PRUEBAS
 
 PS4 Manager Tools AJ 4.5.8: consulta Android más rápida (2026-11-12)
 --------------------------------------------------------------------
+- Biblioteca: una lectura válida de appmeta ahora elimina del inventario local
+  los títulos que ya no aparecen instalados, incluso cuando la consola devuelve
+  diez o menos resultados. Las tarjetas muestran borde verde para títulos
+  instalados y borde rojo con «No instalado» para entradas conservadas cuando
+  la lectura remota no pudo confirmarse. La etiqueta nueva también se traduce
+  correctamente al inglés y el cambio se sincronizó con el paquete PC.
 - En el teléfono, la APK 4.5.7 mostró correctamente «Consultando GitHub…» y el
   spinner; la consulta acabó en unos 17 segundos indicando que estaba al día.
 - La causa probable era el orden del transporte: el código esperaba hasta 12
