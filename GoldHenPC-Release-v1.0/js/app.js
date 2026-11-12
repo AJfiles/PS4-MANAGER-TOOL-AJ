@@ -927,6 +927,27 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 window.mostrarInstalacionPWA = async function() {
     if (ghmNativeAndroidShell) return;
+    const androidBrowser = /Android/i.test(navigator.userAgent);
+    if (ghmRuntime === 'termux' && androidBrowser) {
+        const shortcut = window.confirm('¿Quieres crear un acceso directo web?\n\nAceptar: acceso directo que seguirá necesitando Termux abierto.\nCancelar: descargar la APK para usarla sin Termux.');
+        if (shortcut) {
+            if (!pwaInstallPrompt) { sysNotification('INSTALACIÓN', 'El navegador no ofrece instalación PWA en este momento. Usa el menú del navegador para añadir el acceso directo.', 'fa-mobile-screen-button'); return; }
+            pwaInstallPrompt.prompt();
+            await pwaInstallPrompt.userChoice;
+            pwaInstallPrompt = null;
+            return;
+        }
+        try {
+            const fd = new FormData(); fd.append('action', 'check');
+            const res = await fetch('api/android_release_api.php', { method: 'POST', body: fd, cache: 'no-store' });
+            const data = await res.json();
+            const release = data.release;
+            if (data.status !== 'success' || !data.update_available || !release?.asset_url) throw new Error('No hay una APK publicada más reciente para descargar.');
+            const link = document.createElement('a'); link.href = release.asset_url; link.download = release.asset_name || 'PS4-Manager-Tools-AJ.apk'; link.rel = 'noopener'; link.click();
+            sysNotification('APK', 'Descarga iniciada. Al terminar, abre el archivo y confirma la instalación; después podrás desinstalar Termux.', 'fa-download');
+        } catch (error) { sysNotification('APK', error.message || 'No se pudo preparar la descarga de la APK.', 'fa-circle-xmark'); }
+        return;
+    }
     if (!pwaInstallPrompt) { sysNotification('INSTALACIÓN', 'El navegador no ofrece instalación en este momento.', 'fa-mobile-screen-button'); return; }
     pwaInstallPrompt.prompt();
     await pwaInstallPrompt.userChoice;
@@ -936,6 +957,15 @@ window.mostrarInstalacionPWA = async function() {
 window.androidReleaseCandidate = null;
 window.pcReleaseCandidate = null;
 let comprobacionActualizacionEnCurso = false;
+const ghmRuntime = document.body?.dataset?.ghmRuntime || 'pc';
+function ghmUpdateProgress(value, label) {
+    const bar = document.getElementById('update-progress-bar');
+    const wrap = document.getElementById('update-progress-wrap');
+    const text = document.getElementById('update-progress-label');
+    if (wrap) wrap.classList.toggle('hidden', value === null);
+    if (bar && value !== null) bar.style.width = `${Math.max(0, Math.min(100, value))}%`;
+    if (text && label) text.textContent = label;
+}
 window.comprobarActualizacion = async function() {
     const estado = document.getElementById('update-status');
     const boton = document.getElementById('btn-aplicar-update');
@@ -974,6 +1004,7 @@ window.comprobarActualizacion = async function() {
         }
 
         const fd = new FormData(); fd.append('action', 'check');
+        if (ghmRuntime === 'termux') fd.append('runtime', 'termux');
         const res = await fetch('api/update_api.php', { method: 'POST', body: fd, cache: 'no-store' }); const data = await res.json();
         if (data.status !== 'success') throw new Error(data.message);
         if (data.asset_url) {
@@ -1055,6 +1086,20 @@ window.aplicarActualizacion = async function() {
     if (estado) estado.innerText = 'Aplicando actualización…';
     try {
         const fd = new FormData(); fd.append('action', 'apply');
+        if (ghmRuntime === 'termux') fd.append('runtime', 'termux');
+        if (ghmRuntime === 'termux') {
+            ghmUpdateProgress(8, 'Preparando actualización de Termux…');
+            let progress = 8;
+            const timer = setInterval(() => { progress = Math.min(82, progress + 6); ghmUpdateProgress(progress, 'Descargando y aplicando archivos…'); }, 700);
+            try {
+                const res = await fetch('api/update_api.php', { method: 'POST', body: fd }); const data = await res.json();
+                clearInterval(timer);
+                if (data.status !== 'success') throw new Error(data.message);
+                ghmUpdateProgress(100, data.updated ? 'Actualización aplicada. Recargando…' : 'Ya tienes la versión más reciente.');
+                if (data.updated) setTimeout(() => window.location.reload(), 1100);
+                return;
+            } catch (error) { clearInterval(timer); ghmUpdateProgress(null); if (estado) estado.innerText = error.message || 'No se pudo aplicar la actualización.'; return; }
+        }
         const res = await fetch('api/update_api.php', { method: 'POST', body: fd }); const data = await res.json();
         if (data.status !== 'success') throw new Error(data.message);
         if (estado) estado.innerText = data.updated ? 'Actualización aplicada. Recargando…' : 'Ya estabas actualizado.';

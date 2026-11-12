@@ -16,6 +16,7 @@ function app_asset_url(string $relative): string {
     $version = is_file($file) ? (string)@filemtime($file) : '1';
     return '/' . htmlspecialchars($relative, ENT_QUOTES, 'UTF-8') . '?v=' . rawurlencode($version);
 }
+$ghm_runtime = is_file(__DIR__ . '/user/.termux-runtime') ? 'termux' : 'pc';
 
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -203,7 +204,7 @@ header('X-Author: ' . $firma);
         @media (prefers-reduced-motion: reduce) { .ghm-loading *, .ghm-loader-track i { animation:none !important; } .ghm-loader-track i { width:35%; transform:none !important; } }
     </style>
 </head>
-<body class="text-white select-none hide-scrollbar bg-radial-glow">
+<body class="text-white select-none hide-scrollbar bg-radial-glow" data-ghm-runtime="<?= htmlspecialchars($ghm_runtime, ENT_QUOTES, 'UTF-8') ?>">
 
     <?php include 'modulos/wallpapers.php'; ?>
     <div id="intro-wrapper" class="fixed inset-0 z-[9999] bg-[#05050a] flex items-center justify-center">
@@ -222,7 +223,7 @@ header('X-Author: ' . $firma);
             </h1>
             <div class="flex items-center justify-center gap-3 mt-2.5 opacity-80">
                 <span class="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-500/80"></span>
-                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.9 • AJ</span>
+                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.10 • AJ</span>
                 <span class="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-500/80"></span>
             </div>
         </div>

@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# PS4 Manager Tools AJ v4.5.9 — instalador fiable para Termux
+# PS4 Manager Tools AJ v4.5.10 — instalador fiable para Termux
 set -u
 
 VERDE='\033[1;32m'; CYAN='\033[1;36m'; AMARILLO='\033[1;33m'; ROJO='\033[1;31m'; BLANCO='\033[1;37m'; NC='\033[0m'
@@ -110,7 +110,7 @@ validar_php() {
 
 clear
 printf "${CYAN}╭────────────────────────────────────╮${NC}\n"
-printf "${CYAN}│${NC}      ${BLANCO}PS4 Manager Tools AJ${NC} ${CYAN}v4.5.9      │${NC}\n"
+printf "${CYAN}│${NC}      ${BLANCO}PS4 Manager Tools AJ${NC} ${CYAN}v4.5.10      │${NC}\n"
 printf "${CYAN}│${NC}       ${AMARILLO}PS4 • Termux • Local FTP${NC}       ${CYAN}│${NC}\n"
 printf "${CYAN}╰────────────────────────────────────╯${NC}\n\n"
 
@@ -169,6 +169,7 @@ if [ -L "$REPO_DIR/user" ]; then
 fi
 if [ ! -e "$REPO_DIR/user" ]; then ln -s "$STORAGE_ROOT/user" "$REPO_DIR/user"; fi
 mkdir -p "$REPO_DIR/user"
+touch "$REPO_DIR/user/.termux-runtime"
 chmod +x "$REPO_DIR/start-goldhen.sh" "$REPO_DIR/store/admin.sh" 2>/dev/null || true
 instalar_comandos
 configurar_inicio_termux

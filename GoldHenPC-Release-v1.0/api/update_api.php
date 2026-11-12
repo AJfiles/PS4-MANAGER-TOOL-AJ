@@ -6,6 +6,8 @@ header('Content-Type: application/json; charset=utf-8');
 
 $action = $_POST['action'] ?? 'check';
 $root = realpath(__DIR__ . '/..');
+$runtime = strtolower(trim((string)($_POST['runtime'] ?? '')));
+$isTermux = $runtime === 'termux' || ($root && is_file($root . '/user/.termux-runtime'));
 $versionData = json_decode((string)@file_get_contents(__DIR__ . '/../project-version.json'), true);
 $currentVersion = is_array($versionData) ? (string)($versionData['version'] ?? '') : '';
 $repository = is_array($versionData) ? (string)($versionData['repository'] ?? '') : '';
@@ -138,7 +140,7 @@ function get_pc_release(string $repository, string $currentVersion): array {
 }
 
 $gitDir = $root . '/.git';
-if (!is_dir($gitDir)) {
+if (!is_dir($gitDir) && !$isTermux) {
     $release = get_pc_release($repository, $currentVersion);
     if (($release['status'] ?? '') !== 'success') update_json_response($release, 502);
     if ($action === 'check') update_json_response($release);
@@ -154,6 +156,9 @@ if (!is_dir($gitDir)) {
         ]);
     }
     update_json_response(['status' => 'error', 'message' => 'Acción no válida.'], 400);
+}
+if ($isTermux && !is_dir($gitDir)) {
+    update_json_response(['status' => 'error', 'message' => 'Esta instalación de Termux no tiene el repositorio Git disponible. Ejecuta de nuevo el instalador de PS4 Manager Tools AJ para repararla.'], 500);
 }
 
 function ejecutar_git_update(string $root, string $command, ?int &$status = null): string {

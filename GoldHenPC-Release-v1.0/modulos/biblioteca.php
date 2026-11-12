@@ -53,6 +53,8 @@
         transform-style: preserve-3d;
         -webkit-transform-style: preserve-3d;
         z-index: 2;
+        contain: layout paint;
+        will-change: transform;
     }
 
     .library-carousel-nav { position: absolute; top: 50%; z-index: 120; width: 40px; height: 40px; border-radius: 50%; transform: translateY(-50%); border: 1px solid rgba(255,255,255,.14); background: rgba(3,8,18,.72); color: #a5f3fc; display: flex; align-items: center; justify-content: center; transition: background .2s, transform .2s; }
@@ -66,7 +68,7 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, box-shadow 0.5s ease, border 0.5s ease;
+        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.36s ease, box-shadow 0.32s ease, border 0.32s ease;
         cursor: pointer;
         display: flex;
         flex-direction: column;
@@ -75,6 +77,7 @@
         -webkit-transform-style: preserve-3d;
         will-change: transform, opacity;
         -webkit-box-reflect: below 2px linear-gradient(transparent, transparent 65%, rgba(255,255,255,0.25));
+        contain: layout paint;
     }
     .ps4-box-case .library-status-badge { top: 30px; right: 6px; }
 

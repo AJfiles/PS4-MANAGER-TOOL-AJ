@@ -396,14 +396,19 @@ function construirCoverflowDOMEstatico(visibles) {
     }
 
     let html3D = "";
-    visibles.forEach((jg) => {
+    visibles.forEach((jg, idx) => {
+        const principal = bibliotecaImagenSegura(jg.cover3d) || bibliotecaImagenSegura(jg.img);
+        const respaldo = bibliotecaImagenSegura(jg.img);
+        const imagen = principal
+            ? `<img src="${bibliotecaEscaparHtml(principal)}" ${idx === index3DActivo ? 'loading="eager"' : 'loading="lazy"'} decoding="async" data-fallback="${bibliotecaEscaparHtml(respaldo)}" class="ps4-img-art" draggable="false">`
+            : '<div class="ps4-img-art flex items-center justify-center text-cyan-200/60"><i class="fa-solid fa-gamepad text-3xl"></i></div>';
         html3D += `
         <div class="ps4-box-case ${jg.installed === false ? 'library-not-installed' : 'library-installed'}" role="button" tabindex="0" aria-label="${bibliotecaEscaparHtml(String(jg.nombre || jg.id || 'Título'))}">
             <div class="ps4-top-ribbon">
                 <i class="fa-brands fa-playstation text-white text-[10px]"></i>
                 <span class="ps4-ribbon-text">PS4</span>
             </div>
-            <img src="${bibliotecaEscaparHtml(bibliotecaImagenSegura(jg.cover3d))}" data-fallback="${bibliotecaEscaparHtml(bibliotecaImagenSegura(jg.img))}" class="ps4-img-art" draggable="false">
+            ${imagen}
             ${jg.installed === false ? '<span class="library-status-badge">No instalado</span>' : ''}
         </div>`;
     });

@@ -212,7 +212,7 @@
             </div>
             <div class="flex flex-col items-center py-2">
                 <span class="text-[9px] font-mono text-gray-500 tracking-widest">PS4 Manager Tools</span>
-                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.9 • Mantenido por AJ</span>
+                <span class="text-[8px] font-mono text-gray-600 tracking-wider">Versión 4.5.10 • Mantenido por AJ</span>
                 <span class="text-[7px] font-mono text-gray-700 mt-1">Basado en el trabajo original de SeBaS</span>
                 <div class="flex gap-3 mt-2">
                     <span class="text-[8px] font-mono text-cyan-500/50">❤️ Comunidad</span>
@@ -224,6 +224,7 @@
         <div class="w-full bg-[#0a0f1a] border border-white/5 rounded-[1.5rem] p-4 shadow-lg flex flex-col gap-3">
             <div class="flex items-center gap-2 border-b border-white/5 pb-2"><i class="fas fa-cloud-arrow-down text-emerald-400 text-sm"></i><span class="text-[10px] font-black uppercase text-gray-400 tracking-wider">Actualizaciones</span></div>
             <p id="update-status" role="status" aria-live="polite" class="text-[9px] text-gray-500 font-mono">Comprueba cambios publicados en GitHub.</p>
+            <div id="update-progress-wrap" class="hidden rounded-xl border border-cyan-400/15 bg-black/20 p-2" aria-live="polite"><div class="mb-1 flex items-center justify-between text-[8px] font-mono text-cyan-200"><span id="update-progress-label">Preparando…</span><span>Termux</span></div><div class="h-1.5 overflow-hidden rounded-full bg-white/10"><div id="update-progress-bar" class="h-full w-0 rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-[width] duration-500"></div></div></div>
             <div class="grid grid-cols-2 gap-2"><button id="btn-verificar-update" onclick="comprobarActualizacion()" class="py-3 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-wider text-gray-300"><i class="fas fa-rotate-right"></i> Verificar</button><button id="btn-aplicar-update" onclick="aplicarActualizacion()" disabled class="py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider text-emerald-400 opacity-40">Actualizar</button></div>
             <button id="btn-instalar-pwa" onclick="mostrarInstalacionPWA()" class="py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black uppercase tracking-wider text-cyan-400"><i class="fas fa-mobile-screen-button"></i> Instalar app en el teléfono</button>
         </div>

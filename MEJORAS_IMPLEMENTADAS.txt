@@ -1,7 +1,7 @@
 PS4 Manager Tools - CAMBIOS Y PRUEBAS
 =====================================
 
-PS4 Manager Tools AJ 4.5.9: Biblioteca, notificaciones y limpieza (2026-11-12)
+PS4 Manager Tools AJ 4.5.10: Biblioteca, notificaciones y limpieza (2026-11-12)
 -------------------------------------------------------------------------------
 - Se actualizó la Biblioteca para marcar con borde verde los títulos confirmados
   en la consola y conservar con borde rojo «No instalado» los elementos antiguos
@@ -9,8 +9,17 @@ PS4 Manager Tools AJ 4.5.9: Biblioteca, notificaciones y limpieza (2026-11-12)
 - Las notificaciones internas largas ahora se ajustan en varias líneas y
   conservan el título y el detalle completo.
 - Limpieza informa el espacio liberado después de verificar cada borrado.
-- Termux, Windows y la APK comparten la versión 4.5.9 y el paquete PC se
+- Termux, Windows y la APK comparten la versión 4.5.10 y el paquete PC se
   sincroniza con el mismo código fuente.
+- El carrusel ahora usa el icono disponible como respaldo, carga de forma
+  diferida las tarjetas laterales y reduce las transiciones costosas para una
+  navegación más fluida.
+- Termux se identifica mediante un marcador propio: Actualizar aplica `git
+  pull` sobre los datos del proyecto y muestra progreso; no ofrece una APK
+  como si fuera la edición Android.
+- El botón de instalación en Termux permite elegir entre acceso directo web
+  (requiere Termux) o descarga de la APK oficial.
+- Se incorporó el nuevo icono PS4 Manager Tools AJ en PWA y paquete PC.
 
 PS4 Manager Tools AJ 4.5.8: consulta Android más rápida (2026-11-12)
 --------------------------------------------------------------------

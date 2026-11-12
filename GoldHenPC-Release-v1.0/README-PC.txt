@@ -1,4 +1,4 @@
-# PS4 Manager Tools AJ 4.5.9 para Windows
+# PS4 Manager Tools AJ 4.5.10 para Windows
 
 Esta carpeta incluye el servidor PHP portable y la aplicación local. No instales PHP ni añadas rutas al PATH.
 
