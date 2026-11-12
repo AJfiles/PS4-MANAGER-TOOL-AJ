@@ -1,5 +1,27 @@
-PS4 Manager Tool - CAMBIOS Y PRUEBAS
-========================================
+PS4 Manager Tools - CAMBIOS Y PRUEBAS
+=====================================
+
+PS4 Manager Tools AJ 4.5.8: consulta Android más rápida (2026-11-12)
+--------------------------------------------------------------------
+- En el teléfono, la APK 4.5.7 mostró correctamente «Consultando GitHub…» y el
+  spinner; la consulta acabó en unos 17 segundos indicando que estaba al día.
+- La causa probable era el orden del transporte: el código esperaba hasta 12
+  segundos por el wrapper HTTPS de PHP antes de usar cURL. En 4.5.8 cURL se
+  intenta primero con validación TLS, timeout de conexión de 4 s y total de 9 s;
+  el wrapper HTTPS sigue como alternativa con timeout de 8 s.
+- Se conserva la validación del repositorio, la comparación de versiones y el
+  fallback de Releases/checksum si falla la API de GitHub. README, Termux, PC,
+  pantallas y metadatos actuales se alinearon a 4.5.8.
+- Se compiló e instaló 4.5.8 (código 40508) sobre 4.5.7 conservando package ID
+  y firma. Play Protect informó «Esta app parece segura» antes de actualizar.
+- En 4.5.8, el chequeo real de GitHub mostró el spinner y terminó en menos de
+  5 segundos con el estado correcto: el release público todavía era 4.5.7.
+- La APK lleva `notificationEnabled: false` y Android reporta
+  `POST_NOTIFICATIONS: granted=false`; esto no impide el chequeo, el audio ni la
+  notificación flotante interna. La notificación externa de instalación depende
+  de Android/Download Manager y requiere confirmación del usuario.
+- La suite local y la validación del paquete de PC pasan. Queda validar la
+  descarga desde el enlace de Releases después de publicar la versión 4.5.8.
 
 Organizar Apps: visibilidad y grupos XMB
 ----------------------------------------

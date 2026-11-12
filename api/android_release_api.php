@@ -13,39 +13,20 @@ if (!preg_match('/^\d+(?:\.\d+){1,3}$/', $currentVersion)
     exit;
 }
 
-$context = stream_context_create([
-    'http' => [
-        'method' => 'GET',
-        'timeout' => 12,
-        'ignore_errors' => true,
-        'header' => "User-Agent: PS4-Manager-Tools-AJ\r\nAccept: application/vnd.github+json\r\nX-GitHub-Api-Version: 2022-11-28\r\n",
-    ],
-    'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
-]);
 $endpoint = 'https://api.github.com/repos/' . $repository . '/releases?per_page=30';
-$response = @file_get_contents($endpoint, false, $context);
+$response = false;
 $transportDetail = '';
-$streamStatus = 0;
-foreach (($http_response_header ?? []) as $headerLine) {
-    if (preg_match('/^HTTP\/\S+\s+(\d{3})/', $headerLine, $statusMatch)) $streamStatus = (int)$statusMatch[1];
-}
-if ($streamStatus >= 400) {
-    $transportDetail = 'GitHub REST HTTP ' . $streamStatus;
-    $response = false;
-}
-if (!is_string($response) || $response === '') {
-    $lastError = error_get_last();
-    if (is_array($lastError) && isset($lastError['message'])) $transportDetail = (string)$lastError['message'];
-}
-// Algunos runtimes PHP para Android incluyen cURL pero no el wrapper HTTPS de
-// OpenSSL. Usa cURL con validación TLS equivalente como transporte alternativo.
-if ((!is_string($response) || $response === '') && function_exists('curl_init')) {
+$caBundle = __DIR__ . '/certs/cacert.pem';
+// cURL suele responder mucho antes que el wrapper HTTPS en PHP Android, que
+// puede agotar su timeout aun cuando cURL funciona en ese mismo runtime.
+// Mantén la verificación TLS y usa el wrapper como fallback si cURL no existe
+// o falla por una causa recuperable.
+if (function_exists('curl_init')) {
     $ch = curl_init($endpoint);
-    $caBundle = __DIR__ . '/certs/cacert.pem';
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 8,
-        CURLOPT_TIMEOUT => 15,
+        CURLOPT_CONNECTTIMEOUT => 4,
+        CURLOPT_TIMEOUT => 9,
         CURLOPT_FOLLOWLOCATION => false,
         CURLOPT_SSL_VERIFYPEER => true,
         CURLOPT_SSL_VERIFYHOST => 2,
@@ -59,6 +40,30 @@ if ((!is_string($response) || $response === '') && function_exists('curl_init'))
     curl_close($ch);
     if (is_string($body) && $status >= 200 && $status < 300) $response = $body;
     else $transportDetail = trim('cURL HTTP ' . $status . ' ' . $curlError);
+}
+if (!is_string($response) || $response === '') {
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 8,
+            'ignore_errors' => true,
+            'header' => "User-Agent: PS4-Manager-Tools-AJ\r\nAccept: application/vnd.github+json\r\nX-GitHub-Api-Version: 2022-11-28\r\n",
+        ],
+        'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
+    ]);
+    $streamResponse = @file_get_contents($endpoint, false, $context);
+    $streamStatus = 0;
+    foreach (($http_response_header ?? []) as $headerLine) {
+        if (preg_match('/^HTTP\/\S+\s+(\d{3})/', $headerLine, $statusMatch)) $streamStatus = (int)$statusMatch[1];
+    }
+    if ($streamStatus >= 400) {
+        $transportDetail = 'GitHub REST HTTP ' . $streamStatus;
+    } elseif (is_string($streamResponse) && $streamResponse !== '') {
+        $response = $streamResponse;
+    } else {
+        $lastError = error_get_last();
+        if (is_array($lastError) && isset($lastError['message'])) $transportDetail = (string)$lastError['message'];
+    }
 }
 // GitHub limits unauthenticated REST API requests. If that quota is exhausted,
 // resolve the public latest-release page and its checksum sidecar instead.

@@ -1,4 +1,4 @@
-PS4 Manager Tools AJ 4.5.7 — avisos de componentes de terceros
+PS4 Manager Tools AJ 4.5.8 — avisos de componentes de terceros
 
 PHP portable 8.5.11 x86 NTS
 - Redistribución según runtime\license.txt y runtime\readme-redist-bins.txt.
