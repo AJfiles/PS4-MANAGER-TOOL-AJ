@@ -82,6 +82,10 @@
         try {
             const result = await req('scan');
             games = Array.isArray(result.games) ? result.games : [];
+            const requestedFilter = (localStorage.getItem('ghm_filter_patch_cusa') || '').toUpperCase();
+            const filter = /^[A-Z]{4}\d{5}$/.test(requestedFilter) ? requestedFilter : '';
+            $('patch-filter-clear')?.classList?.toggle('hidden', !filter);
+            if (filter) games = games.filter(game => String(game.cusa || '').toUpperCase() === filter);
             counter.textContent = `${games.length} ${games.length === 1 ? 'juego' : 'juegos'} con parches disponibles`;
             connection.textContent = `FTP ${current.host_ip}:${current.port} · ${result.installed_count || 0} juegos · ${result.xml_count || 0} XML`;
             renderStatus(result);
@@ -108,6 +112,7 @@
         }
     };
 
+    window.parchesQuitarFiltroJuego = () => { localStorage.removeItem('ghm_filter_patch_cusa'); window.parchesRecargar(); };
     function renderStatus(result) {
         const status = $('patch-plugin-status');
         const messages = [];

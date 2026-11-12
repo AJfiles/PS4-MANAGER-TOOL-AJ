@@ -573,6 +573,23 @@ function abrirModulo(moduloId) {
         }
     }
 }
+window.abrirHerramientaJuego = function (modulo, juego) {
+    const idJuego = String(juego?.id || '').toUpperCase();
+    if (!/^[A-Z]{4}\d{5}$/.test(idJuego)) {
+        window.ps5Notification?.('Biblioteca', 'No se pudo identificar el CUSA de este título.', 'fa-triangle-exclamation');
+        return;
+    }
+    const filtros = {
+        savegames: 'ghm_filter_save_cusa',
+        capturas: 'ghm_filter_capture_cusa',
+        'parches-juego': 'ghm_filter_patch_cusa'
+    };
+    const clave = filtros[modulo];
+    if (!clave) return;
+    localStorage.setItem(clave, idJuego);
+    window.cerrarFichaJuego?.();
+    abrirModulo(modulo);
+};
 
 function volverAlLauncher() {
     emitirEfectoSonidoNativo('click');

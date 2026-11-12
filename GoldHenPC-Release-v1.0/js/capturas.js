@@ -51,16 +51,20 @@
         if (!grid || !loader) return;
         loader.classList.add('hidden');
         grid.replaceChildren();
-        if (!images.length) {
+        const storedFilter = (localStorage.getItem('ghm_filter_capture_cusa') || '').toUpperCase();
+        const filter = /^[A-Z]{4}\d{5}$/.test(storedFilter) ? storedFilter : '';
+        const visibleImages = filter ? images.filter(image => String(image.game_id || '').toUpperCase() === filter) : images;
+        if (!visibleImages.length) {
             const empty = document.createElement('p');
             empty.className = 'col-span-full py-16 text-center text-gray-500 text-[10px]';
-            empty.textContent = message || 'No hay capturas disponibles.';
+            empty.textContent = filter ? `No se encontraron capturas asociadas a ${filter}.` : (message || 'No hay capturas disponibles.');
             grid.appendChild(empty);
             grid.classList.remove('hidden');
             setSelectionUi();
             return;
         }
-        images.forEach((image, index) => {
+        visibleImages.forEach(image => {
+            const index = images.indexOf(image);
             const card = document.createElement('article');
             card.className = 'relative aspect-video overflow-hidden rounded-xl border border-white/5 bg-[#111621] group';
             const img = document.createElement('img');
@@ -110,7 +114,14 @@
         if (result.status !== 'success') throw new Error(result.message || 'La PS4 no devolvió la galería.');
         images = Array.isArray(result.images) ? result.images : [];
         selected.clear();
-        if (count) count.textContent = `${images.length} capturas`;
+        const storedFilter = (localStorage.getItem('ghm_filter_capture_cusa') || '').toUpperCase();
+        const filter = /^[A-Z]{4}\d{5}$/.test(storedFilter) ? storedFilter : '';
+        const clearFilter = $('capture-filter-clear');
+        if (clearFilter) clearFilter.classList.toggle('hidden', !filter);
+        const filterStatus = $('capture-filter-status');
+        if (filterStatus) filterStatus.textContent = filter ? `Juego: ${filter}` : '';
+        const visibleCount = filter ? images.filter(image => String(image.game_id || '').toUpperCase() === filter).length : images.length;
+        if (count) count.textContent = `${visibleCount} capturas${filter ? ` · ${filter}` : ''}`;
         renderGallery(result.message || 'No se encontraron imágenes JPG o PNG.');
         const summary = $('captures-summary');
         if (summary) summary.textContent = images.length
@@ -121,6 +132,12 @@
     window.capturasCargar = async force => {
         try { await window.abrirGaleriaGlobal(Boolean(force)); }
         catch (error) { const summary = $('captures-summary'); if (summary) summary.textContent = error.message; notify('Capturas', error.message, 'fa-triangle-exclamation'); }
+    };
+    window.capturasQuitarFiltroJuego = () => {
+        localStorage.removeItem('ghm_filter_capture_cusa');
+        const count = $('galeria-count');
+        if (count) count.textContent = `${images.length} capturas`;
+        renderGallery();
     };
     window.abrirGaleriaGlobal = async force => {
         try { await loadGallery(Boolean(force)); }

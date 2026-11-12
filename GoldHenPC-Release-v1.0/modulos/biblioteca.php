@@ -212,17 +212,23 @@
 
                 <div class="w-[80%] h-px bg-white/5 my-4"></div>
 
-                <div class="grid grid-cols-4 gap-2 w-full max-w-md px-2">
-                    <button onclick="ejecutarAccionRapidaJuego('saves')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-cyan-500/30">
+                <div class="grid grid-cols-3 gap-2 w-full max-w-md px-2">
+                    <button onclick="abrirHerramientaJuego('parches-juego', juegoSeleccionadoLocal)" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-violet-500/30">
+                        <i class="fa-solid fa-wand-magic-sparkles text-violet-400 text-lg mb-1.5"></i>
+                        <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">Parches</span>
+                    </button>
+                    <button onclick="abrirHerramientaJuego('savegames', juegoSeleccionadoLocal)" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-cyan-500/30">
                         <i class="fa-solid fa-floppy-disk text-cyan-400 text-lg mb-1.5"></i>
                         <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">Saves</span>
                     </button>
-                    
+                    <button onclick="abrirHerramientaJuego('capturas', juegoSeleccionadoLocal)" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-pink-500/30">
+                        <i class="fa-solid fa-images text-pink-400 text-lg mb-1.5"></i>
+                        <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">Capturas</span>
+                    </button>
                     <button onclick="ejecutarAccionRapidaJuego('editar_portada')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-purple-500/30">
                         <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-lg mb-1.5"></i>
                         <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">Portada</span>
                     </button>
-                    
                     <button onclick="ejecutarAccionRapidaJuego('dlcs')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-blue-500/30">
                         <i class="fa-solid fa-puzzle-piece text-blue-400 text-lg mb-1.5"></i>
                         <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">DLCs</span>

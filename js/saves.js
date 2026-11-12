@@ -126,13 +126,19 @@
     function render() {
         const list = $('save-list');
         if (!list) return;
-        list.innerHTML = saves.length ? saves.map(card).join('') : '<p class="rounded-xl border border-white/5 p-4 text-xs text-gray-400">No se detectaron partidas.</p>';
-        if ($('save-summary')) $('save-summary').textContent = `${saves.length} partidas · ${saves.filter(save => !save.installed).length} de juegos no instalados`;
+        const requestedFilter = (localStorage.getItem('ghm_filter_save_cusa') || '').toUpperCase();
+        const filter = /^[A-Z]{4}\d{5}$/.test(requestedFilter) ? requestedFilter : '';
+        const clearFilter = $('save-filter-clear');
+        clearFilter?.classList?.toggle('hidden', !filter);
+        const visible = filter ? saves.filter(save => String(save.title_id || '').toUpperCase() === filter) : saves;
+        list.innerHTML = visible.length ? visible.map(card).join('') : `<p class="rounded-xl border border-white/5 p-4 text-xs text-gray-400">${filter ? `No hay partidas para ${esc(filter)}.` : 'No se detectaron partidas.'}</p>`;
+        if ($('save-summary')) $('save-summary').textContent = `${visible.length} partidas${filter ? ` · filtro ${filter}` : ''} · ${visible.filter(save => !save.installed).length} de juegos no instalados`;
         document.querySelectorAll('.save-backup').forEach(button => button.onclick = () => backup(button.dataset.profile, button.dataset.title));
         document.querySelectorAll('.save-delete').forEach(button => button.onclick = () => deleteFlow(button.dataset.profile, button.dataset.title, button.dataset.name));
         document.querySelectorAll('.save-delete-permanent').forEach(button => button.onclick = () => deletePermanent(button.dataset.profile, button.dataset.title, button.dataset.name));
         document.querySelectorAll('.save-backups').forEach(button => button.onclick = () => listBackups(button.dataset.profile, button.dataset.title));
     }
+    window.savesQuitarFiltroJuego = () => { localStorage.removeItem('ghm_filter_save_cusa'); render(); };
     async function backup(profile, title) {
         try {
             const result = await req('backup', { profile_key: profile, title_id: title });

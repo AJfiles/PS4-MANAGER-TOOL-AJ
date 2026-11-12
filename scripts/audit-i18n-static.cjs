@@ -85,6 +85,7 @@ function isNonUiFragment(phrase) {
     if (/^\)/.test(phrase) || /[:(]$/.test(phrase)) return true;
     if (/^(?:patch-plugin-status|text-red-|ml-1 |w-6 |w-full )/.test(phrase)) return true;
     if (phrase.includes('${bibliotecaEscaparHtml(') || phrase.includes('${oaAttr(')) return true;
+    if (phrase.includes('${filter ?') || phrase.includes('No se detectaron partidas.') && phrase.endsWith('}') || phrase.startsWith(": ''} · VARIABLE de juegos no instalados")) return true;
     if (['Borrado permanente sin respaldo. Se eliminarán', 'Se crearán respaldos ZIP verificados para', 'Se crearán ZIP verificados de'].includes(phrase)) return true;
     // These are either language-neutral labels or application-controlled runtime details, not translatable source copy.
     if (phrase === 'error' || /^FTP .+ · error$/.test(phrase) || /^\[ERROR\] VARIABLE$/.test(phrase)) return true;
