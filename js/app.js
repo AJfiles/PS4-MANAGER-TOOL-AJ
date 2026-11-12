@@ -1047,6 +1047,8 @@ window.aplicarActualizacion = async function() {
             return;
         }
         if (estado) estado.innerText = `${tr('Descargando')} ${release.asset_name}. ${tr('Android permitirá elegir dónde guardarlo; después abre el APK desde el gestor de archivos y confirma la instalación.')}`;
+        const progressWrap = document.getElementById('update-progress-wrap');
+        if (progressWrap) progressWrap.classList.add('hidden');
         const link = document.createElement('a');
         link.href = url.href;
         link.download = release.asset_name;
@@ -1090,7 +1092,10 @@ window.aplicarActualizacion = async function() {
         if (ghmRuntime === 'termux') {
             ghmUpdateProgress(8, 'Preparando actualización de Termux…');
             let progress = 8;
-            const timer = setInterval(() => { progress = Math.min(82, progress + 6); ghmUpdateProgress(progress, 'Descargando y aplicando archivos…'); }, 700);
+            const timer = setInterval(() => {
+                progress = Math.min(88, progress + Math.max(1, (88 - progress) * 0.08));
+                ghmUpdateProgress(progress, 'Descargando y aplicando archivos…');
+            }, 500);
             try {
                 const res = await fetch('api/update_api.php', { method: 'POST', body: fd }); const data = await res.json();
                 clearInterval(timer);
