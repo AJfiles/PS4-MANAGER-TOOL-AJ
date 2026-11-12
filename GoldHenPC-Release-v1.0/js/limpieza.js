@@ -175,6 +175,7 @@
 
         setOperationRunning(true);
         const completed = [];
+        let cleanedBytes = 0;
         let currentSave = null;
         let currentBackupCreated = false;
         try {
@@ -194,10 +195,11 @@
                     permanent: withBackup ? '0' : '1'
                 });
                 completed.push(save.title + ' (' + save.title_id + ', ' + save.profile + ')');
+                cleanedBytes += Number(save.bytes || 0) + Number(save.metadata_bytes || 0);
                 currentSave = null;
                 currentBackupCreated = false;
             }
-            notify('Limpieza completada', completed.length + ' partidas eliminadas y verificadas' + (withBackup ? ' con respaldo ZIP.' : '.'));
+            notify('Limpieza completada', completed.length + ' partidas eliminadas y verificadas · espacio liberado: ' + formatBytes(cleanedBytes) + (withBackup ? ' · respaldo ZIP creado.' : '.'));
         } catch (error) {
             let message = completed.length
                 ? 'Eliminadas y confirmadas: ' + completed.join('; ') + '. '

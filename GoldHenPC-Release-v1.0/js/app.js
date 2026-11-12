@@ -709,17 +709,22 @@ function sysNotification(titulo, mensaje, iconoClase = "fa-info-circle") {
 
     const burbuja = document.createElement('div');
     burbuja.className = "sys-toast-pill flex items-center gap-3 p-3 bg-[#0d1321]/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] pointer-events-auto transform translate-x-full transition-all duration-400 cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-    burbuja.style.maxHeight = "65px";
+    burbuja.style.maxWidth = "min(92vw, 430px)";
+    burbuja.style.minWidth = "min(250px, 92vw)";
 
     burbuja.innerHTML = `
         <div class="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 text-cyan-400">
             <i class="fa-solid ${iconoClase} text-xs"></i>
         </div>
         <div class="flex flex-col flex-1 min-w-0">
-            <span class="text-[8px] font-black tracking-widest text-cyan-400 uppercase">${titulo}</span>
-            <span class="text-[9px] font-bold text-gray-200 truncate mt-0.5">${mensaje}</span>
+            <span data-toast-title class="text-[8px] font-black tracking-widest text-cyan-400 uppercase"></span>
+            <span data-toast-message class="text-[9px] font-bold text-gray-200 mt-0.5 whitespace-normal break-words leading-relaxed"></span>
         </div>
     `;
+    const tituloNodo = burbuja.querySelector('[data-toast-title]');
+    const mensajeNodo = burbuja.querySelector('[data-toast-message]');
+    if (tituloNodo) tituloNodo.textContent = String(titulo ?? '');
+    if (mensajeNodo) mensajeNodo.textContent = String(mensaje ?? '');
     contenedorNotificaciones.appendChild(burbuja);
     setTimeout(() => { burbuja.classList.remove('translate-x-full'); }, 50);
     setTimeout(() => {
