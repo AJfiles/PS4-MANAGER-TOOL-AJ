@@ -8,7 +8,12 @@ PS4 Manager Tools AJ 4.5.11: accesos contextuales por juego (2026-11-12)
   completa; lectura FTP y operaciones siguen en sus módulos independientes.
 - Se verificó PHP/JavaScript, render de Parches, partidas, ZIP de Capturas,
   traducciones y sincronización del paquete PC. La validación de lectura por
-  juego en PS4 queda pendiente hasta instalar y probar la APK actualizada.
+  juego en PS4 queda pendiente de repetir en la misma subred del teléfono.
+- La APK 4.5.11 usa `com.aj.ps4managertool.app`, versionCode 40511 y la clave de
+  firma de la versión pública 4.5.10. En un Vivo X80 Pro se actualizó desde
+  4.5.10 sin desinstalar y Android conservó `firstInstallTime`; la prueba de
+  apertura y carga de Ajustes se confirmó; la lectura FTP queda pendiente por
+  diferencia de subred entre el teléfono y la PS4.
 
 PS4 Manager Tools AJ 4.5.10: Biblioteca, notificaciones y limpieza (2026-11-12)
 -------------------------------------------------------------------------------
