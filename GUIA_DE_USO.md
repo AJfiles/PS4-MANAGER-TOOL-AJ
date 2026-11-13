@@ -1,4 +1,4 @@
-# Guía de uso · PS4 Manager Tools 4.5.10
+# Guía de uso · PS4 Manager Tools 4.5.11
 
 Esta guía complementa el [README principal](README.md), donde están las descargas, el comando Termux, los requisitos, la privacidad y las advertencias de seguridad.
 

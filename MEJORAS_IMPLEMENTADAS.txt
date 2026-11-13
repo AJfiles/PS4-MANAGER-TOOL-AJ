@@ -1,6 +1,15 @@
 PS4 Manager Tools - CAMBIOS Y PRUEBAS
 =====================================
 
+PS4 Manager Tools AJ 4.5.11: accesos contextuales por juego (2026-11-12)
+------------------------------------------------------------------------
+- La ficha del juego ofrece accesos a Parches, Partidas y Capturas filtrados
+  por CUSA. Cada módulo muestra el filtro activo y permite regresar a la lista
+  completa; lectura FTP y operaciones siguen en sus módulos independientes.
+- Se verificó PHP/JavaScript, render de Parches, partidas, ZIP de Capturas,
+  traducciones y sincronización del paquete PC. La validación de lectura por
+  juego en PS4 queda pendiente hasta instalar y probar la APK actualizada.
+
 PS4 Manager Tools AJ 4.5.10: Biblioteca, notificaciones y limpieza (2026-11-12)
 -------------------------------------------------------------------------------
 - Se actualizó la Biblioteca para marcar con borde verde los títulos confirmados
@@ -20,10 +29,6 @@ PS4 Manager Tools AJ 4.5.10: Biblioteca, notificaciones y limpieza (2026-11-12)
 - El botón de instalación en Termux permite elegir entre acceso directo web
   (requiere Termux) o descarga de la APK oficial.
 - Se incorporó el nuevo icono PS4 Manager Tools AJ en PWA y paquete PC.
-- La ficha de cada juego ahora ofrece accesos contextuales a Parches, Partidas
-  y Capturas filtrados por CUSA. Cada módulo indica el filtro activo y permite
-  volver a la lista completa; la conexión FTP y las operaciones permanecen en
-  sus módulos independientes.
 
 PS4 Manager Tools AJ 4.5.8: consulta Android más rápida (2026-11-12)
 --------------------------------------------------------------------

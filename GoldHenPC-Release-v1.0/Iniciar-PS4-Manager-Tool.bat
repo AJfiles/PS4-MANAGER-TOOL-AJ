@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 chcp 65001 >nul
-title PS4 Manager Tools AJ v4.5.10 - PC
+title PS4 Manager Tools AJ v4.5.11 - PC
 color 0B
 for %%I in ("%~dp0.") do set "ROOT=%%~fI"
 set "PHP=%ROOT%\runtime\php.exe"
@@ -18,7 +18,7 @@ if not errorlevel 1 (
   exit /b 2
 )
 echo ================================================
-echo       PS4 Manager Tools AJ v4.5.10 - PC
+echo       PS4 Manager Tools AJ v4.5.11 - PC
 echo ================================================
 echo Iniciando PHP. Se abrira una segunda ventana del servidor.
 echo Si PHP muestra un error, revisa alli el mensaje y runtime Visual C++ x86.
