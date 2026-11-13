@@ -175,7 +175,8 @@
 
         setOperationRunning(true);
         const completed = [];
-        let cleanedBytes = 0;
+        let removedBytes = 0;
+        let removedBytesExact = true;
         let currentSave = null;
         let currentBackupCreated = false;
         try {
@@ -188,18 +189,25 @@
                     backupId = backup.backup.id;
                     currentBackupCreated = true;
                 }
-                await request('cleanup_delete', {
+                const deletion = await request('cleanup_delete', {
                     profile_key: save.profile_key,
                     title_id: save.title_id,
                     backup_id: backupId,
                     permanent: withBackup ? '0' : '1'
                 });
                 completed.push(save.title + ' (' + save.title_id + ', ' + save.profile + ')');
-                cleanedBytes += Number(save.bytes || 0) + Number(save.metadata_bytes || 0);
+                removedBytes += Number(deletion.removed_bytes || 0);
+                removedBytesExact = removedBytesExact && deletion.removed_bytes_exact !== false;
                 currentSave = null;
                 currentBackupCreated = false;
             }
-            notify('Limpieza completada', completed.length + ' partidas eliminadas y verificadas · espacio liberado: ' + formatBytes(cleanedBytes) + (withBackup ? ' · respaldo ZIP creado.' : '.'));
+            const bytesLabel = removedBytesExact ? 'Tamaño de archivos eliminados' : 'Tamaño mínimo informado por FTP';
+            const resultBox = $('cleanup-result');
+            if (resultBox) {
+                resultBox.classList.remove('hidden');
+                resultBox.innerHTML = `<b class="block text-xs font-black uppercase tracking-wider text-emerald-200">Limpieza completada</b><span class="mt-1 block text-[10px] text-gray-200">${completed.length} partidas eliminadas y ausencia verificada.</span><span class="mt-1 block text-[11px] font-mono font-bold text-emerald-100">${bytesLabel}: ${formatBytes(removedBytes)}</span><span class="mt-1 block text-[8px] text-gray-400">Suma actualizada de tamaños de archivo FTP; no es una lectura de bloques libres del disco.</span>${withBackup ? '<span class="mt-1 block text-[8px] text-gray-400">El ZIP de respaldo quedó guardado.</span>' : ''}`;
+            }
+            notify('Limpieza completada', completed.length + ' partidas eliminadas y verificadas · ' + bytesLabel.toLowerCase() + ': ' + formatBytes(removedBytes) + (withBackup ? ' · respaldo ZIP creado.' : '.'));
         } catch (error) {
             let message = completed.length
                 ? 'Eliminadas y confirmadas: ' + completed.join('; ') + '. '
@@ -208,6 +216,7 @@
                 message += 'No se confirmó la operación para ' + currentSave.title + ' (' + currentSave.title_id + ', ' + currentSave.profile + '). Puede haber un borrado parcial; revisa la lista antes de reintentar. ';
                 if (currentBackupCreated) message += 'El respaldo ZIP local se conserva. ';
             }
+            if (completed.length) message += 'Tamaño de archivos eliminados y confirmados: ' + formatBytes(removedBytes) + '. ';
             message += error.message;
             notify('Limpieza parcial', message, true);
         }

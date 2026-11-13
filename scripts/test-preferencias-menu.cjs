@@ -4,6 +4,8 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'app.js'), 'utf8');
+const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.php'), 'utf8');
+assert.match(indexSource, /#launcher-grid, #launcher-preview-grid \{ gap:clamp\(18px,4vw,30px\) !important; \}/, 'El menú debe mantener una separación visible aunque Tailwind no cargue.');
 const start = source.indexOf('function alternarVistaLauncher(');
 const end = source.indexOf('function cambiarFuenteApp(', start);
 assert(start >= 0 && end > start, 'No se encontraron las funciones de personalización del menú.');
@@ -25,16 +27,17 @@ return { grid, classes };
 const real = makeGrid();
 const preview = makeGrid();
 const previewPanelClasses = new Set(['hidden']);
-const previewPanel = { classList: { contains: name => previewPanelClasses.has(name), toggle: (name, force) => force ? previewPanelClasses.add(name) : previewPanelClasses.delete(name) } };
-const previewButton = { attributes: {}, setAttribute: (key, value) => { previewButton.attributes[key] = value; } };
+const previewPanel = { classList: { contains: name => previewPanelClasses.has(name), toggle: (name, force) => force ? previewPanelClasses.add(name) : previewPanelClasses.delete(name), remove: name => previewPanelClasses.delete(name) } };
+const previewButton = { attributes: {}, removed: false, setAttribute: (key, value) => { previewButton.attributes[key] = value; }, remove() { this.removed = true; } };
 const selectors = {
     'cfg-launcher-shape': { value: 'diamond' },
     'cfg-launcher-icons': { value: 'mono' },
-    'cfg-loader-style': { value: 'scan' }
+    'cfg-loader-style': { value: 'scan' },
+    'cfg-loader-accent': { value: 'violet' }
 };
 const storage = new Map();
 const context = {
-    window: { ghmLoaderPreview: style => { context.previewedLoader = style; } },
+    window: { ghmLoaderPreview: (style, accent) => { context.previewedLoader = style; context.previewedAccent = accent; } },
     document: { getElementById: id => id === 'launcher-grid' ? real.grid : id === 'launcher-preview-grid' ? preview.grid : id === 'launcher-preview-panel' ? previewPanel : id === 'launcher-preview-toggle' ? previewButton : selectors[id] || null },
     localStorage: {
         setItem: (key, value) => storage.set(key, String(value)),
@@ -62,6 +65,14 @@ assert.equal(storage.get('cfg_launcher_motion'), 'tilt');
 context.cambiarAnimacionLauncher('unknown');
 assert(real.classes.has('motion-none'));
 assert.equal(storage.get('cfg_launcher_motion'), 'none');
+context.cambiarAnimacionLauncher('orbit');
+assert(real.classes.has('motion-orbit'));
+context.cambiarAnimacionLauncher('cascade');
+assert(real.classes.has('motion-cascade'));
+context.cambiarAnimacionLauncher('stagger');
+assert(preview.classes.has('motion-stagger'));
+context.cambiarAnimacionLauncher('zoom');
+assert(real.classes.has('motion-zoom'));
 
 context.cambiarTemaLauncher('aurora');
 assert(real.classes.has('theme-aurora'));
@@ -82,14 +93,17 @@ assert.equal(storage.get('cfg_launcher_icons'), 'mono');
 context.cambiarEstiloLoader('pulse');
 assert.equal(storage.get('cfg_loader_style'), 'pulse');
 assert.equal(context.previewedLoader, 'pulse');
+assert.equal(context.previewedAccent, 'violet');
+context.cambiarAnimacionLauncher('cascade');
+assert(real.classes.has('motion-cascade'));
+assert(preview.classes.has('motion-cascade'));
 storage.set('cfg_launcher_motion', 'rise');
 context.toggleLauncherPreview();
 assert(!previewPanelClasses.has('hidden'));
-assert.equal(previewButton.attributes['aria-expanded'], 'true');
+assert.equal(previewButton.removed, true);
 assert(preview.classes.has('motion-rise'));
 context.toggleLauncherPreview();
-assert(previewPanelClasses.has('hidden'));
-assert.equal(previewButton.attributes['aria-expanded'], 'false');
+assert(!previewPanelClasses.has('hidden'));
 
 console.log('LAUNCHER_PREFERENCES_OK');
 

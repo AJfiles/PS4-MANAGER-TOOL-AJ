@@ -11,9 +11,11 @@
     .pill-modern.active { border-color: #22d3ee; background: linear-gradient(135deg, rgba(34,211,238,0.1) 0%, rgba(147,51,234,0.1) 100%); color: #22d3ee; box-shadow: 0 0 15px rgba(34,211,238,0.15); }
 
     .grid-card-modern { border: 1px solid rgba(255, 255, 255, 0.03); background: #0b0f19; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); aspect-ratio: 1 / 1.15; }
-    .grid-card-modern.library-installed, .ps4-box-case.library-installed { border-color: rgba(52, 211, 153, .62); }
-    .grid-card-modern.library-not-installed, .ps4-box-case.library-not-installed { border-color: rgba(248, 113, 113, .9); box-shadow: 0 0 18px rgba(248, 113, 113, .16); }
+    .grid-card-modern.library-installed, .ps4-box-case.library-installed { border: 2px solid rgba(52, 211, 153, .85); box-shadow:0 0 12px rgba(52,211,153,.12); }
+    .grid-card-modern.library-not-installed, .ps4-box-case.library-not-installed { border: 2px solid rgba(248, 113, 113, .95); box-shadow: 0 0 14px rgba(248, 113, 113, .14); }
+    .grid-card-modern.library-unverified, .ps4-box-case.library-unverified { border: 2px solid rgba(251, 191, 36, .65); }
     .library-status-badge { position: absolute; top: 8px; right: 8px; z-index: 20; padding: 3px 6px; border: 1px solid rgba(248, 113, 113, .72); border-radius: 999px; background: rgba(69, 10, 10, .82); color: #fecaca; font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    .library-status-badge.library-status-unverified { border-color:rgba(251,191,36,.65);background:rgba(69,45,10,.84);color:#fde68a; }
     .grid-card-modern:active { transform: scale(0.96); border-color: #22d3ee/30; }
 
     /* 🪐 MOTOR 3D FLUIDO Y ADAPTABLE */
@@ -41,9 +43,9 @@
         z-index: 1;
         pointer-events: none;
         mix-blend-mode: screen;
-        filter: blur(25px);
+        filter: blur(10px);
         opacity: 0.85;
-        transition: background 0.5s ease;
+        transition: background 0.22s ease;
     }
 
     .carousel-track-master {
@@ -68,23 +70,27 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.36s ease, box-shadow 0.32s ease, border 0.32s ease;
+        transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, visibility 0s linear 0.18s;
         cursor: pointer;
         display: flex;
         flex-direction: column;
         border: 1px solid rgba(255, 255, 255, 0.05);
         transform-style: preserve-3d;
         -webkit-transform-style: preserve-3d;
-        will-change: transform, opacity;
-        -webkit-box-reflect: below 2px linear-gradient(transparent, transparent 65%, rgba(255,255,255,0.25));
-        contain: layout paint;
+        will-change: auto;
+        contain: layout paint style;
     }
+    .ps4-img-art { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .ps4-img-art.library-image-failed { visibility: hidden; }
+    @media (prefers-reduced-motion: reduce) { .ps4-box-case, .glow-background-master { transition:none !important; } }
     .ps4-box-case .library-status-badge { top: 30px; right: 6px; }
 
     .ps4-box-case.active {
         border: 1px solid rgba(0, 210, 255, 0.5);
         box-shadow: 0 0 35px rgba(0, 162, 255, 0.8), 0 15px 40px rgba(0, 0, 0, 0.7);
     }
+    .ps4-box-case.carousel-near { visibility:visible; transition-delay:0s; }
+    .ps4-box-case.carousel-far { visibility:hidden; }
 
     .ps4-top-ribbon {
         background: linear-gradient(180deg, #0056c6 0%, #003780 100%);
@@ -142,7 +148,7 @@
     
     <div id="library-header" class="w-full flex flex-col gap-3 shrink-0 pt-1 z-30">
         <div class="flex flex-col gap-2 w-full">
-            <div class="flex justify-between items-center w-full">
+                <div class="flex justify-between items-center w-full">
                 <h2 class="text-2xl font-black tracking-tighter uppercase text-white">Biblioteca</h2>
                 <button onclick="volverAlLauncher()" aria-label="Volver al menú" class="w-8 h-8 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center active:scale-95 transition-all">
                     <i class="fa-solid fa-house text-gray-400 text-xs"></i>
@@ -152,6 +158,7 @@
                 <button id="btn-toggle-library-view" type="button" aria-label="Cambiar entre cuadrícula y carrusel" aria-pressed="false" onclick="conmutarModoVista()" class="h-9 px-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center gap-2 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest text-cyan-300">
                     <i class="fa-solid fa-cube text-cyan-400" id="icono-vista"></i> Cambiar vista
                 </button>
+                <span class="text-[8px] text-gray-500">Verde: instalado · rojo: no instalado</span>
             </div>
         </div>
 
@@ -208,6 +215,7 @@
                 <div class="flex gap-2 mt-1.5">
                     <span id="text-cusa-3d" class="px-2 py-0.5 rounded border border-white/5 bg-[#0a0e14] text-[9px] font-mono font-bold text-cyan-400 tracking-widest">---</span>
                     <span id="text-version-3d" class="px-2 py-0.5 rounded border border-white/5 bg-[#0a0e14] text-[9px] font-mono font-bold text-gray-400 tracking-widest">---</span>
+                    <span id="text-install-state-3d" class="px-2 py-0.5 rounded border border-emerald-400/20 bg-emerald-400/5 text-[8px] font-bold text-emerald-200 tracking-wider">ESTADO SIN VERIFICAR</span>
                 </div>
 
                 <div class="w-[80%] h-px bg-white/5 my-4"></div>
@@ -301,6 +309,7 @@
                     <h2 id="panel-game-title" class="text-[18px] font-black uppercase text-white leading-tight drop-shadow-md">---</h2>
                     <span id="panel-game-cusa" class="text-[13px] font-mono font-black text-cyan-400 tracking-widest mt-1.5 uppercase">---</span>
                     <p id="panel-game-version" class="text-[12px] font-medium text-gray-300 uppercase tracking-widest mt-1">---</p>
+                    <p id="panel-game-install-status" class="text-[9px] font-bold text-amber-200 mt-1">Estado no confirmado por FTP</p>
                 </div>
             </div>
 
@@ -336,6 +345,16 @@
                     </div>
                     <i class="fa-solid fa-chevron-right text-blue-500/50 text-xs mr-1 group-hover:translate-x-1 transition-transform"></i>
                 </button>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <p class="mb-2 text-[8px] font-black uppercase tracking-[.18em] text-gray-400">Herramientas de este juego</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="abrirHerramientaJuego('parches-juego', juegoSeleccionadoLocal)" class="rounded-xl border border-violet-400/20 bg-violet-500/10 p-2 text-[9px] font-bold text-violet-100"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Parches</button>
+                    <button onclick="abrirHerramientaJuego('savegames', juegoSeleccionadoLocal)" class="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-2 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-floppy-disk mr-1"></i>Partidas</button>
+                    <button onclick="abrirHerramientaJuego('capturas', juegoSeleccionadoLocal)" class="rounded-xl border border-pink-400/20 bg-pink-500/10 p-2 text-[9px] font-bold text-pink-100"><i class="fa-solid fa-images mr-1"></i>Capturas</button>
+                </div>
+                <p class="mt-2 text-[8px] leading-relaxed text-gray-500">Cada módulo consulta el contenido de este CUSA por FTP y muestra un estado vacío si no hay coincidencias.</p>
             </div>
         </div>
     </div>

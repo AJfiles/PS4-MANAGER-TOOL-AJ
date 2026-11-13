@@ -7,6 +7,13 @@
     const translations = {
         'PS4 Manager Tools AJ | Consola PS4': 'PS4 Manager Tools AJ | PS4 Console',
         'Configuración': 'Settings', 'Entorno, Audio y SFX': 'Interface, audio and SFX', 'Alertas del Sistema': 'System alerts', 'No instalado': 'Not installed',
+        'Vista previa permanente · refleja forma, animación y estilo elegidos': 'Always-visible preview · reflects the selected shape, animation and style',
+        'Cuántico · anillos dinámicos': 'Quantum · dynamic rings', 'Hélice · órbitas cruzadas': 'Helix · crossing orbits', 'Portal · núcleo profundo': 'Portal · deep core',
+        'Órbita': 'Orbit', 'Mecánico': 'Mechanical', 'Órbita · anillos y núcleo': 'Orbit · rings and core',
+        'Verde: instalado · rojo: no instalado': 'Green: installed · red: not installed',
+        'ESTADO SIN VERIFICAR': 'STATUS UNVERIFIED', 'INSTALADO': 'INSTALLED', 'NO INSTALADO': 'NOT INSTALLED',
+        'Estado no confirmado por FTP': 'Status not confirmed by FTP', 'Instalado en PS4': 'Installed on PS4', 'No instalado en PS4': 'Not installed on PS4',
+        'Cada módulo consulta el contenido de este CUSA por FTP y muestra un estado vacío si no hay coincidencias.': 'Each module checks this title ID over FTP and shows an empty state when there are no matches.',
         'No se pudo identificar el CUSA de este título.': 'Could not identify this title CUSA.',
         'No se detectaron partidas.': 'No save data was found.',
         'No hay partidas para': 'No save data for',
@@ -174,9 +181,23 @@
         '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.11': 'VERSION 4.5.11'
     };
     Object.assign(translations, {
+        'Aparición gradual': 'Fade in',
+        'Biblioteca y datos': 'Library and data',
+        'Cada opción abre este CUSA filtrado; si no hay contenido asociado, el módulo lo indicará.': 'Each option opens this filtered CUSA; the module will tell you if there is no associated content.',
+        'El ZIP de respaldo quedó guardado.': 'The backup ZIP was saved.',
+        'Conexión FTP validada. El registro queda abierto hasta que lo cierres.': 'FTP connection verified. The log stays open until you close it.',
+        'Consola guardada y conexión verificada. Cierra el radar cuando termines.': 'Console saved and connection verified. Close the radar when you are done.',
+        'Consola, red y ajustes': 'Console, network and settings',
+        'Herramientas de este juego': 'Tools for this game',
+        'Juegos y organización': 'Games and organization',
+        'No hay una IP válida en el campo. Buscaré la PS4 en las redes LAN activas.': 'There is no valid IP in the field. I will search for the PS4 on active LANs.',
+        'No se pudo leer ningún directorio de appmeta por FTP. Se conserva la biblioteca local.': 'Could not read any appmeta directory over FTP. The local library has been kept.',
+        'Vista previa del launcher · se actualiza al cambiar las opciones': 'Launcher preview · updates when you change options', 'Ver vista previa': 'Preview', 'Ocultar vista previa': 'Hide preview',
         'Vista previa del launcher · se actualiza al cambiar las opciones': 'Launcher preview · updates when you change options', 'Ver vista previa': 'Preview', 'Ocultar vista previa': 'Hide preview',
         'Vista previa de la animación de carga': 'Loading animation preview', 'Animación de carga': 'Loading animation', 'Estilo de los loaders': 'Loading style',
         'Órbita · anillos y núcleo': 'Orbit · rings and core', 'Pulso · ondas concéntricas': 'Pulse · concentric waves', 'Escáner · barrido HUD': 'Scanner · HUD sweep', 'Minimal · arco limpio': 'Minimal · clean arc',
+        'Estrella · expansión luminosa': 'Star · luminous expansion',
+        'Vórtice · espiral orbital': 'Vortex · orbital spiral', 'Eclipse · corona dinámica': 'Eclipse · dynamic corona', 'Señal · pulso de datos': 'Signal · data pulse', 'Color de energía': 'Energy color', 'Ámbar': 'Amber',
         'Se usa al leer partidas, Limpieza, Almacenamiento y Parches. Puedes previsualizarlo antes de salir de Ajustes.': 'Used while reading saves, Cleanup, Storage and Patches. Preview it before leaving Settings.',
         'Vista previa en curso': 'Preview in progress', 'Revisa el aspecto antes de guardarlo.': 'Review the appearance before saving it.', 'Aplicar': 'Apply',
         'La vista previa reproduce la animación elegida.': 'The preview shows the selected animation.', 'Leyendo la consola': 'Reading the console', 'PS4 Manager Tools': 'PS4 Manager Tools',
@@ -337,6 +358,10 @@
         'Una de las carpetas seleccionadas ya no existe. No se aplicaron cambios.': 'One of the selected folders no longer exists. No changes were applied.'
     });
     const textPatterns = [
+        [/^\[OK\] Conexión FTP validada\. El registro queda abierto hasta que lo cierres\.$/, () => '[OK] FTP connection verified. The log stays open until you close it.'],
+        [/^\[OK\] Consola guardada y conexión verificada\. Cierra el radar cuando termines\.$/, () => '[OK] Console saved and connection verified. Close the radar when you are done.'],
+        [/^(\d+) partidas eliminadas y ausencia verificada\.$/, (_, count) => `${count} save files deleted and absence verified.`],
+        [/^Suma actualizada de tamaños de archivo FTP; no es una lectura de bloques libres del disco\.(?: El ZIP de respaldo quedó guardado\.)?$/, value => value.includes('El ZIP') ? 'Updated FTP file-size sum; this is not a free-disk-block reading. The backup ZIP was saved.' : 'Updated FTP file-size sum; this is not a free-disk-block reading.'],
         [/^(\d+) juegos? con parches disponibles$/, (_, n) => `${n} ${n === '1' ? 'game' : 'games'} with patches available`],
         [/^FTP (.+):(\d+) · (\d+) juegos · (\d+) XML$/, (_, ip, port, games, xml) => `FTP ${ip}:${port} · ${games} games · ${xml} XML`],
         [/^\[ERROR\] No respondió ningún servicio conocido en (.+)\. Revisa que PS4 y teléfono estén en la misma LAN y que GoldHEN\/Package Installer esté activo\.$/, (_, subnet) => `[ERROR] No known service responded on ${subnet}. Check that the PS4 and phone are on the same LAN and that GoldHEN/Package Installer is active.`],

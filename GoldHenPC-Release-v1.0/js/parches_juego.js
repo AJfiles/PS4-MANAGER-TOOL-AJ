@@ -92,7 +92,9 @@
             renderGames();
             if (!games.length) {
                 const empty = $('patch-no-games');
-                empty.innerHTML = '<b>No se encontraron parches disponibles para los juegos instalados.</b><br>Diagnóstico: '
+                empty.innerHTML = filter
+                    ? `<b>No hay parches disponibles para ${esc(filter)}.</b><br>El CUSA se consultó contra los XML legibles de GoldHEN. Si esperabas ver parches, revisa la fuente y selección de parches en la consola.<br>`
+                    : '<b>No se encontraron parches disponibles para los juegos instalados.</b><br>Diagnóstico: '
                     + `${result.installed_count || 0} juegos visibles · `
                     + `${result.xml_readable ? 'directorio XML legible' : 'directorio XML inaccesible'} · `
                     + `${result.xml_count || 0} XML disponibles.<br>`

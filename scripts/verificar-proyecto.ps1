@@ -18,6 +18,17 @@ function Report-Check([string]$name, [bool]$ok, [string]$detail = '') {
     }
 }
 
+function Get-Sha256Hex([string]$LiteralPath) {
+    $stream = [System.IO.File]::OpenRead($LiteralPath)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return [System.BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '')
+    } finally {
+        $sha.Dispose()
+        $stream.Dispose()
+    }
+}
+
 Report-Check 'PHP portable disponible' (Test-Path -LiteralPath $php)
 Report-Check 'Node.js disponible' ($null -ne $nodeCommand)
 if (-not (Test-Path -LiteralPath $php) -or $null -eq $nodeCommand) {
@@ -167,6 +178,10 @@ $preferenceTest = Join-Path $PSScriptRoot 'test-preferencias-menu.cjs'
 $preferenceOutput = & $nodeCommand.Source $preferenceTest 2>&1
 $preferenceTestPassed = $LASTEXITCODE -eq 0 -and ($preferenceOutput -join ' ') -match 'LAUNCHER_PREFERENCES_OK'
 Report-Check 'Interacción de preferencias del menú con DOM simulado' $preferenceTestPassed ($preferenceOutput -join ' ')
+$radarVisualTest = Join-Path $PSScriptRoot 'test-radar-visual.cjs'
+$radarVisualOutput = & $nodeCommand.Source $radarVisualTest 2>&1
+$radarVisualPassed = $LASTEXITCODE -eq 0 -and ($radarVisualOutput -join ' ') -match 'RADAR_APPROACH_LOG_REDUCED_MOTION_OK'
+Report-Check 'Radar anima la aproximación, conserva el registro y respeta movimiento reducido' $radarVisualPassed ($radarVisualOutput -join ' ')
 $captureDownloadTest = Join-Path $PSScriptRoot 'test-descarga-capturas.cjs'
 $captureDownloadOutput = & $nodeCommand.Source $captureDownloadTest 2>&1
 $captureDownloadPassed = $LASTEXITCODE -eq 0 -and ($captureDownloadOutput -join ' ') -match 'CAPTURE_ZIP_DOWNLOAD_OK'
@@ -175,6 +190,10 @@ $libraryRenderTest = Join-Path $PSScriptRoot 'test-biblioteca-safe-render.cjs'
 $libraryRenderOutput = & $nodeCommand.Source $libraryRenderTest 2>&1
 $libraryRenderPassed = $LASTEXITCODE -eq 0 -and ($libraryRenderOutput -join ' ') -match 'BIBLIOTECA_DYNAMIC_CONTENT_SAFE_OK'
 Report-Check 'Biblioteca trata metadatos e imágenes como datos, no HTML/JavaScript' $libraryRenderPassed ($libraryRenderOutput -join ' ')
+$libraryActionsTest = Join-Path $PSScriptRoot 'test-biblioteca-game-actions.cjs'
+$libraryActionsOutput = & $nodeCommand.Source $libraryActionsTest 2>&1
+$libraryActionsPassed = $LASTEXITCODE -eq 0 -and ($libraryActionsOutput -join ' ') -match 'BIBLIOTECA_GAME_ACTIONS_FILTER_BY_CUSA_OK'
+Report-Check 'Acciones de Biblioteca abren Parches, Saves y Capturas filtrados por CUSA' $libraryActionsPassed ($libraryActionsOutput -join ' ')
 $captureScript = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
 $capturePage = Get-Content -LiteralPath (Join-Path $root 'modulos\capturas.php') -Raw
 $captureApi = Get-Content -LiteralPath (Join-Path $root 'api\ps4_screenshots_api.php') -Raw
@@ -224,8 +243,8 @@ $i18nAuditPassed = $LASTEXITCODE -eq 0 -and ($i18nAuditOutput -join "`n") -match
 Report-Check 'Auditor inglés sin textos de interfaz estáticos pendientes' $i18nAuditPassed ($i18nAuditOutput -join ' ')
 $loaderTest = Join-Path $PSScriptRoot 'test-loaders.cjs'
 $loaderOutput = & $nodeCommand.Source $loaderTest 2>&1
-$loaderPassed = $LASTEXITCODE -eq 0 -and ($loaderOutput -join ' ') -match 'CUSTOM_LOADERS_PREVIEW_OK'
-Report-Check 'Loaders personalizables generan cuatro estilos y vista previa' $loaderPassed ($loaderOutput -join ' ')
+$loaderPassed = $LASTEXITCODE -eq 0 -and ($loaderOutput -join ' ') -match 'CUSTOM_LOADERS_16_STYLES_ACCENTS_ALWAYS_VISIBLE_PREVIEW_OK'
+Report-Check 'Loaders personalizables generan dieciséis estilos, cinco colores y vista previa fija' $loaderPassed ($loaderOutput -join ' ')
 $launcherPreviewMarkup = Get-Content -LiteralPath (Join-Path $root 'modulos\ajustes.php') -Raw
 $launcherPreviewStyles = Get-Content -LiteralPath (Join-Path $root 'index.php') -Raw
 $launcherPreviewController = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
@@ -258,7 +277,7 @@ foreach ($relativeRoot in $sourceRoots) {
         $relative = $file.FullName.Substring($root.Length + 1)
         $destination = Join-Path $release $relative
         if (-not (Test-Path -LiteralPath $destination)) { $mirrorErrors.Add("Falta en PC: $relative"); continue }
-        if ((Get-FileHash -Algorithm SHA256 -LiteralPath $file.FullName).Hash -ne (Get-FileHash -Algorithm SHA256 -LiteralPath $destination).Hash) { $mirrorErrors.Add("Difiere en PC: $relative") }
+        if ((Get-Sha256Hex -LiteralPath $file.FullName) -ne (Get-Sha256Hex -LiteralPath $destination)) { $mirrorErrors.Add("Difiere en PC: $relative") }
     }
 }
 $rootFiles = @('index.php', 'manifest.json', 'README.md', 'MEJORAS_IMPLEMENTADAS.txt', 'server-router.php', 'store.php', 'sw.js')
@@ -266,7 +285,7 @@ foreach ($relative in $rootFiles) {
     $source = Join-Path $root $relative
     $destination = Join-Path $release $relative
     if (-not (Test-Path -LiteralPath $destination)) { $mirrorErrors.Add("Falta en PC: $relative"); continue }
-    if ((Get-FileHash -Algorithm SHA256 -LiteralPath $source).Hash -ne (Get-FileHash -Algorithm SHA256 -LiteralPath $destination).Hash) { $mirrorErrors.Add("Difiere en PC: $relative") }
+    if ((Get-Sha256Hex -LiteralPath $source) -ne (Get-Sha256Hex -LiteralPath $destination)) { $mirrorErrors.Add("Difiere en PC: $relative") }
 }
 Report-Check 'Sincronización de archivos distribuidos con PC' ($mirrorErrors.Count -eq 0) ($mirrorErrors -join '; ')
 

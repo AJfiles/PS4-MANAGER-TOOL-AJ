@@ -24,8 +24,36 @@ function bibliotecaEscaparHtml(value) {
 function bibliotecaImagenSegura(value) {
     const url = String(value ?? '').trim();
     if (/^https:\/\/[a-z0-9.-]+(?:\/[a-z0-9._~!$&()*+,;=:@%/-]*)?(?:\?[a-z0-9._~!$&()*+,;=:@%/?-]*)?$/i.test(url)) return url;
-    if (/^user\/(?:cache\/biblioteca\/[A-Z0-9._-]+\.png(?:\?v=\d+)?|portadas_custom\/[A-Z0-9._-]+\.(?:jpg|jpeg|png))$/i.test(url)) return url;
+    if (/^user\/(?:cache\/biblioteca\/[A-Z0-9._-]+\.png(?:\?v=\d+)?|portadas_custom\/[A-Z0-9._-]+\.(?:jpg|jpeg|png)(?:\?v=\d+)?)$/i.test(url)) return url;
     return '';
+}
+function bibliotecaClaseEstado(installed) {
+    if (installed === true) return 'library-installed';
+    if (installed === false) return 'library-not-installed';
+    return 'library-unverified';
+}
+function bibliotecaResolverImagenCarrusel(image) {
+    const fallback = String(image?.dataset?.fallback || '').trim();
+    const current = String(image?.getAttribute?.('src') || image?.src || '').trim();
+    const resolver = value => {
+        try { return new URL(value, document.baseURI).href; }
+        catch (_) { return value; }
+    };
+
+    if (fallback && image.dataset.fallbackAttempted !== 'true' && resolver(fallback) !== resolver(current)) {
+        image.dataset.fallbackAttempted = 'true';
+        image.dataset.src = fallback;
+        image.src = fallback;
+        return 'fallback';
+    }
+
+    const placeholder = document.createElement('div');
+    placeholder.className = 'ps4-img-art library-art-placeholder flex items-center justify-center text-cyan-200/60';
+    placeholder.setAttribute('role', 'img');
+    placeholder.setAttribute('aria-label', String(image?.alt || ''));
+    placeholder.innerHTML = '<i class="fa-solid fa-gamepad text-3xl" aria-hidden="true"></i>';
+    if (typeof image?.replaceWith === 'function') image.replaceWith(placeholder);
+    return 'placeholder';
 }
 let categoriaAEliminar = null;
 let bibliotecaAutoScanEnCurso = false;
@@ -77,7 +105,7 @@ async function levantarCacheLocalBiblioteca() {
             let deFabrica = ['TODOS', 'JUEGOS', 'APPS'];
             categoriasDinamicas = [...deFabrica];
             listadoJuegos.forEach(j => {
-                j.cover3d = 'user/portadas_custom/' + j.id + '.jpg';
+                j.cover3d = bibliotecaImagenSegura(j.cover3d);
                 if (j.tipo && !categoriasDinamicas.includes(j.tipo)) { categoriasDinamicas.push(j.tipo); }
             });
             actualizarInterfazFiltros();
@@ -119,9 +147,16 @@ async function ejecutarSincronizacionFantasmasFondo() {
         localStorage.setItem('ghm_biblioteca_ultimo_escaneo', String(bibliotecaAutoScanCompletado));
 
         const mapJuegosDetectados = jsonScan.games;
+        const idsInstalados = jsonScan.installed_ids || {};
+        const estadoInstalacion = (id) => id === 'APOLO0004' ? true :
+            (jsonScan.installed_verified ? idsInstalados[id] === true : null);
+        Object.keys(idsInstalados).forEach(id => {
+            if (mapJuegosDetectados[id] === undefined) mapJuegosDetectados[id] = '/user/appmeta';
+        });
         let colaTrabajoCUSAs = Object.keys(mapJuegosDetectados);
         const totalEscaneo = colaTrabajoCUSAs.length;
         let procesadosEscaneo = 0;
+        let huboCambiosNuevos = false;
         if (estadoSync) estadoSync.innerText = totalEscaneo ? `Cargando títulos: 0/${totalEscaneo}` : 'Biblioteca actualizada.';
 
         // Conservamos entradas antiguas para que el usuario pueda identificarlas
@@ -129,12 +164,29 @@ async function ejecutarSincronizacionFantasmasFondo() {
         // estado. Así no se confunde una caché local con un título presente.
         if (colaTrabajoCUSAs.length > 0) {
             listadoJuegos.forEach(localG => {
-                localG.installed = localG.id === 'APOLO0004' || mapJuegosDetectados[localG.id] !== undefined;
+                localG.installed = estadoInstalacion(localG.id);
             });
+            colaTrabajoCUSAs.forEach(cusa => {
+                const existente = listadoJuegos.find(game => game.id === cusa);
+                if (existente) {
+                    existente.installed = estadoInstalacion(cusa);
+                    return;
+                }
+                listadoJuegos.push({
+                    id: cusa,
+                    nombre: cusa,
+                    tipo: /^(?:LAPY|NPXS)/i.test(cusa) ? 'APPS' : 'JUEGOS',
+                    version: '',
+                    installed: estadoInstalacion(cusa),
+                    img: '',
+                    cover3d: ''
+                });
+                huboCambiosNuevos = true;
+            });
+            if (huboCambiosNuevos) recompilarTodo();
         }
 
         const CONCURRENCIA_MAXIMA = 3;
-        let huboCambiosNuevos = false;
 
         while (colaTrabajoCUSAs.length > 0) {
             if (signal.aborted) break;
@@ -156,28 +208,37 @@ async function ejecutarSincronizacionFantasmasFondo() {
 
             respuestasLote.forEach(res => {
                 if (res && res.status === 'success' && res.game) {
-                    let idx = listadoJuegos.findIndex(m => m.id === res.game.id);
+                    const game = res.game;
+                    game.cover3d = bibliotecaImagenSegura(game.cover3d);
+                    game.installed = estadoInstalacion(game.id);
+                    const idx = listadoJuegos.findIndex(item => item.id === game.id);
                     if (idx === -1) {
-                        res.game.cover3d = 'user/portadas_custom/' + res.game.id + '.jpg';
-                        listadoJuegos.push(res.game);
+                        listadoJuegos.push(game);
                         huboCambiosNuevos = true;
-                    } else if (listadoJuegos[idx].nombre !== res.game.nombre && res.game.nombre !== res.game.id) {
-                        listadoJuegos[idx].nombre = res.game.nombre;
-                        huboCambiosNuevos = true;
+                    } else {
+                        const previo = listadoJuegos[idx];
+                        const cambioVisible = previo.nombre !== game.nombre || previo.img !== game.img || previo.tipo !== game.tipo;
+                        Object.assign(previo, game, { installed: estadoInstalacion(game.id) });
+                        if (cambioVisible) huboCambiosNuevos = true;
                     }
-                    if (idx >= 0) listadoJuegos[idx].installed = true;
                 }
             });
             if (estadoSync) estadoSync.innerText = `Cargando títulos: ${procesadosEscaneo}/${totalEscaneo}`;
         }
 
-        if (huboCambiosNuevos) {
-            listadoJuegos.forEach(j => { if (j.tipo && !categoriasDinamicas.includes(j.tipo)) { categoriasDinamicas.push(j.tipo); } });
-            actualizarInterfazFiltros();
-            recompilarTodo();
-        }
+        // La lectura también cambia installed aunque nombre, imagen y tipo
+        // permanezcan iguales. Siempre renderizamos al final para refrescar
+        // bordes, insignias y conteos de instalación.
+        listadoJuegos.forEach(j => { if (j.tipo && !categoriasDinamicas.includes(j.tipo)) { categoriasDinamicas.push(j.tipo); } });
+        actualizarInterfazFiltros();
+        recompilarTodo();
         if (estadoSync) {
-            estadoSync.innerText = `Biblioteca actualizada · ${listadoJuegos.length} títulos`;
+            const instaladosConfirmados = jsonScan.installed_verified
+                ? Object.keys(idsInstalados).length
+                : null;
+            estadoSync.innerText = instaladosConfirmados === null
+                ? `Biblioteca actualizada · ${listadoJuegos.length} títulos · estado de instalación sin verificar`
+                : `Biblioteca actualizada · ${instaladosConfirmados} instalados · ${listadoJuegos.length} títulos registrados`;
             setTimeout(() => { if (estadoSync.isConnected) estadoSync.innerText = ''; }, 5000);
         }
     } catch (errorGlobal) {
@@ -220,21 +281,54 @@ async function forzarSincronizacionManual() {
 
         let resScan = await fetch('api/library_biblioteca.php', { method: 'POST', body: fdScan, signal: signal });
         let jsonScan = await resScan.json();
-        if (jsonScan.status !== 'success' || !jsonScan.games) { closeSincronizacionModal(); return; }
+        if (jsonScan.status !== 'success' || !jsonScan.games) {
+            if (bytesLabel) bytesLabel.innerText = jsonScan.message || 'No se pudo leer la lista FTP; conservé la biblioteca actual.';
+            setTimeout(closeSincronizacionModal, 1800);
+            return;
+        }
 
         if (bytesLabel) bytesLabel.innerText = "Leyendo lista de juegos y aplicaciones...";
 
         let mapJuegos = jsonScan.games;
+        const idsInstalados = jsonScan.installed_ids || {};
+        const estadoInstalacion = (id) => id === 'APOLO0004' ? true :
+            (jsonScan.installed_verified ? idsInstalados[id] === true : null);
+        Object.keys(idsInstalados).forEach(id => {
+            if (mapJuegos[id] === undefined) mapJuegos[id] = '/user/appmeta';
+        });
         let colaCUSA = Object.keys(mapJuegos);
         const total = colaCUSA.length;
 
-        if (total === 0) { closeSincronizacionModal(); listadoJuegos = []; recompilarTodo(); return; }
+        if (total === 0) {
+            listadoJuegos.forEach(game => { game.installed = estadoInstalacion(game.id); });
+            if (bytesLabel) bytesLabel.innerText = 'La consola respondió, pero appmeta no contiene títulos. Se conserva la lista local como no instalada.';
+            recompilarTodo();
+            setTimeout(closeSincronizacionModal, 1800);
+            return;
+        }
 
         let procesados = 0;
         if (colaCUSA.length > 0) {
             listadoJuegos.forEach(lg => {
-                lg.installed = lg.id === 'APOLO0004' || mapJuegos[lg.id] !== undefined;
+                lg.installed = estadoInstalacion(lg.id);
             });
+            colaCUSA.forEach(cusa => {
+                const existente = listadoJuegos.find(game => game.id === cusa);
+                if (existente) {
+                    existente.installed = estadoInstalacion(cusa);
+                    return;
+                }
+                listadoJuegos.push({
+                    id: cusa,
+                    nombre: cusa,
+                    tipo: /^(?:LAPY|NPXS)/i.test(cusa) ? 'APPS' : 'JUEGOS',
+                    version: '',
+                    installed: estadoInstalacion(cusa),
+                    img: '',
+                    cover3d: ''
+                });
+            });
+            recompilarTodo();
         }
 
         while (colaCUSA.length > 0) {
@@ -266,29 +360,31 @@ async function forzarSincronizacionManual() {
             let respuestasLote = await Promise.all(promesas);
             respuestasLote.forEach(res => {
                 if (res && res.status === 'success' && res.game) {
-                    let idx = listadoJuegos.findIndex(m => m.id === res.game.id);
-                    if (idx === -1) {
-                        res.game.cover3d = 'user/portadas_custom/' + res.game.id + '.jpg';
-                        listadoJuegos.push(res.game);
-                    } else if (listadoJuegos[idx].nombre !== res.game.nombre && res.game.nombre !== res.game.id) {
-                        listadoJuegos[idx].nombre = res.game.nombre;
-                    }
-                    if (idx >= 0) listadoJuegos[idx].installed = true;
+                    const game = res.game;
+                    game.cover3d = bibliotecaImagenSegura(game.cover3d);
+                    game.installed = estadoInstalacion(game.id);
+                    const idx = listadoJuegos.findIndex(item => item.id === game.id);
+                    if (idx === -1) listadoJuegos.push(game);
+                    else Object.assign(listadoJuegos[idx], game, { installed: estadoInstalacion(game.id) });
                 }
             });
         }
 
         if (title) title.innerText = "FINALIZANDO";
         if (text) text.innerText = "Actualizando la biblioteca local...";
-        if (bytesLabel) bytesLabel.innerText = "Sincronización completada.";
+        if (bytesLabel) bytesLabel.innerText = jsonScan.installed_verified
+            ? `Sincronización completada · ${Object.keys(idsInstalados).length} instalados · ${listadoJuegos.length} títulos registrados.`
+            : 'Metadatos actualizados; estado de instalación sin verificar.';
         if (bar) bar.style.width = "100%";
-        setTimeout(closeSincronizacionModal, 450);
+        if (!jsonScan.installed_verified && bytesLabel) {
+            bytesLabel.innerText = 'Metadatos actualizados; FTP no permitió verificar qué títulos siguen instalados.';
+        }
+        setTimeout(closeSincronizacionModal, jsonScan.installed_verified ? 1400 : 2200);
         listadoJuegos.forEach(j => { if (j.tipo && !categoriasDinamicas.includes(j.tipo)) { categoriasDinamicas.push(j.tipo); } });
         actualizarInterfazFiltros();
         recompilarTodo();
         bibliotecaAutoScanCompletado = Date.now();
         localStorage.setItem('ghm_biblioteca_ultimo_escaneo', String(bibliotecaAutoScanCompletado));
-        setTimeout(closeSincronizacionModal, 450);
     } catch (e) {
         closeSincronizacionModal(); 
         levantarCacheLocalBiblioteca();
@@ -329,7 +425,15 @@ function recompilarTodo() {
     
     const visibles = obtenerVisiblesFiltrados();
     const badgeText = document.getElementById('badge-total-txt');
-    if (badgeText) badgeText.innerText = `${visibles.length} Títulos`;
+    if (badgeText) {
+        const instalados = visibles.filter(game => game.installed === true).length;
+        const noInstalados = visibles.filter(game => game.installed === false).length;
+        const sinVerificar = visibles.length - instalados - noInstalados;
+        badgeText.innerText = sinVerificar > 0
+            ? `${instalados} instalados · ${noInstalados} no instalados · ${sinVerificar} sin verificar (${visibles.length})`
+            : `${instalados} instalados · ${noInstalados} no instalados (${visibles.length})`;
+        badgeText.title = 'Estado de instalación de los títulos visibles en este filtro';
+    }
 
     const gridBox = document.getElementById('container-view-grid');
     const box3D = document.getElementById('container-view-3d');
@@ -358,15 +462,36 @@ function renderizarGridDOM(visibles) {
     visibles.forEach((jg) => {
         const divCard = document.createElement('div');
         const noInstalado = jg.installed === false;
-        divCard.className = `grid-card-modern ${noInstalado ? 'library-not-installed' : 'library-installed'} rounded-[1.2rem] p-1.5 flex flex-col justify-between cursor-pointer shadow-lg animate-fade-in`;
+        const sinVerificar = jg.installed !== true && jg.installed !== false;
+        divCard.className = `grid-card-modern ${bibliotecaClaseEstado(jg.installed)} rounded-[1.2rem] p-1.5 flex flex-col justify-between cursor-pointer shadow-lg animate-fade-in`;
         divCard.setAttribute('role', 'button');
         divCard.tabIndex = 0;
         divCard.setAttribute('aria-label', `Abrir ${String(jg.nombre || jg.id || '').slice(0, 160)}`);
         divCard.onclick = () => { abrirOpcionesJuegoDirecto(jg.id); };
         const cover = document.createElement('div');
         cover.className = 'w-full h-[84%] rounded-[1rem] overflow-hidden border border-white/5 bg-cover bg-center';
-        const imageUrl = bibliotecaImagenSegura(jg.img);
-        if (imageUrl) cover.style.backgroundImage = `url("${imageUrl.replace(/["\\]/g, '\\$&')}")`;
+        const imageUrl = bibliotecaImagenSegura(jg.cover3d) || bibliotecaImagenSegura(jg.img);
+        const fallbackUrl = bibliotecaImagenSegura(jg.img);
+        if (imageUrl) {
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = `Carátula de ${String(jg.nombre || jg.id || 'juego')}`;
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.className = 'h-full w-full object-cover';
+            img.addEventListener('error', () => {
+                if (fallbackUrl && img.src !== new URL(fallbackUrl, document.baseURI).href) img.src = fallbackUrl;
+                else {
+                    cover.replaceChildren();
+                    cover.classList.add('flex', 'items-center', 'justify-center', 'bg-slate-900/70');
+                    cover.innerHTML = '<i class="fa-solid fa-gamepad text-3xl text-cyan-300/60" aria-hidden="true"></i>';
+                }
+            }, { once: true });
+            cover.appendChild(img);
+        } else {
+            cover.classList.add('flex', 'items-center', 'justify-center', 'bg-slate-900/70');
+            cover.innerHTML = '<i class="fa-solid fa-gamepad text-3xl text-cyan-300/60" aria-hidden="true"></i>';
+        }
         const title = document.createElement('p');
         title.className = 'text-[9px] font-bold text-center truncate pt-1 text-gray-300 px-0.5 uppercase tracking-wide';
         title.textContent = String(jg.nombre || jg.id || 'Título sin nombre');
@@ -375,6 +500,11 @@ function renderizarGridDOM(visibles) {
             const badge = document.createElement('span');
             badge.className = 'library-status-badge';
             badge.textContent = 'No instalado';
+            divCard.appendChild(badge);
+        } else if (sinVerificar) {
+            const badge = document.createElement('span');
+            badge.className = 'library-status-badge library-status-unverified';
+            badge.textContent = 'Sin verificar';
             divCard.appendChild(badge);
         }
         gridDom.appendChild(divCard);
@@ -400,28 +530,23 @@ function construirCoverflowDOMEstatico(visibles) {
         const principal = bibliotecaImagenSegura(jg.cover3d) || bibliotecaImagenSegura(jg.img);
         const respaldo = bibliotecaImagenSegura(jg.img);
         const imagen = principal
-            ? `<img src="${bibliotecaEscaparHtml(principal)}" ${idx === index3DActivo ? 'loading="eager"' : 'loading="lazy"'} decoding="async" data-fallback="${bibliotecaEscaparHtml(respaldo)}" class="ps4-img-art" draggable="false">`
+            ? `<img ${idx === index3DActivo ? `src="${bibliotecaEscaparHtml(principal)}"` : ''} data-src="${bibliotecaEscaparHtml(principal)}" data-fallback="${bibliotecaEscaparHtml(respaldo)}" loading="lazy" decoding="async" fetchpriority="${idx === index3DActivo ? 'high' : 'auto'}" class="ps4-img-art" draggable="false" alt="Carátula de ${bibliotecaEscaparHtml(jg.nombre || jg.id)}">`
             : '<div class="ps4-img-art flex items-center justify-center text-cyan-200/60"><i class="fa-solid fa-gamepad text-3xl"></i></div>';
         html3D += `
-        <div class="ps4-box-case ${jg.installed === false ? 'library-not-installed' : 'library-installed'}" role="button" tabindex="0" aria-label="${bibliotecaEscaparHtml(String(jg.nombre || jg.id || 'Título'))}">
+        <div class="ps4-box-case ${bibliotecaClaseEstado(jg.installed)}" role="button" tabindex="0" aria-label="${bibliotecaEscaparHtml(String(jg.nombre || jg.id || 'Título'))}">
             <div class="ps4-top-ribbon">
                 <i class="fa-brands fa-playstation text-white text-[10px]"></i>
                 <span class="ps4-ribbon-text">PS4</span>
             </div>
             ${imagen}
             ${jg.installed === false ? '<span class="library-status-badge">No instalado</span>' : ''}
+            ${jg.installed !== true && jg.installed !== false ? '<span class="library-status-badge library-status-unverified">Sin verificar</span>' : ''}
         </div>`;
     });
     target3D.innerHTML = html3D;
 
-    target3D.querySelectorAll('.ps4-img-art').forEach(image => {
-        image.addEventListener('error', () => {
-            const fallback = image.dataset.fallback || '';
-            if (fallback && image.src !== new URL(fallback, document.baseURI).href) {
-                image.dataset.fallback = '';
-                image.src = fallback;
-            }
-        }, { once: true });
+    target3D.querySelectorAll('img.ps4-img-art').forEach(image => {
+        image.addEventListener('error', () => bibliotecaResolverImagenCarrusel(image));
     });
 
     const tarjetas = target3D.querySelectorAll('.ps4-box-case');
@@ -460,6 +585,21 @@ function actualizarCoverflow3DStyles() {
         else if (offset > Math.floor(totalCards / 2)) { offset -= totalCards; }
 
         const absOffset = Math.abs(offset);
+        card.style.willChange = absOffset === 0 ? 'transform, opacity' : 'auto';
+        card.classList.toggle('carousel-near', absOffset <= 2);
+        card.classList.toggle('carousel-far', absOffset > 2);
+        const cover = card.querySelector('img.ps4-img-art');
+        if (cover) {
+            const shouldLoad = absOffset <= 1;
+            const nextSrc = shouldLoad ? (cover.dataset.src || '') : '';
+            if (nextSrc && cover.dataset.loadedSrc !== nextSrc) {
+                cover.dataset.loadedSrc = nextSrc;
+                cover.src = nextSrc;
+            } else if (!nextSrc && cover.hasAttribute('src')) {
+                cover.removeAttribute('src');
+                cover.dataset.loadedSrc = '';
+            }
+        }
         card.classList.remove('active');
 
         if (absOffset === 0) {
@@ -475,18 +615,27 @@ function actualizarCoverflow3DStyles() {
             const tTitle = document.getElementById('text-title-3d');
             const tCusa = document.getElementById('text-cusa-3d');
             const tVersion = document.getElementById('text-version-3d');
+            const installState = document.getElementById('text-install-state-3d');
 
             if (tTitle) tTitle.innerText = currentJg.nombre;
             if (tCusa) tCusa.innerText = currentJg.id;
             if (tVersion) tVersion.innerText = `v${currentJg.version || '1.00'}`;
+            if (installState) {
+                installState.innerText = currentJg.installed === true ? 'INSTALADO' : currentJg.installed === false ? 'NO INSTALADO' : 'ESTADO SIN VERIFICAR';
+                installState.className = currentJg.installed === true
+                    ? 'px-2 py-0.5 rounded border border-emerald-400/30 bg-emerald-400/10 text-[8px] font-bold text-emerald-200 tracking-wider'
+                    : currentJg.installed === false
+                        ? 'px-2 py-0.5 rounded border border-rose-400/30 bg-rose-400/10 text-[8px] font-bold text-rose-200 tracking-wider'
+                        : 'px-2 py-0.5 rounded border border-amber-400/30 bg-amber-400/10 text-[8px] font-bold text-amber-200 tracking-wider';
+            }
             if (glowBg) glowBg.style.background = `radial-gradient(circle, rgba(0, 162, 255, 0.5) 0%, rgba(0, 114, 230, 0.15) 45%, rgba(0,0,0,0) 70%)`;
         } else if (offset > 0) {
-            card.style.transform = `translateX(${pasoCarrusel + (offset - 1) * pasoLateral}px) translateZ(${-30 - (offset - 1) * 30}px) rotateY(-40deg) scale(0.85)`;
+                card.style.transform = `translateX(${pasoCarrusel + (offset - 1) * pasoLateral}px) translateZ(${-30 - (offset - 1) * 30}px) rotateY(-30deg) scale(0.88)`;
             card.style.opacity = absOffset > 2 ? '0' : '0.55';
             card.style.zIndex = `${50 - absOffset}`;
             card.style.pointerEvents = absOffset === 1 ? 'auto' : 'none';
         } else {
-            card.style.transform = `translateX(${-pasoCarrusel + (offset + 1) * pasoLateral}px) translateZ(${-30 - (absOffset - 1) * 30}px) rotateY(40deg) scale(0.85)`;
+            card.style.transform = `translateX(${-pasoCarrusel + (offset + 1) * pasoLateral}px) translateZ(${-30 - (absOffset - 1) * 30}px) rotateY(30deg) scale(0.88)`;
             card.style.opacity = absOffset > 2 ? '0' : '0.55';
             card.style.zIndex = `${50 - absOffset}`;
             card.style.pointerEvents = absOffset === 1 ? 'auto' : 'none';
@@ -511,7 +660,7 @@ function configurarRastreadorSwipe() {
         if (!isDragging) return;
         currentX = event.clientX;
         const distancia = startX - currentX;
-        const pasos = Math.trunc(Math.abs(distancia) / 45);
+        const pasos = Math.trunc(Math.abs(distancia) / 68);
         if (pasos > 0) {
             moverCarruselBiblioteca((distancia > 0 ? 1 : -1) * Math.min(pasos, 4));
             startX = currentX;
@@ -772,10 +921,16 @@ function abrirOpcionesJuegoDirecto(id) {
     
     
     const panelBg = document.getElementById('panel-bg-blur');
-    if(panelBg) panelBg.style.backgroundImage = `url('${juegoSeleccionadoLocal.img}')`;
+    const cover = bibliotecaImagenSegura(juegoSeleccionadoLocal.cover3d) || bibliotecaImagenSegura(juegoSeleccionadoLocal.img);
+    if(panelBg) panelBg.style.backgroundImage = cover ? `url("${cover.replace(/["\\]/g, '\\$&')}")` : '';
 
     const avatarArt = document.getElementById('panel-avatar-art');
-    if (avatarArt) avatarArt.style.backgroundImage = `url('${juegoSeleccionadoLocal.img}')`;
+    if (avatarArt) avatarArt.style.backgroundImage = cover ? `url("${cover.replace(/["\\]/g, '\\$&')}")` : '';
+    const status = document.getElementById('panel-game-install-status');
+    if (status) {
+        status.textContent = juegoSeleccionadoLocal.installed === true ? 'Instalado en PS4' : juegoSeleccionadoLocal.installed === false ? 'No instalado en PS4' : 'Estado no confirmado por FTP';
+        status.className = `text-[9px] font-bold ${juegoSeleccionadoLocal.installed === true ? 'text-emerald-300' : juegoSeleccionadoLocal.installed === false ? 'text-rose-300' : 'text-amber-200'}`;
+    }
     const sheet = document.getElementById('sheet-detalles-juego');
     if (sheet) {
         sheet.classList.remove('hidden');

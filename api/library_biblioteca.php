@@ -25,6 +25,7 @@ $port = isset($_POST['port']) ? (int)$_POST['port'] : 2121;
 
 // 🔥 RUTA CORREGIDA HACIA LA NUEVA ESTRUCTURA USER
 $cache_dir = __DIR__ . '/../user/cache/biblioteca';
+$metadata_cache_file = $cache_dir . '/titles.json';
 if (!file_exists($cache_dir)) { 
     @mkdir($cache_dir, 0777, true); 
 }
@@ -107,11 +108,40 @@ function clean_title_sfo($parsed_array, $cusa) {
     return trim(preg_replace('/\s+/', ' ', $title));
 }
 
+function library_custom_cover_url($titleId) {
+    $safeId = strtoupper((string)$titleId);
+    if (!preg_match('/^[A-Z0-9._-]{1,32}$/', $safeId)) return '';
+    foreach (['jpg', 'jpeg', 'png'] as $extension) {
+        $relative = 'user/portadas_custom/' . $safeId . '.' . $extension;
+        $path = __DIR__ . '/../' . $relative;
+        if (is_file($path) && @filesize($path) > 0) {
+            return $relative . '?v=' . (string)@filemtime($path);
+        }
+    }
+    return '';
+}
+
 // =======================================================
 // ACCIÓN: OBTENER JUEGOS EN CACHÉ
 // =======================================================
 if ($action === 'get_cached_games') {
     $games = [];
+    $metadata_cache = [];
+    if (is_file($metadata_cache_file)) {
+        $decoded_metadata = json_decode((string)@file_get_contents($metadata_cache_file), true);
+        if (is_array($decoded_metadata)) $metadata_cache = $decoded_metadata;
+    }
+    foreach ($metadata_cache as $id => $cached_game) {
+        if (!is_array($cached_game) || !preg_match('/^[A-Z0-9]{8,16}$/i', (string)$id)) continue;
+        $cached_game['id'] = strtoupper((string)$id);
+        $cached_game['installed'] = null;
+        $cached_icon = $cache_dir . '/' . $cached_game['id'] . '.png';
+        $cached_game['img'] = is_file($cached_icon) && @filesize($cached_icon) > 0
+            ? 'user/cache/biblioteca/' . $cached_game['id'] . '.png?v=' . @filemtime($cached_icon)
+            : '';
+        $cached_game['cover3d'] = library_custom_cover_url($cached_game['id']);
+        $games[$cached_game['id']] = $cached_game;
+    }
     $sfos_locales = glob($cache_dir . '/*.sfo');
     
     if (is_array($sfos_locales)) {
@@ -138,18 +168,20 @@ if ($action === 'get_cached_games') {
                 }
                 $tipo_final = $custom_cats[$cusa] ?? $tipo_defecto;
 
-                $games[] = [ 
+                $games[$cusa] = [
                     'id' => $cusa, 
                     'nombre' => $title, 
                     'tipo' => $tipo_final,
                     'version' => $version,
-                    'installed' => true,
+                    'installed' => null,
                     'size' => '23.5 GB',
-                    'img' => 'user/cache/biblioteca/' . $cusa . '.png?v=' . @filemtime($icon_path)
+                    'img' => 'user/cache/biblioteca/' . $cusa . '.png?v=' . @filemtime($icon_path),
+                    'cover3d' => library_custom_cover_url($cusa)
                 ];
             }
         }
     }
+    $games = array_values($games);
     usort($games, function($a, $b) { return strcasecmp($a['nombre'], $b['nombre']); });
     echo json_encode(['status' => 'success', 'data' => $games]);
     exit;
@@ -165,31 +197,47 @@ if ($action === 'scan') {
     ];
 
     $cusa_detectados = [];
+    $lectura_appmeta_completada = false;
 
     foreach ($rutas_appmeta as $base_path) {
-        $cusa_detectados += lb_read_appmeta_directory($host_ip, $port, $base_path);
+        $directorio_leido = false;
+        $cusa_detectados += lb_read_appmeta_directory($host_ip, $port, $base_path, $directorio_leido);
+        $lectura_appmeta_completada = $lectura_appmeta_completada || $directorio_leido;
     }
 
-    // Limpiar caché de juegos que ya no están en la consola
-    // No borrar caché ante una lectura vacía: puede ser una respuesta FTP incompleta.
-        if (count($cusa_detectados) > 0) {
-        $sfos_existentes = glob($cache_dir . '/*.sfo');
-        if (is_array($sfos_existentes)) {
-            foreach ($sfos_existentes as $sfo_path) {
-                $cusa_local = pathinfo($sfo_path, PATHINFO_FILENAME);
-                if (!isset($cusa_detectados[$cusa_local]) && $cusa_local !== 'APOLO0004') {
-                    @unlink($cache_dir . '/' . $cusa_local . '.png');
-                    @unlink($sfo_path);
-                    @unlink($cache_dir . '/sizes_' . $cusa_local . '.txt');
-                    @unlink(__DIR__ . '/../user/.iconos/' . $cusa_local . '.jpg');
-                    if (isset($custom_cats[$cusa_local])) { unset($custom_cats[$cusa_local]); }
-                }
-            }
-            @file_put_contents($db_categorias_file, json_encode($custom_cats, JSON_PRETTY_PRINT));
+    if (!$lectura_appmeta_completada) {
+        http_response_code(502);
+        echo json_encode(['status' => 'error', 'message' => 'No se pudo leer ningún directorio de appmeta por FTP. Se conserva la biblioteca local.']);
+        exit;
+    }
+
+    // appmeta conserva iconos y SFO incluso después de desinstalar un título.
+    // El estado real se obtiene de los directorios de instalación, incluidos
+    // los montajes de almacenamiento externo. Si FTP no deja leer ninguno,
+    // el cliente debe mostrar "Sin verificar" en vez de marcar todo como instalado.
+    $ids_instalados = [];
+    $lectura_app_interna = false;
+    $ids_instalados += lb_read_appmeta_directory($host_ip, $port, '/user/app', $lectura_app_interna);
+    $lectura_montajes = false;
+    $montajes = lb_read_directory_names($host_ip, $port, '/mnt', $lectura_montajes);
+    $lectura_apps_externas = $lectura_montajes;
+    if ($lectura_montajes) {
+        foreach ($montajes as $montaje) {
+            if (!preg_match('/^ext[01]$/i', $montaje)) continue;
+            $directorio_leido = false;
+            $base_path = '/mnt/' . $montaje . '/user/app';
+            $ids_instalados += lb_read_appmeta_directory($host_ip, $port, $base_path, $directorio_leido);
+            if (!$directorio_leido) $lectura_apps_externas = false;
         }
     }
+    $lectura_apps_completada = $lectura_app_interna && $lectura_apps_externas;
 
-    echo json_encode(['status' => 'success', 'games' => $cusa_detectados]);
+    echo json_encode([
+        'status' => 'success',
+        'games' => $cusa_detectados,
+        'installed_ids' => array_fill_keys(array_keys($ids_instalados), true),
+        'installed_verified' => $lectura_apps_completada
+    ]);
     exit;
 }
 
@@ -197,12 +245,17 @@ if ($action === 'scan') {
 // ACCIÓN: OBTENER DATOS DE UN JUEGO ESPECÍFICO
 // =======================================================
 if ($action === 'get_game_data') {
-    if (!$host_ip || !$cusa_id) { 
+    if (!$host_ip || !preg_match('/^[A-Z0-9]{8,16}$/', $cusa_id)) {
         echo json_encode(['status' => 'error', 'message' => 'Faltan IP o CUSA']); 
         exit; 
     }
 
     $base_route = $_POST['base_path'] ?? $_GET['base_path'] ?? '';
+    $rutas_appmeta_permitidas = [
+        '/user/appmeta', '/system_data/priv/appmeta',
+        '/user/appmeta/external', '/system_data/priv/appmeta/external'
+    ];
+    if (!in_array(rtrim((string)$base_route, '/'), $rutas_appmeta_permitidas, true)) $base_route = '';
     $local_icon = $cache_dir . '/' . $cusa_id . '.png';
     $local_sfo = $cache_dir . '/' . $cusa_id . '.sfo';
 
@@ -232,7 +285,8 @@ if ($action === 'get_game_data') {
                     'version' => $version,
                     'installed' => true,
                     'size' => '23.5 GB',
-                    'img' => 'user/cache/biblioteca/' . $cusa_id . '.png?v=' . @filemtime($local_icon)
+                    'img' => 'user/cache/biblioteca/' . $cusa_id . '.png?v=' . @filemtime($local_icon),
+                    'cover3d' => library_custom_cover_url($cusa_id)
                 ]
             ]);
             exit;
@@ -249,7 +303,10 @@ if ($action === 'get_game_data') {
             "/user/appmeta/$cusa_id/param.sfo",
             "/system_data/priv/appmeta/$cusa_id/param.sfo",
             "/user/appmeta/external/$cusa_id/param.sfo",
-            "/user/app/$cusa_id/sce_sys/param.sfo"
+            "/system_data/priv/appmeta/external/$cusa_id/param.sfo",
+            "/user/app/$cusa_id/sce_sys/param.sfo",
+            "/mnt/ext0/user/app/$cusa_id/sce_sys/param.sfo",
+            "/mnt/ext1/user/app/$cusa_id/sce_sys/param.sfo"
         ]);
         foreach ($rutas_sfo_posibles as $r_sfo) {
             if (curl_download_ftp_file($host_ip, $port, $r_sfo, $local_sfo)) { 
@@ -259,17 +316,13 @@ if ($action === 'get_game_data') {
         }
     }
 
-    if (!file_exists($local_sfo) || @filesize($local_sfo) == 0) {
-        @unlink($local_sfo);
-        echo json_encode(['status' => 'error', 'message' => 'No se pudo leer el SFO de la consola']);
-        exit;
-    }
-
-    $parsed = parse_sfo_real($local_sfo);
+    $parsed = (file_exists($local_sfo) && @filesize($local_sfo) > 0) ? parse_sfo_real($local_sfo) : false;
     if (!$parsed || empty($parsed['TITLE'])) {
         @unlink($local_sfo);
-        echo json_encode(['status' => 'error', 'message' => 'Metadatos inválidos en el SFO']);
-        exit;
+        // appmeta también contiene aplicaciones instaladas que no publican
+        // param.sfo por FTP. Su directorio y CUSA ya quedaron verificados por
+        // el escaneo; se conserva el título y se intenta obtener icon0.png.
+        $parsed = false;
     }
 
     // Intentar descargar icono si no existe
@@ -282,13 +335,18 @@ if ($action === 'get_game_data') {
         }
         $rutas_maestras_iconos = array_merge($rutas_maestras_iconos, [
             "/user/appmeta/$cusa_id/icon0.png",
+            "/system_data/priv/appmeta/$cusa_id/icon0.png",
+            "/user/appmeta/$cusa_id/icon0.png",
             "/user/appmeta/$cusa_id/icono.png",
             "/user/appmeta/$cusa_id/ICON0.PNG",
             "/system_data/priv/appmeta/$cusa_id/icon0.png",
             "/user/appmeta/external/$cusa_id/icon0.png",
+            "/system_data/priv/appmeta/external/$cusa_id/icon0.png",
             "/user/app/$cusa_id/sce_sys/icon0.png",
             "/user/app/$cusa_id/sce_sys/icono.png",
-            "/user/app/$cusa_id/sce_sys/ICON0.PNG"
+            "/user/app/$cusa_id/sce_sys/ICON0.PNG",
+            "/mnt/ext0/user/app/$cusa_id/sce_sys/icon0.png",
+            "/mnt/ext1/user/app/$cusa_id/sce_sys/icon0.png"
         ]);
         $rutas_maestras_iconos = array_unique($rutas_maestras_iconos);
 
@@ -301,8 +359,8 @@ if ($action === 'get_game_data') {
     }
 
     $title = clean_title_sfo($parsed, $cusa_id);
-    $version = $parsed['APP_VER'] ?? 'v1.00';
-    $category_key = $parsed['CATEGORY'] ?? 'g';
+    $version = $parsed['APP_VER'] ?? '';
+    $category_key = $parsed['CATEGORY'] ?? '';
     
     $tipo_por_defecto = (strpos($category_key, 'g') !== false) ? 'JUEGOS' : 'APPS';
     if (strpos($cusa_id, 'LAPY') === 0 || $cusa_id === 'APOLO0004') { 
@@ -310,9 +368,23 @@ if ($action === 'get_game_data') {
     }
     $tipo_final = $custom_cats[$cusa_id] ?? $tipo_por_defecto;
 
-    $final_img = (file_exists($local_icon) && @filesize($local_icon) > 0) 
+    $final_img = (file_exists($local_icon) && @filesize($local_icon) > 0)
         ? 'user/cache/biblioteca/' . $cusa_id . '.png?v=' . @filemtime($local_icon)
-        : 'https://images.unsplash.com/photo-1612287230202-1bf1d85d1bdf?w=400&q=80';
+        : '';
+
+    $metadata_cache = [];
+    if (is_file($metadata_cache_file)) {
+        $decoded_metadata = json_decode((string)@file_get_contents($metadata_cache_file), true);
+        if (is_array($decoded_metadata)) $metadata_cache = $decoded_metadata;
+    }
+    $metadata_cache[$cusa_id] = [
+        'id' => $cusa_id,
+        'nombre' => $title,
+        'tipo' => $tipo_final,
+        'version' => $version,
+        'metadata_incomplete' => !$parsed
+    ];
+    @file_put_contents($metadata_cache_file, json_encode($metadata_cache, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
     echo json_encode([
         'status' => 'success',
@@ -324,7 +396,9 @@ if ($action === 'get_game_data') {
             'version' => $version,
             'installed' => true,
             'size' => '23.5 GB',
-            'img' => $final_img
+            'img' => $final_img,
+            'cover3d' => library_custom_cover_url($cusa_id),
+            'metadata_incomplete' => !$parsed
         ]
     ]);
     exit;

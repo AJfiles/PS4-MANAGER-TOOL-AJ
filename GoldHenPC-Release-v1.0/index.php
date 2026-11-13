@@ -55,12 +55,14 @@ header('X-Author: ' . $firma);
             background-color: rgba(4, 7, 16, 0.65) !important; 
         }
         .app-layer.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+        #launcher-grid, #launcher-preview-grid { gap:clamp(18px,4vw,30px) !important; }
         
         .launcher-card { 
             background: rgba(10, 13, 24, 0.55) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(8px); 
         }
         .launcher-card:active { transform: scale(0.95); border-color: rgba(34, 211, 238, 0.4) !important; background: rgba(10, 13, 24, 0.7) !important; }
         .launcher-card > span { width:100%; text-align:center; line-height:1.35; }
+        .launcher-section-label { grid-column:1 / -1; margin:1.5rem 0 .15rem; padding:.7rem .45rem .55rem; border-bottom:1px solid rgba(148,163,184,.16); color:rgba(148,163,184,.82); font:900 9px/1.25 ui-monospace,monospace; letter-spacing:.2em; text-transform:uppercase; }
         :is(#launcher-grid, #launcher-preview-grid) .launcher-card > div:first-child { transition: border-radius .2s ease, filter .2s ease, box-shadow .2s ease, background-color .2s ease; }
         :is(#launcher-grid, #launcher-preview-grid).shape-rounded .launcher-card { border-radius:2rem !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-circle .launcher-card { border-radius:50% !important; }
@@ -69,6 +71,8 @@ header('X-Author: ' . $firma);
         :is(#launcher-grid, #launcher-preview-grid).shape-pill .launcher-card { border-radius:2.6rem !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-squircle .launcher-card { border-radius:1.35rem !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-hexagon .launcher-card { clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
+        :is(#launcher-grid, #launcher-preview-grid).shape-soft-square .launcher-card { border-radius:1rem !important; }
+        :is(#launcher-grid, #launcher-preview-grid).shape-cut-corners .launcher-card { border-radius:.8rem !important; clip-path:polygon(0 0,92% 0,100% 12%,100% 100%,8% 100%,0 88%); }
         :is(#launcher-grid, #launcher-preview-grid).shape-rounded .launcher-card > div:first-child { border-radius:1rem !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-circle .launcher-card > div:first-child { border-radius:9999px !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-square .launcher-card > div:first-child { border-radius:.35rem !important; }
@@ -77,6 +81,8 @@ header('X-Author: ' . $firma);
         :is(#launcher-grid, #launcher-preview-grid).shape-pill .launcher-card > div:first-child { border-radius:9999px !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-squircle .launcher-card > div:first-child { border-radius:1.35rem !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-hexagon .launcher-card > div:first-child { clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
+        :is(#launcher-grid, #launcher-preview-grid).shape-soft-square .launcher-card > div:first-child { border-radius:.6rem !important; }
+        :is(#launcher-grid, #launcher-preview-grid).shape-cut-corners .launcher-card > div:first-child { border-radius:.4rem !important; clip-path:polygon(0 0,82% 0,100% 18%,100% 100%,18% 100%,0 82%); }
         :is(#launcher-grid, #launcher-preview-grid).icons-glow .launcher-card > div:first-child { filter:drop-shadow(0 0 8px currentColor); }
         :is(#launcher-grid, #launcher-preview-grid).icons-outline .launcher-card > div:first-child { background-color:transparent !important; border:1px solid currentColor !important; box-shadow:inset 0 0 0 1px rgba(255,255,255,.05); }
         :is(#launcher-grid, #launcher-preview-grid).icons-outline .launcher-card > div:first-child > i { filter:drop-shadow(0 0 4px currentColor); }
@@ -93,13 +99,28 @@ header('X-Author: ' . $firma);
         :is(#launcher-grid, #launcher-preview-grid).motion-glide .launcher-card { animation:launcher-card-glide .38s both; }
         :is(#launcher-grid, #launcher-preview-grid).motion-glide .launcher-card:nth-child(odd) { --launcher-from:18px; }
         :is(#launcher-grid, #launcher-preview-grid).motion-glide .launcher-card:nth-child(even) { --launcher-from:-18px; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-fade .launcher-card { animation:launcher-card-fade .32s ease-out both; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-bounce .launcher-card { animation:launcher-card-bounce .42s cubic-bezier(.2,.9,.3,1.3) both; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-orbit .launcher-card { animation:launcher-card-orbit .62s cubic-bezier(.2,.8,.2,1) both; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-cascade .launcher-card { animation:launcher-card-cascade .52s cubic-bezier(.2,.8,.2,1) both; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-stagger .launcher-card { animation:launcher-card-stagger .48s ease-out both; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-zoom .launcher-card { animation:launcher-card-zoom .36s cubic-bezier(.2,.8,.2,1) both; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-cascade .launcher-card:nth-child(4n+2), :is(#launcher-grid, #launcher-preview-grid).motion-stagger .launcher-card:nth-child(4n+2) { animation-delay:.05s; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-cascade .launcher-card:nth-child(4n+3), :is(#launcher-grid, #launcher-preview-grid).motion-stagger .launcher-card:nth-child(4n+3) { animation-delay:.1s; }
+        :is(#launcher-grid, #launcher-preview-grid).motion-cascade .launcher-card:nth-child(4n+4), :is(#launcher-grid, #launcher-preview-grid).motion-stagger .launcher-card:nth-child(4n+4) { animation-delay:.15s; }
         :is(#launcher-grid, #launcher-preview-grid).theme-solid .launcher-card { background:rgba(8,12,22,.9) !important; backdrop-filter:none; border-color:rgba(148,163,184,.13) !important; }
         :is(#launcher-grid, #launcher-preview-grid).theme-aurora .launcher-card { border-color:rgba(34,211,238,.28) !important; box-shadow:0 8px 28px rgba(34,211,238,.08), inset 0 0 22px rgba(139,92,246,.06); }
         :is(#launcher-grid, #launcher-preview-grid).theme-gradient .launcher-card { background:linear-gradient(145deg,rgba(14,20,36,.88),rgba(35,18,58,.62)) !important; border-color:rgba(167,139,250,.2) !important; }
         @keyframes launcher-card-rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes launcher-card-glide { from { opacity:0; transform:translateX(var(--launcher-from,18px)); } to { opacity:1; transform:translateX(0); } }
+        @keyframes launcher-card-fade { from { opacity:0; } to { opacity:1; } }
+        @keyframes launcher-card-bounce { from { opacity:0; transform:translateY(14px) scale(.94); } to { opacity:1; transform:translateY(0) scale(1); } }
+        @keyframes launcher-card-orbit { from { opacity:0; transform:rotate(-5deg) scale(.86) translateY(12px); } to { opacity:1; transform:rotate(0) scale(1) translateY(0); } }
+        @keyframes launcher-card-cascade { from { opacity:0; transform:translateY(-18px) scale(.97); filter:blur(3px); } to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
+        @keyframes launcher-card-stagger { from { opacity:0; transform:translateX(16px) scale(.96); } to { opacity:1; transform:translateX(0) scale(1); } }
+        @keyframes launcher-card-zoom { from { opacity:0; transform:scale(.82); } to { opacity:1; transform:scale(1); } }
         @keyframes launcher-icon-pulse { 0%,100% { transform:scale(1); filter:brightness(1); } 50% { transform:scale(1.035); filter:brightness(1.12); } }
-        @media (prefers-reduced-motion: reduce) { :is(#launcher-grid, #launcher-preview-grid).motion-rise .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-glide .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-pulse .launcher-card > div:first-child { animation:none !important; } :is(#launcher-grid, #launcher-preview-grid).motion-float .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-tilt .launcher-card { transition:none !important; transform:none !important; } }
+        @media (prefers-reduced-motion: reduce) { :is(#launcher-grid, #launcher-preview-grid).motion-rise .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-glide .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-pulse .launcher-card > div:first-child, :is(#launcher-grid, #launcher-preview-grid).motion-fade .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-bounce .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-orbit .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-cascade .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-stagger .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-zoom .launcher-card { animation:none !important; } :is(#launcher-grid, #launcher-preview-grid).motion-float .launcher-card, :is(#launcher-grid, #launcher-preview-grid).motion-tilt .launcher-card { transition:none !important; transform:none !important; } }
         :is(#launcher-grid, #launcher-preview-grid).launcher-vertical { grid-template-columns:minmax(0,1fr); max-width:32rem; }
         :is(#launcher-grid, #launcher-preview-grid).launcher-vertical .launcher-card { aspect-ratio:auto; min-height:74px; display:grid; grid-template-columns:3rem minmax(0,1fr); grid-template-rows:auto auto; justify-items:start; align-content:center; padding:.8rem 1rem; }
         :is(#launcher-grid, #launcher-preview-grid).launcher-vertical .launcher-card > div:first-child { grid-row:1 / span 2; width:2.65rem;height:2.65rem;margin:0 .7rem 0 0; }
@@ -144,14 +165,22 @@ header('X-Author: ' . $firma);
 
         .scanner-line { width: 100%; height: 2px; background: #10b981; position: absolute; left: 0; top: 0; box-shadow: 0 0 15px #10b981, 0 0 5px #10b981; opacity: 0.8; animation: scan 1.5s linear infinite; z-index: 20; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        .radar-galaxy { position:relative;height:100px;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 65%,rgba(16,185,129,.2),rgba(5,10,20,.94) 70%); }
+        .radar-galaxy { position:relative;height:130px;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 55%,rgba(16,185,129,.24),rgba(17,24,39,.88) 42%,rgba(5,10,20,.98) 76%);isolation:isolate;transition:transform .9s cubic-bezier(.2,.8,.2,1),filter .7s ease; }
+        .radar-galaxy::before,.radar-galaxy::after { content:"";position:absolute;inset:-60%;border-radius:50%;pointer-events:none;background:repeating-conic-gradient(from 0deg,transparent 0deg 16deg,rgba(34,211,238,.09) 17deg 19deg,transparent 20deg 42deg);filter:blur(2px);animation:radar-nebula 22s linear infinite; }
+        .radar-galaxy::after { inset:-30%;background:repeating-radial-gradient(circle at 50% 50%,transparent 0 18px,rgba(167,243,208,.11) 19px 20px,transparent 21px 35px);animation-duration:35s;animation-direction:reverse; }
         .radar-orbit { position:absolute;left:50%;top:50%;width:82px;height:82px;border:1px solid rgba(52,211,153,.38);border-radius:50%;transform:translate(-50%,-50%) rotateX(66deg);animation:radar-spin 5s linear infinite; }
         .radar-orbit:nth-child(2){width:126px;height:126px;animation-duration:8s;border-color:rgba(34,211,238,.23)}
-        .radar-sun { position:absolute;left:50%;top:50%;width:16px;height:16px;border-radius:50%;transform:translate(-50%,-50%);background:#a7f3d0;box-shadow:0 0 22px #34d399; }
-        .radar-planet { position:absolute;left:calc(50% + 40px);top:50%;width:11px;height:11px;border-radius:50%;background:#22d3ee;box-shadow:0 0 15px #22d3ee;animation:radar-planet 5s linear infinite; }
-        .radar-galaxy.found .radar-planet { background:#fbbf24;box-shadow:0 0 22px #fbbf24; }
+        .radar-sun { position:absolute;left:50%;top:50%;width:25px;height:25px;border:1px solid rgba(191,219,254,.72);border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 32% 28%,#dbeafe 0 7%,#38bdf8 15%,#2563eb 48%,#102659 78%);box-shadow:0 0 25px rgba(56,189,248,.8),inset -5px -3px 9px rgba(2,6,23,.8); }
+        .radar-planet { position:absolute;left:calc(50% + 40px);top:50%;width:11px;height:11px;border-radius:50%;background:#22d3ee;box-shadow:0 0 15px #22d3ee;animation:radar-planet 5s linear infinite;z-index:2;transition:left .85s cubic-bezier(.2,.8,.2,1),top .85s cubic-bezier(.2,.8,.2,1); }
+        .radar-galaxy.approach { transform:scale(1.13);filter:brightness(1.16) saturate(1.16); }
+        .radar-galaxy.found { transform:scale(1.2);filter:brightness(1.25) saturate(1.2); }
+        .radar-galaxy.found .radar-planet { left:50%;top:50%;width:16px;height:16px;background:#fbbf24;box-shadow:0 0 24px #fbbf24;animation:radar-dock .85s cubic-bezier(.2,.8,.2,1) forwards; }
+        .radar-stars { position:absolute;inset:0;z-index:1;background-image:radial-gradient(2px 2px at 12% 28%,#a7f3d0 50%,transparent 55%),radial-gradient(1px 1px at 25% 68%,#67e8f9 50%,transparent 55%),radial-gradient(2px 2px at 78% 34%,#d8b4fe 50%,transparent 55%),radial-gradient(1px 1px at 84% 75%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 60% 18%,#fff 50%,transparent 55%);opacity:.75; }
+        @keyframes radar-nebula { to { transform:rotate(360deg) scale(1.04); } }
         @keyframes radar-spin { to { transform:translate(-50%,-50%) rotateX(66deg) rotateZ(360deg); } }
         @keyframes radar-planet { to { transform:rotate(360deg) translateX(40px) rotate(-360deg); } }
+        @keyframes radar-dock { 0% { transform:translate(-50%,-50%) scale(.75); } 65% { transform:translate(-50%,-50%) scale(1.45); } 100% { transform:translate(-50%,-50%) scale(1); } }
+        @media (prefers-reduced-motion: reduce) { .radar-galaxy,.radar-orbit,.radar-planet,.radar-galaxy::before,.radar-galaxy::after { animation:none !important; transition:none !important; } }
 
         .hide-scrollbar::-webkit-scrollbar { display: none !important; }
         .hide-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
@@ -196,11 +225,51 @@ header('X-Author: ' . $firma);
         .ghm-loader-minimal .ghm-loader-ring-a { inset:0; border-width:3px; }
         .ghm-loader-minimal .ghm-loader-ring-b,.ghm-loader-minimal .ghm-loader-ring-c,.ghm-loader-minimal .ghm-loader-sweep { display:none; }
         .ghm-loader-minimal .ghm-loader-symbol { font-size:.95rem; }
+        .ghm-loader-comet .ghm-loader-ring-a { border-width:3px;border-top-color:transparent;border-right-color:var(--loader-color);animation:ghm-loader-spin .72s cubic-bezier(.25,.7,.4,1) infinite; }
+        .ghm-loader-comet .ghm-loader-ring-b { inset:.45rem;border-style:solid;border-top-color:#a78bfa;animation:ghm-loader-spin 2.8s linear infinite reverse; }
+        .ghm-loader-matrix .ghm-loader-art { border-radius:1.2rem;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--loader-color) 24%,transparent),transparent 64%); }
+        .ghm-loader-matrix .ghm-loader-ring-a,.ghm-loader-matrix .ghm-loader-ring-b,.ghm-loader-matrix .ghm-loader-ring-c { inset:auto;width:7px;height:7px;border:0;border-radius:50%;background:var(--loader-color);box-shadow:0 0 10px var(--loader-color);animation:ghm-loader-matrix-dot 1.3s ease-in-out infinite; }
+        .ghm-loader-matrix .ghm-loader-ring-a { left:25%;top:30%; }
+        .ghm-loader-matrix .ghm-loader-ring-b { left:75%;top:30%;animation-delay:.18s; }
+        .ghm-loader-matrix .ghm-loader-ring-c { left:50%;top:75%;animation-delay:.36s; }
+        .ghm-loader-matrix .ghm-loader-symbol { font-size:1rem; }
+        .ghm-loader-prism .ghm-loader-ring-a { border-width:3px;border-color:transparent #a78bfa var(--loader-color) #67e8f9;animation:ghm-loader-spin 2.2s linear infinite; }
+        .ghm-loader-prism .ghm-loader-ring-b { inset:.42rem;border-width:2px;border-color:#f0abfc transparent #67e8f9 transparent;animation:ghm-loader-spin 1.8s linear infinite reverse; }
+        .ghm-loader-prism .ghm-loader-symbol { filter:drop-shadow(0 0 12px #a78bfa); }
+        .ghm-loader-nova .ghm-loader-ring-a { animation:ghm-loader-ripple 1.25s ease-out infinite;border:1px solid var(--loader-color); }
+        .ghm-loader-nova .ghm-loader-ring-b { animation:ghm-loader-ripple 1.25s ease-out .4s infinite;border:1px solid #a78bfa; }
+        .ghm-loader-nova .ghm-loader-ring-c { animation:ghm-loader-ripple 1.25s ease-out .8s infinite;border:1px solid #67e8f9; }
+        .ghm-loader-warp .ghm-loader-ring-a { border-width:3px;border-color:transparent var(--loader-color) #a78bfa transparent;animation:ghm-loader-spin .48s linear infinite; }
+        .ghm-loader-warp .ghm-loader-ring-b { inset:.5rem;border-style:solid;border-color:#67e8f9 transparent transparent #a78bfa;animation:ghm-loader-spin 1.15s linear infinite reverse; }
+        .ghm-loader-warp .ghm-loader-ring-c { inset:1rem;border-style:dotted;animation:ghm-loader-spin 3s linear infinite; }
+        .ghm-loader-vortex .ghm-loader-ring-a { border-width:2px;border-color:transparent var(--loader-color) #a78bfa transparent;animation:ghm-loader-spin .85s cubic-bezier(.55,.05,.35,.95) infinite; }
+        .ghm-loader-vortex .ghm-loader-ring-b { inset:.4rem;border-style:solid;border-color:#67e8f9 transparent var(--loader-color) transparent;animation:ghm-loader-spin 1.3s linear infinite reverse; }
+        .ghm-loader-vortex .ghm-loader-ring-c { inset:1.1rem;border-width:2px;border-color:transparent #f0abfc transparent var(--loader-color);animation:ghm-loader-spin 2s linear infinite; }
+        .ghm-loader-eclipse .ghm-loader-ring-a { inset:.2rem;border-width:3px;border-color:var(--loader-color) transparent #a78bfa transparent;animation:ghm-loader-spin 2s linear infinite; }
+        .ghm-loader-eclipse .ghm-loader-ring-b { inset:.55rem;border-width:5px;border-color:transparent color-mix(in srgb,var(--loader-color) 48%,transparent) transparent transparent;animation:ghm-loader-spin 1.5s linear infinite reverse; }
+        .ghm-loader-eclipse .ghm-loader-ring-c { inset:1.05rem;background:radial-gradient(circle,color-mix(in srgb,var(--loader-color) 30%,transparent),transparent 70%); }
+        .ghm-loader-signal .ghm-loader-ring-a { inset:.4rem;border-width:2px;border-color:var(--loader-color);animation:ghm-loader-ripple 1.4s ease-out infinite; }
+        .ghm-loader-signal .ghm-loader-ring-b { inset:.75rem;border-style:solid;border-color:color-mix(in srgb,var(--loader-color) 72%,transparent);animation:ghm-loader-ripple 1.4s ease-out .45s infinite; }
+        .ghm-loader-signal .ghm-loader-ring-c { inset:1.1rem;border:0;border-radius:50%;background:var(--loader-color);box-shadow:0 0 14px var(--loader-color);animation:ghm-loader-breathe .8s ease-in-out infinite; }
+        .ghm-loader-holo .ghm-loader-art { border-radius:1.2rem;background:linear-gradient(135deg,color-mix(in srgb,var(--loader-color) 16%,transparent),transparent 60%); }
+        .ghm-loader-holo .ghm-loader-ring-a { border-radius:1rem;border-style:dashed;animation:ghm-loader-scan 1.25s ease-in-out infinite alternate; }
+        .ghm-loader-holo .ghm-loader-ring-b { inset:.5rem;border-radius:.75rem;border-style:solid;animation:ghm-loader-breathe 1.1s ease-in-out infinite; }
+        .ghm-loader-holo .ghm-loader-sweep { display:block; }
         @keyframes ghm-loader-spin { to { transform:rotate(360deg); } }
         @keyframes ghm-loader-breathe { 50% { transform:scale(1.12);opacity:.72; } }
         @keyframes ghm-loader-ripple { 0% { transform:scale(.5);opacity:.8; } 100% { transform:scale(1.45);opacity:0; } }
         @keyframes ghm-loader-scan { 0%,100% { transform:scaleX(.2);opacity:.35; } 50% { transform:scaleX(1);opacity:1; } }
         @keyframes ghm-loader-progress { 0% { transform:translateX(-110%); } 100% { transform:translateX(320%); } }
+        @keyframes ghm-loader-matrix-dot { 0%,100% { opacity:.25;transform:scale(.65); } 50% { opacity:1;transform:scale(1.2); } }
+        .ghm-loader-quantum .ghm-loader-ring-a { inset:.25rem;border-width:3px;border-color:var(--loader-color) transparent #f0abfc transparent;animation:ghm-loader-spin .72s linear infinite; }
+        .ghm-loader-quantum .ghm-loader-ring-b { inset:.65rem;border-style:dashed;border-color:#67e8f9 var(--loader-color) transparent #67e8f9;animation:ghm-loader-spin 1.1s linear infinite reverse; }
+        .ghm-loader-quantum .ghm-loader-ring-c { inset:1.18rem;border-width:2px;border-color:transparent var(--loader-color) #f0abfc transparent;animation:ghm-loader-spin .8s linear infinite; }
+        .ghm-loader-helix .ghm-loader-ring-a { inset:.25rem;border-width:2px;border-color:var(--loader-color);animation:ghm-loader-spin 1.2s ease-in-out infinite; }
+        .ghm-loader-helix .ghm-loader-ring-b { inset:.55rem;border-width:2px;border-color:transparent #f0abfc var(--loader-color) #67e8f9;animation:ghm-loader-spin .9s linear infinite reverse; }
+        .ghm-loader-helix .ghm-loader-ring-c { inset:.9rem;border-width:2px;border-color:#67e8f9 transparent var(--loader-color) transparent;animation:ghm-loader-spin .65s linear infinite; }
+        .ghm-loader-portal .ghm-loader-ring-a { inset:.2rem;border-width:4px;border-color:var(--loader-color) transparent #a78bfa transparent;animation:ghm-loader-spin 1.7s cubic-bezier(.6,.05,.4,.95) infinite; }
+        .ghm-loader-portal .ghm-loader-ring-b { inset:.7rem;border-width:3px;border-color:transparent #f0abfc var(--loader-color) #67e8f9;animation:ghm-loader-spin 1s linear infinite reverse; }
+        .ghm-loader-portal .ghm-loader-ring-c { inset:1.25rem;border:0;border-radius:50%;background:radial-gradient(circle,var(--loader-color),transparent 72%);animation:ghm-loader-breathe 1s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .ghm-loading *, .ghm-loader-track i { animation:none !important; } .ghm-loader-track i { width:35%; transform:none !important; } }
     </style>
 </head>
@@ -261,16 +330,19 @@ header('X-Author: ' . $firma);
             </div>
         </div>
 
-        <div id="launcher-grid" class="grid grid-cols-2 gap-4.5 max-w-sm mx-auto w-full my-auto z-10 shrink-0 px-1">
+        <div id="launcher-grid" class="grid grid-cols-2 gap-5 max-w-sm mx-auto w-full my-auto z-10 shrink-0 px-1">
+            <p class="launcher-section-label">Biblioteca y datos</p>
             <div onclick="abrirModulo('biblioteca')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-cyan-900/30 text-cyan-400 flex items-center justify-center mb-3 border border-cyan-500/10"><i class="fa-solid fa-gamepad text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Biblioteca</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Juegos e Iconos</span></div>
             <div onclick="abrirModulo('savegames')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-cyan-900/30 text-cyan-300 flex items-center justify-center mb-3 border border-cyan-500/10"><i class="fa-solid fa-floppy-disk text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">SaveGames</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Partidas y respaldos</span></div>
             <div onclick="abrirModuloNativo('limpieza')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-rose-900/30 text-rose-300 flex items-center justify-center mb-3 border border-rose-500/10"><i class="fa-solid fa-broom text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Limpieza</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Partidas sin juego instalado</span></div>
             <div onclick="abrirModuloNativo('almacenamiento')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-emerald-900/30 text-emerald-300 flex items-center justify-center mb-3 border border-emerald-500/10"><i class="fa-solid fa-chart-pie text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Almacenamiento</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Uso por categoría</span></div>
             <div onclick="abrirModuloNativo('capturas')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-pink-900/30 text-pink-300 flex items-center justify-center mb-3 border border-pink-500/10"><i class="fa-solid fa-images text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Capturas</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Ver, guardar y eliminar</span></div>
+            <p class="launcher-section-label">Juegos y organización</p>
             <div onclick="abrirModuloNativo('parches-juego')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-violet-900/30 text-violet-300 flex items-center justify-center mb-3 border border-violet-500/10"><i class="fa-solid fa-wand-magic-sparkles text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Parches de juego</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Estados GoldHEN</span></div>
             <div onclick="abrirModulo('organizador-apps')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-fuchsia-900/30 text-fuchsia-300 flex items-center justify-center mb-3 border border-fuchsia-500/10"><i class="fa-solid fa-layer-group text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Organizar Apps</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Sistema y carpetas</span></div>
             <div onclick="abrirModulo('explorador')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-emerald-900/30 text-emerald-400 flex items-center justify-center mb-3 border border-emerald-500/10"><i class="fa-solid fa-folder-open text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Explorador FTP</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Raíz Consola</span></div>
             <div onclick="abrirModulo('modding')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-purple-900/30 text-purple-400 flex items-center justify-center mb-3 border border-purple-500/10"><i class="fa-solid fa-wand-magic-sparkles text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Modding</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Inyectar Portadas</span></div>
+            <p class="launcher-section-label">Consola, red y ajustes</p>
             <div onclick="abrirModulo('transferir')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-amber-900/30 text-amber-400 flex items-center justify-center mb-3 border border-amber-500/10"><i class="fa-solid fa-cloud-arrow-up text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Transferencias</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Chunks de PKG</span></div>
             <div onclick="abrirModuloNativo('mods')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-indigo-900/30 text-indigo-400 flex items-center justify-center mb-3 border border-indigo-500/10"><i class="fa-solid fa-cubes text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Game Mods</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Trucos y Parches</span></div>
             <div onclick="abrirModulo('plugins')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-violet-900/30 text-violet-400 flex items-center justify-center mb-3 border border-violet-500/10"><i class="fa-solid fa-plug text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Plugins</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">GoldHEN Loader</span></div>
@@ -309,7 +381,7 @@ header('X-Author: ' . $firma);
                 </button>
             </div>
 
-            <div id="radar-galaxy" class="radar-galaxy mb-3"><div class="radar-orbit"></div><div class="radar-orbit"></div><div class="radar-sun"></div><div class="radar-planet"></div><span class="absolute bottom-2 left-0 right-0 text-center text-[7px] tracking-[.35em] text-emerald-200/70">BUSCANDO PS4 EN LA RED</span></div>
+            <div id="radar-galaxy" class="radar-galaxy mb-3"><div class="radar-stars"></div><div class="radar-orbit"></div><div class="radar-orbit"></div><div class="radar-sun"></div><div class="radar-planet"></div><span class="absolute bottom-2 left-0 right-0 z-10 text-center text-[7px] tracking-[.35em] text-emerald-200/70">BUSCANDO PS4 EN LA RED</span></div>
             <div class="relative bg-black rounded-xl p-3 h-40 overflow-hidden font-mono text-[9px] border border-emerald-900/50 shadow-inner">
                 <div class="scanner-line"></div>
                 <div id="radar-log-terminal" class="absolute inset-0 p-3 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-emerald-500 z-10"></div>

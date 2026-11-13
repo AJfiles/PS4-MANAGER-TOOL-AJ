@@ -177,21 +177,30 @@ function alternarVistaLauncher(vertical) {
 }
 
 function cambiarEstiloLoader(value) {
-    const allowed = ['orbit', 'pulse', 'scan', 'minimal'];
+    const allowed = ['orbit', 'pulse', 'scan', 'minimal', 'comet', 'matrix', 'prism', 'nova', 'warp', 'holo', 'vortex', 'eclipse', 'signal', 'quantum', 'helix', 'portal'];
     const selected = allowed.includes(value) ? value : 'orbit';
     localStorage.setItem('cfg_loader_style', selected);
     const selector = document.getElementById('cfg-loader-style');
     if (selector && selector.value !== selected) selector.value = selected;
-    if (typeof window.ghmLoaderPreview === 'function') window.ghmLoaderPreview(selected);
+    if (typeof window.ghmLoaderPreview === 'function') window.ghmLoaderPreview(selected, document.getElementById('cfg-loader-accent')?.value);
+}
+
+function cambiarColorLoader(value) {
+    const allowed = ['cyan', 'rose', 'violet', 'amber', 'emerald'];
+    const selected = allowed.includes(value) ? value : 'cyan';
+    localStorage.setItem('cfg_loader_accent', selected);
+    const selector = document.getElementById('cfg-loader-accent');
+    if (selector && selector.value !== selected) selector.value = selected;
+    if (typeof window.ghmLoaderPreview === 'function') window.ghmLoaderPreview(document.getElementById('cfg-loader-style')?.value || 'orbit', selected);
 }
 
 function cambiarAnimacionLauncher(motion) {
     const grids = [document.getElementById('launcher-grid'), document.getElementById('launcher-preview-grid')].filter(Boolean);
     if (!grids.length) return;
-    const allowed = ['none', 'rise', 'glide', 'float', 'tilt', 'pulse'];
+    const allowed = ['none', 'rise', 'glide', 'float', 'tilt', 'pulse', 'fade', 'bounce', 'orbit', 'cascade', 'stagger', 'zoom'];
     const selected = allowed.includes(motion) ? motion : 'none';
     grids.forEach(grid => {
-        ['motion-none', 'motion-rise', 'motion-glide', 'motion-float', 'motion-tilt', 'motion-pulse'].forEach(name => grid.classList.remove(name));
+        ['motion-none', 'motion-rise', 'motion-glide', 'motion-float', 'motion-tilt', 'motion-pulse', 'motion-fade', 'motion-bounce', 'motion-orbit', 'motion-cascade', 'motion-stagger', 'motion-zoom'].forEach(name => grid.classList.remove(name));
         grid.classList.add(`motion-${selected}`);
     });
     localStorage.setItem('cfg_launcher_motion', selected);
@@ -215,7 +224,7 @@ function cambiarEstiloIconosLauncher() {
     const shape = document.getElementById('cfg-launcher-shape')?.value || localStorage.getItem('cfg_launcher_shape') || 'rounded';
     const style = document.getElementById('cfg-launcher-icons')?.value || localStorage.getItem('cfg_launcher_icons') || 'color';
     grids.forEach(grid => {
-        ['shape-rounded','shape-circle','shape-square','shape-diamond','shape-pill','shape-squircle','shape-hexagon','icons-color','icons-glow','icons-outline','icons-mono'].forEach(name => grid.classList.remove(name));
+        ['shape-rounded','shape-circle','shape-square','shape-diamond','shape-pill','shape-squircle','shape-hexagon','shape-soft-square','shape-cut-corners','icons-color','icons-glow','icons-outline','icons-mono'].forEach(name => grid.classList.remove(name));
         grid.classList.add(`shape-${shape}`, `icons-${style}`);
     });
     localStorage.setItem('cfg_launcher_shape', shape);
@@ -226,13 +235,9 @@ function toggleLauncherPreview() {
     const panel = document.getElementById('launcher-preview-panel');
     const button = document.getElementById('launcher-preview-toggle');
     if (!panel) return;
-    const show = panel.classList.contains('hidden');
-    panel.classList.toggle('hidden', !show);
-    if (button) {
-        button.setAttribute('aria-expanded', show ? 'true' : 'false');
-        button.innerHTML = show ? '<i class="fa-solid fa-eye-slash mr-1"></i> Ocultar vista previa' : '<i class="fa-solid fa-eye mr-1"></i> Ver vista previa';
-    }
-    if (show) {
+    panel.classList.remove('hidden');
+    if (button) button.remove();
+    {
         const grid = document.getElementById('launcher-preview-grid');
         const motion = localStorage.getItem('cfg_launcher_motion') || 'none';
         if (grid && ['rise', 'glide'].includes(motion)) {
@@ -350,6 +355,9 @@ function inicializarValoresInterfazAjustes() {
         if (deviceLayout) deviceLayout.value = localStorage.getItem('cfg_device_layout') || 'auto';
         const loaderStyle = document.getElementById('cfg-loader-style');
         if (loaderStyle) loaderStyle.value = localStorage.getItem('cfg_loader_style') || 'orbit';
+        const loaderAccent = document.getElementById('cfg-loader-accent');
+        if (loaderAccent) loaderAccent.value = localStorage.getItem('cfg_loader_accent') || 'cyan';
+        cambiarColorLoader(loaderAccent?.value || localStorage.getItem('cfg_loader_accent') || 'cyan');
         cambiarEstiloLoader(loaderStyle?.value || 'orbit');
 
         const selectWall = document.getElementById('custom-select-label');
@@ -399,7 +407,17 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
             soft: { wave:'sine', click:[520,360,.11], open:[660,990,.18] },
             console: { wave:'sine', click:[720,180,.12], open:[540,1480,.24] },
             arcade: { wave:'square', click:[440,880,.10], open:[520,1040,.2] },
-            minimal: { wave:'triangle', click:[420,320,.09], open:[700,900,.12] }
+            minimal: { wave:'triangle', click:[420,320,.09], open:[700,900,.12] },
+            sparkle: { wave:'sine', click:[880,1320,.13], open:[740,1480,.25] },
+            deep: { wave:'sine', click:[330,220,.16], open:[440,660,.28] },
+            retro: { wave:'square', click:[660,440,.08], open:[523,1046,.16] },
+            synthwave: { wave:'sawtooth', click:[220,880,.13], open:[330,1320,.26] },
+            crystal: { wave:'sine', click:[990,1480,.12], open:[880,1760,.3] },
+            pulse: { wave:'triangle', click:[150,300,.16], open:[180,540,.32] },
+            chime: { wave:'sine', click:[1046,784,.14], open:[784,1568,.28] },
+            radar: { wave:'triangle', click:[360,720,.1], open:[420,1260,.24] },
+            mech: { wave:'square', click:[180,540,.09], open:[220,880,.2] },
+            breeze: { wave:'sine', click:[620,460,.2], open:[480,960,.34] }
         };
         const preset = presets[style] || presets.soft, values = tipo === 'ps-ui' ? preset.open : preset.click;
         const play = () => {
@@ -434,7 +452,7 @@ document.addEventListener('pointerdown', evento => {
 }, { capture: true, passive: true });
 document.addEventListener('keydown', desbloquearAudioInterfaz, { capture: true });
 
-function cambiarEstiloSonido(style) { globalAppConfig.estiloSfx = ['soft','console','arcade','minimal'].includes(style) ? style : 'soft'; localStorage.setItem('cfg_sfx_style', globalAppConfig.estiloSfx); emitirEfectoSonidoNativo('ps-ui', true); }
+function cambiarEstiloSonido(style) { globalAppConfig.estiloSfx = ['soft','console','arcade','minimal','sparkle','deep','retro','synthwave','crystal','pulse','chime','radar','mech','breeze'].includes(style) ? style : 'soft'; localStorage.setItem('cfg_sfx_style', globalAppConfig.estiloSfx); emitirEfectoSonidoNativo('ps-ui', true); }
 function probarSonidoSeleccionado() {
     const status = document.getElementById('cfg-audio-status');
     if (status) status.textContent = 'Probando el sonido de interfaz…';
@@ -753,6 +771,17 @@ function sysNotification(titulo, mensaje, iconoClase = "fa-info-circle") {
 
 // ============ RADAR MEJORADO ============
 
+function animarAcercamientoRadar(galaxy) {
+    if (!galaxy) return Promise.resolve();
+    galaxy.classList.remove('found', 'approach');
+    galaxy.classList.add('approach');
+    return new Promise(resolve => setTimeout(() => {
+        galaxy.classList.remove('approach');
+        galaxy.classList.add('found');
+        resolve();
+    }, 650));
+}
+
 async function lanzarRadarVentanaEmergente() {
     // Cancelar cualquier cierre automático pendiente
     if (radarTimeoutId) {
@@ -766,7 +795,12 @@ async function lanzarRadarVentanaEmergente() {
     const logTerm = document.getElementById('radar-log-terminal');
     const subLabel = document.getElementById('radar-subnet-txt');
     const galaxy = document.getElementById('radar-galaxy');
-    if (galaxy) galaxy.classList.remove('found');
+    const inputIP = document.getElementById('ps-ip-full-input');
+    const inputPort = document.getElementById('ps-port-input');
+    const candidateIP = String(inputIP?.value ?? globalAppConfig.ipConsola ?? '').trim();
+    const parsedPort = Number.parseInt(inputPort?.value || globalAppConfig.portFTP || 2121, 10);
+    const radarPort = Number.isInteger(parsedPort) && parsedPort >= 1 && parsedPort <= 65535 ? parsedPort : 2121;
+    if (galaxy) galaxy.classList.remove('found', 'approach');
 
     if (!modal || !logTerm) return;
 
@@ -777,21 +811,27 @@ async function lanzarRadarVentanaEmergente() {
     if (subLabel) subLabel.innerText = `ANALYZING.NETWORK`;
 
     try {
-        logTerm.innerHTML += `<p class="text-gray-500">Verificando IP guardada: ${globalAppConfig.ipConsola}...</p>`;
-        logTerm.scrollTop = logTerm.scrollHeight;
+        if (validarEstructuraIP(candidateIP)) {
+            logTerm.innerHTML += `<p class="text-gray-500">Verificando IP guardada: ${candidateIP}...</p>`;
+            logTerm.scrollTop = logTerm.scrollHeight;
 
-        // Primero intentar con la IP guardada (rápido)
-        let resCache = await fetch(`api/scanner.php?ip=${globalAppConfig.ipConsola}&port=${globalAppConfig.portFTP}`);
-        let dataCache = await resCache.json();
-
-        if (dataCache && dataCache.status === 'success') {
-            if (galaxy) galaxy.classList.add('found');
-            logTerm.innerHTML += `<p class="text-white font-bold bg-emerald-950/50 px-1 border border-emerald-500/20">🚀 PS4 HALLADA EN CACHÉ: ${globalAppConfig.ipConsola}</p>`;
-            if (subLabel) subLabel.innerText = `LINK.ESTABLISHED`;
-            await verificarRadarInicial();
-            // Cerrar automáticamente después de 1.2 segundos
-            radarTimeoutId = setTimeout(() => { abortarYEstabilizarRadar(); }, 1200);
-            return;
+            // Un intento directo mantiene el flujo rápido cuando la dirección sigue vigente.
+            const resCache = await fetch(`api/scanner.php?ip=${encodeURIComponent(candidateIP)}&port=${radarPort}`);
+            const dataCache = await resCache.json();
+            if (dataCache && dataCache.status === 'success') {
+                globalAppConfig.ipConsola = candidateIP;
+                globalAppConfig.portFTP = radarPort;
+                localStorage.setItem('sebas_ip_final_libre', candidateIP);
+                localStorage.setItem('sebas_port_libre', String(radarPort));
+                await animarAcercamientoRadar(galaxy);
+                logTerm.innerHTML += `<p class="text-white font-bold bg-emerald-950/50 px-1 border border-emerald-500/20">🚀 PS4 HALLADA EN CACHÉ: ${candidateIP}</p>`;
+                if (subLabel) subLabel.innerText = `LINK.ESTABLISHED`;
+                await verificarRadarInicial();
+                logTerm.innerHTML += `<p class="text-emerald-300">[OK] Conexión FTP validada. El registro queda abierto hasta que lo cierres.</p>`;
+                return;
+            }
+        } else {
+            logTerm.innerHTML += `<p class="text-yellow-300">No hay una IP válida en el campo. Buscaré la PS4 en las redes LAN activas.</p>`;
         }
 
         logTerm.innerHTML += `<p class="text-yellow-500">Caché offline o cambio de red detectado.</p>`;
@@ -799,7 +839,7 @@ async function lanzarRadarVentanaEmergente() {
         logTerm.scrollTop = logTerm.scrollHeight;
 
         const timeoutMs = 8000;
-        let resRadar = await fetch(`api/radar_api.php?timeout=${timeoutMs}&port=${globalAppConfig.portFTP}`);
+        let resRadar = await fetch(`api/radar_api.php?timeout=${timeoutMs}&port=${radarPort}`);
         let dataRadar = await resRadar.json();
 
         if (dataRadar && dataRadar.status === 'success') {
@@ -814,7 +854,7 @@ async function lanzarRadarVentanaEmergente() {
             logTerm.scrollTop = logTerm.scrollHeight;
 
             if (dataRadar.ps4_ips && dataRadar.ps4_ips.length > 0) {
-                if (galaxy) galaxy.classList.add('found');
+                await animarAcercamientoRadar(galaxy);
                 const orderedDevices = (dataRadar.devices || []).slice().sort((a, b) => {
                     const ftpA = (a.ports || []).some(port => [2121, 2122].includes(Number(port)));
                     const ftpB = (b.ports || []).some(port => [2121, 2122].includes(Number(port)));
@@ -842,25 +882,18 @@ async function lanzarRadarVentanaEmergente() {
                 if (inputIP) inputIP.value = nuevaIP;
 
                 await verificarRadarInicial();
-                // Cerrar automáticamente después de 2 segundos
-                radarTimeoutId = setTimeout(() => { abortarYEstabilizarRadar(); }, 2000);
+                logTerm.innerHTML += `<p class="text-emerald-300">[OK] Consola guardada y conexión verificada. Cierra el radar cuando termines.</p>`;
             } else {
                 logTerm.innerHTML += `<p class="text-red-400">[ERROR] No respondió ningún servicio conocido en ${dataRadar.segmento}. Revisa que PS4 y teléfono estén en la misma LAN y que GoldHEN/Package Installer esté activo.</p>`;
                 if (subLabel) subLabel.innerText = `SCAN.FAILED`;
-                // Cerrar automáticamente después de 3 segundos
-                radarTimeoutId = setTimeout(() => { abortarYEstabilizarRadar(); }, 3000);
             }
         } else {
             logTerm.innerHTML += `<p class="text-red-500">[ERROR] ${dataRadar.message || 'Fallo de interfaz de red.'}</p>`;
-            // Cerrar automáticamente después de 3 segundos
-            radarTimeoutId = setTimeout(() => { abortarYEstabilizarRadar(); }, 3000);
         }
     } catch (e) {
         logTerm.innerHTML += `<p class="text-red-500">[ERROR CRÍTICO] Servidor Termux no responde o error de red.</p>`;
         sysNotification("ERROR RADAR", "No se pudo completar el escaneo. Verifica tu conexión.", "fa-circle-xmark");
         console.error("Error en lanzarRadarVentanaEmergente:", e);
-        // Cerrar automáticamente después de 3 segundos
-        radarTimeoutId = setTimeout(() => { abortarYEstabilizarRadar(); }, 3000);
     }
     logTerm.scrollTop = logTerm.scrollHeight;
 }

@@ -15,7 +15,7 @@ const saves = [
 function element(id) {
     if (!elements.has(id)) elements.set(id, {
         innerHTML: '', textContent: '', disabled: false,
-        classList: { toggle() {} }
+        classList: { toggle() {}, remove() {} }
     });
     return elements.get(id);
 }
@@ -34,7 +34,7 @@ const context = {
             status: 'success', backup: { id: `fixture-${fields.title_id}`, total_bytes: 1234 },
             download: `api/saves_api.php?action=download&backup_id=fixture-${fields.title_id}`
         }) };
-        if (fields.action === 'cleanup_delete') return { ok: true, json: async () => ({ status: 'success', message: 'fixture deleted' }) };
+        if (fields.action === 'cleanup_delete') return { ok: true, json: async () => ({ status: 'success', message: 'fixture deleted', removed_bytes: fields.title_id === 'CUSA00419' ? 1050 : 2100, removed_bytes_exact: true }) };
         throw new Error(`Unexpected fixture action: ${fields.action}`);
     }
 };
@@ -57,6 +57,8 @@ vm.runInNewContext(source, context, { filename: 'js/limpieza.js' });
     const backedDeletes = requests.filter(request => request.action === 'cleanup_delete' && request.permanent === '0');
     assert.equal(backedDeletes.length, 2);
     assert.ok(backedDeletes.every(request => request.backup_id.startsWith('fixture-')));
+    assert.match(element('cleanup-result').innerHTML, /Tamaño de archivos eliminados: 3\.08 KiB/, 'La limpieza debe sumar los bytes confirmados por FTP en partidas y metadatos.');
+    assert.match(element('cleanup-result').innerHTML, /no es una lectura de bloques libres/, 'Debe distinguir el tamaño de archivos de los bloques libres del disco.');
 
     context.window.limpiezaSeleccionarTodo();
     await context.window.limpiezaBorrarSeleccion(false);
