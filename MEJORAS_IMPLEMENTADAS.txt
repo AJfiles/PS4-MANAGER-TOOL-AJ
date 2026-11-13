@@ -16,7 +16,9 @@ datos de la consola.
 instaladas, 7 de caché); Cambiar vista abrió el carrusel y las acciones por CUSA.
 Partidas mostró los 60 registros (33 sin juego instalado), Capturas mostró la
 imagen disponible y Parches presentó 10 juegos/387 XML, además del diagnóstico
-correcto de `game_patch.prx` ausente en `[default]`. No se activó ni borró nada.
+correcto de `game_patch.prx` ausente en `[default]`. Plugins mostró los 16 archivos
+de la consola y Explorer FTP listó sus carpetas raíz. No se activó, borró ni subió
+nada a la consola.
 - Se generó una APK 4.5.12 (40512) de prueba. Android rechazó actualizar sobre la
 4.5.11 instalada porque la clave de firma de WebToApp en el Vivo no coincide con
 la clave original. La 4.5.11 permanece instalada; recuperar la clave del Galaxy
