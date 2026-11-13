@@ -21,8 +21,8 @@ La conexión con la consola se realiza por la red local. No necesitas cuenta ni 
 | Plataforma | Descarga o instalación | Inicio rápido |
 | --- | --- | --- |
 | **📱 Android · Termux** | [Instalar / actualizar desde GitHub](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Pega el comando de abajo en Termux. |
-| **📦 Android · APK** | [Descargar APK 4.5.12](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.12/PS4-Manager-Tools-AJ-v4.5.12.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
-| **🖥️ Windows · PC** | [Descargar paquete PC 4.5.12](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.12/PS4-Manager-Tools-AJ-PC-v4.5.12.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
+| **📦 Android · APK** | [Último APK publicado: 4.5.11](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.11/PS4-Manager-Tools-AJ-v4.5.11.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
+| **🖥️ Windows · PC** | [Último paquete publicado: 4.5.11](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.11/PS4-Manager-Tools-AJ-PC-v4.5.11.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
 
 Consulta [todos los Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases), sus notas de versión y el archivo de hashes SHA-256.
 

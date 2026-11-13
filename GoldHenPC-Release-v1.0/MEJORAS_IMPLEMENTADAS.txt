@@ -1,6 +1,22 @@
 PS4 Manager Tools - CAMBIOS Y PRUEBAS
 =====================================
 
+PS4 Manager Tools AJ 4.5.12: sincronización de versión y verificación (2026-11-13)
+---------------------------------------------------------------------------------
+- Se sincronizó la versión 4.5.12 en la aplicación web, Termux, documentación y
+paquete espejo para Windows; el verificador ahora comprueba la versión nueva.
+- `scripts/verificar-proyecto.ps1` pasó: sintaxis de 60 archivos PHP, 21 archivos
+JavaScript y verificaciones funcionales de módulos, actualizador, archivos PC y
+renderizado con DOM simulado.
+- La lectura real de solo consulta desde el Vivo X80 Pro, en la misma red que la
+PS4, respondió para Biblioteca (45 juegos), partidas (60 registros), Almacenamiento,
+Parches, Plugins (16), Capturas y el listado FTP raíz. No se borraron ni modificaron
+datos de la consola.
+- Se generó una APK 4.5.12 (40512) de prueba. Android rechazó actualizar sobre la
+4.5.11 instalada porque la clave de firma de WebToApp en el Vivo no coincide con
+la clave original. La 4.5.11 permanece instalada; recuperar la clave del Galaxy
+anterior es requisito para distribuir una actualización compatible.
+
 PS4 Manager Tools AJ 4.5.11: accesos contextuales por juego (2026-11-12)
 ------------------------------------------------------------------------
 - La ficha del juego ofrece accesos a Parches, Partidas y Capturas filtrados
