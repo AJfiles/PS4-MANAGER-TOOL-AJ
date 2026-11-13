@@ -42,7 +42,7 @@ for _ in $(seq 1 30); do
 done
 
 if [ "$READY" -eq 1 ]; then
-  echo "PS4 Manager Tools v4.5.11 abierto en http://127.0.0.1:${PORT}/index.php"
+  echo "PS4 Manager Tools v4.5.12 abierto en http://127.0.0.1:${PORT}/index.php"
   command -v termux-open-url >/dev/null 2>&1 && termux-open-url "http://127.0.0.1:${PORT}/index.php"
   exit 0
 fi
