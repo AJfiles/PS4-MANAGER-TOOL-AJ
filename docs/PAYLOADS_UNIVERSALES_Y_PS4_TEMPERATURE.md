@@ -21,13 +21,18 @@ El `eboot.bin` extraído de las dos versiones tiene el mismo SHA-256 (`5090E7D0F
 
 ## Firmware 14.00 y alcance de GoldHEN
 
-El changelog de la beta GoldHEN v2.4b18.13 declara soporte de 14.00. Ese soporte de GoldHEN no certifica automáticamente payloads de terceros. El repositorio de ejemplo de fan control `grimstatic/payload-fan-control-ps4` declara pruebas en una PS4 Pro CUH-7106B con firmware 12.52 y una sola consola de prueba. Esa evidencia no respalda 14.00 ni todos los modelos.
+La página oficial de releases consultada publica GoldHEN v2.4b18 y enumera firmware soportados hasta 11.00; no documenta 14.00. El issue oficial #412 sobre 14.00 aparece cerrado, pero el cierre por sí solo no identifica un binario, matriz de compatibilidad o pruebas; no se toma como confirmación de soporte. Existe un changelog en un repositorio comunitario que atribuye 14.00 a una beta v2.4b18.13, pero no es el canal oficial y no basta para recomendarla ni para certificar payloads de terceros.
+
+El repositorio de ejemplo de fan control `grimstatic/payload-fan-control-ps4` declara pruebas en una PS4 Pro CUH-7106B con firmware 12.52 y una sola consola de prueba. Esa evidencia no respalda 14.00 ni todos los modelos. El SDK de payloads indica que varios offsets de kernel suelen ser únicos por firmware, por lo que un único binario universal no puede asumirse compatible por el mero hecho de que GoldHEN cargue.
 
 Fuentes primarias consultadas:
 
-- [GoldHEN releases](https://github.com/GoldHEN/GoldHEN/releases)
-- [Changelog v2.4b18.13](https://github.com/EEJTek/GoldHEN_v2.4b18.12/blob/main/CHANGELOG.md)
+- [GoldHEN releases oficiales](https://github.com/GoldHEN/GoldHEN/releases)
+- [Issue oficial de GoldHEN sobre 14.00](https://github.com/GoldHEN/GoldHEN/issues/412)
 - [Fan Control payload y su alcance de prueba](https://github.com/grimstatic/payload-fan-control-ps4)
+- [SDK PS4 y offsets por firmware](https://github.com/ps4-payload-dev/sdk#working-firmwares)
+
+Referencia comunitaria no usada como confirmación: [changelog v2.4b18.13 en un fork](https://github.com/EEJTek/GoldHEN_v2.4b18.12/blob/main/CHANGELOG.md).
 
 ## Integración del Manager
 
