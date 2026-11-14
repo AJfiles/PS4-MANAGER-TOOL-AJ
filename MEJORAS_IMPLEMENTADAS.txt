@@ -23,6 +23,14 @@ nada a la consola.
 4.5.11 instalada porque la clave de firma de WebToApp en el Vivo no coincide con
 la clave original. La 4.5.11 permanece instalada; recuperar la clave del Galaxy
 anterior es requisito para distribuir una actualización compatible.
+- Seguimiento 2026-11-14: se actualizó el proyecto PHP de WebToApp en el Galaxy
+  S23 Ultra y se generó `PS4_Manager_Tools_AJ_v4.5.12.APK` (versionCode 40512).
+  El certificado SHA-256 coincide con el de la APK pública 4.5.10/4.5.11
+  (`D8:8B:5F:08:7E:9E:6A:4C:C5:58:B9:2C:63:6E:FF:3C:9E:D2:3F:34:E7:17:CC:E4:70:37:B2:72:C4:46:99:E3`).
+  Se instaló y abrió en el S23. En la misma LAN, la conexión a `192.168.20.39:2121`
+  quedó conectada; Biblioteca leyó 45 títulos (38 instalados, 7 no instalados) y
+  el carrusel cambió entre juegos y mostró sus portadas. No se modificaron datos
+  de la PS4. Play Protect presentó su advertencia de instalación.
 
 PS4 Manager Tools AJ 4.5.11: accesos contextuales por juego (2026-11-12)
 ------------------------------------------------------------------------
