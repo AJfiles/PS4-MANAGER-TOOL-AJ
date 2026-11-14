@@ -33,6 +33,7 @@ function bibliotecaClaseEstado(installed) {
     return 'library-unverified';
 }
 function bibliotecaResolverImagenCarrusel(image) {
+    if (image?.dataset?.suspended === 'true') return 'suspended';
     const fallback = String(image?.dataset?.fallback || '').trim();
     const current = String(image?.getAttribute?.('src') || image?.src || '').trim();
     const resolver = value => {
@@ -59,6 +60,7 @@ let categoriaAEliminar = null;
 let bibliotecaAutoScanEnCurso = false;
 let bibliotecaAutoScanCompletado = Number(localStorage.getItem('ghm_biblioteca_ultimo_escaneo') || 0);
 let carruselIgnorarClickHasta = 0;
+let bibliotecaFrameCarrusel = 0;
 
 function initBiblio() {
     const capaBib = document.getElementById('layer-biblioteca');
@@ -157,7 +159,14 @@ async function ejecutarSincronizacionFantasmasFondo() {
         const totalEscaneo = colaTrabajoCUSAs.length;
         let procesadosEscaneo = 0;
         let huboCambiosNuevos = false;
-        if (estadoSync) estadoSync.innerText = totalEscaneo ? `Cargando títulos: 0/${totalEscaneo}` : 'Biblioteca actualizada.';
+        if (estadoSync) {
+            const instaladosDetectados = jsonScan.installed_verified ? Object.keys(idsInstalados).length : null;
+            estadoSync.innerText = totalEscaneo
+                ? instaladosDetectados === null
+                    ? `Identificando ${totalEscaneo} títulos · estado FTP sin verificar`
+                    : `Identificando ${totalEscaneo} títulos · ${instaladosDetectados} instalados · ${Math.max(0, totalEscaneo - instaladosDetectados)} no instalados`
+                : 'Biblioteca actualizada.';
+        }
 
         // Conservamos entradas antiguas para que el usuario pueda identificarlas
         // como «No instalado»; solo una lectura no vacía permite afirmar el
@@ -585,7 +594,6 @@ function actualizarCoverflow3DStyles() {
         else if (offset > Math.floor(totalCards / 2)) { offset -= totalCards; }
 
         const absOffset = Math.abs(offset);
-        card.style.willChange = absOffset === 0 ? 'transform, opacity' : 'auto';
         card.classList.toggle('carousel-near', absOffset <= 2);
         card.classList.toggle('carousel-far', absOffset > 2);
         const cover = card.querySelector('img.ps4-img-art');
@@ -593,14 +601,18 @@ function actualizarCoverflow3DStyles() {
             const shouldLoad = absOffset <= 1;
             const nextSrc = shouldLoad ? (cover.dataset.src || '') : '';
             if (nextSrc && cover.dataset.loadedSrc !== nextSrc) {
+                cover.dataset.suspended = 'false';
                 cover.dataset.loadedSrc = nextSrc;
                 cover.src = nextSrc;
             } else if (!nextSrc && cover.hasAttribute('src')) {
+                cover.dataset.suspended = 'true';
                 cover.removeAttribute('src');
                 cover.dataset.loadedSrc = '';
             }
         }
         card.classList.remove('active');
+
+        if (absOffset > 2) return;
 
         if (absOffset === 0) {
             card.classList.add('active');
@@ -876,7 +888,11 @@ function moverCarruselBiblioteca(delta) {
     const visibles = obtenerVisiblesFiltrados();
     if (!visibles.length) return;
     index3DActivo = (index3DActivo + delta % visibles.length + visibles.length) % visibles.length;
-    actualizarCoverflow3DStyles();
+    if (bibliotecaFrameCarrusel) return;
+    bibliotecaFrameCarrusel = requestAnimationFrame(() => {
+        bibliotecaFrameCarrusel = 0;
+        actualizarCoverflow3DStyles();
+    });
 }
 
 async function ejecutarAccionRapidaJuego(accion) {

@@ -70,7 +70,7 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, visibility 0s linear 0.18s;
+        transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease, box-shadow 0.16s ease, border-color 0.16s ease, visibility 0s linear 0.14s;
         cursor: pointer;
         display: flex;
         flex-direction: column;
@@ -86,11 +86,16 @@
     .ps4-box-case .library-status-badge { top: 30px; right: 6px; }
 
     .ps4-box-case.active {
-        border: 1px solid rgba(0, 210, 255, 0.5);
+        border-width: 2px;
+        border-style: solid;
+        border-color: rgba(0, 210, 255, 0.5);
         box-shadow: 0 0 35px rgba(0, 162, 255, 0.8), 0 15px 40px rgba(0, 0, 0, 0.7);
     }
-    .ps4-box-case.carousel-near { visibility:visible; transition-delay:0s; }
-    .ps4-box-case.carousel-far { visibility:hidden; }
+    .ps4-box-case.library-installed.active { border-color:rgba(52,211,153,.95); box-shadow:0 0 24px rgba(52,211,153,.28),0 15px 40px rgba(0,0,0,.7); }
+    .ps4-box-case.library-not-installed.active { border-color:rgba(248,113,113,1); box-shadow:0 0 24px rgba(248,113,113,.3),0 15px 40px rgba(0,0,0,.7); }
+    .ps4-box-case.library-unverified.active { border-color:rgba(251,191,36,.95); box-shadow:0 0 24px rgba(251,191,36,.24),0 15px 40px rgba(0,0,0,.7); }
+    .ps4-box-case.carousel-near { visibility:visible; transition-delay:0s; will-change:transform,opacity; }
+    .ps4-box-case.carousel-far { visibility:hidden; opacity:0 !important; pointer-events:none !important; transition:none !important; }
 
     .ps4-top-ribbon {
         background: linear-gradient(180deg, #0056c6 0%, #003780 100%);

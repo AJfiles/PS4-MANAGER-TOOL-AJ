@@ -4,6 +4,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'biblioteca.js'), 'utf8');
+const styles = fs.readFileSync(path.join(__dirname, '..', 'modulos', 'biblioteca.php'), 'utf8');
 const helperStart = source.indexOf('function bibliotecaEscaparHtml(');
 const helperEnd = source.indexOf('let categoriaAEliminar = null;', helperStart);
 assert(helperStart >= 0 && helperEnd > helperStart, 'No se encontraron los helpers de seguridad de Biblioteca.');
@@ -32,7 +33,7 @@ assert.equal(cards[1].children[0].children[0].src, 'https://images.example.test/
 assert.equal(cards[1].children[0].children[0].loading, 'lazy');
 
 const carouselImage = {
-    dataset: { fallback: 'user/cache/biblioteca/CUSA12345.png' },
+    dataset: { fallback: 'user/cache/biblioteca/CUSA12345.png', suspended: 'false' },
     src: 'https://images.example.test/broken-cover.jpg',
     alt: 'Juego de prueba',
     getAttribute(name) { return name === 'src' ? this.src : null; },
@@ -40,6 +41,9 @@ const carouselImage = {
 };
 assert.equal(context.bibliotecaResolverImagenCarrusel(carouselImage), 'fallback', 'El carrusel debe intentar el icono local cuando falla la portada principal.');
 assert.equal(carouselImage.src, 'user/cache/biblioteca/CUSA12345.png', 'El fallback elegido debe quedar como fuente para futuras navegaciones.');
+carouselImage.dataset.suspended = 'true';
+assert.equal(context.bibliotecaResolverImagenCarrusel(carouselImage), 'suspended', 'No debe consumirse el fallback por el src vacÃ­o temporal de una tarjeta lejana.');
+carouselImage.dataset.suspended = 'false';
 assert.equal(context.bibliotecaResolverImagenCarrusel(carouselImage), 'placeholder', 'Un segundo error debe sustituir la imagen rota por un placeholder visible.');
 assert.equal(carouselImage.replacement.attributes.role, 'img');
 assert.equal(carouselImage.replacement.attributes['aria-label'], 'Juego de prueba');
@@ -49,6 +53,28 @@ assert.match(source, /<img \$\{idx === index3DActivo \? `src=/, 'El carrusel deb
 assert.match(source, /data-src="\$\{bibliotecaEscaparHtml\(principal\)\}"[^>]*loading="lazy"/, 'Las portadas vecinas deben conservar carga diferida.');
 assert.match(source, /const shouldLoad = absOffset <= 1/, 'Solo el título actual y sus vecinos inmediatos deben cargarse al navegar.');
 assert.match(source, /text-install-state-3d/);
+assert.match(source, /cover\.dataset\.suspended = 'true'[\s\S]*?cover\.removeAttribute\('src'\)/);
+assert.match(source, /bibliotecaFrameCarrusel = requestAnimationFrame/);
+assert.match(styles, /\.ps4-box-case\.library-installed\.active\s*\{\s*border-color:\s*rgba\(52,211,153/);
+assert.match(styles, /\.ps4-box-case\.library-not-installed\.active\s*\{\s*border-color:\s*rgba\(248,113,113/);
+
+const pendingFrames = [];
+let carouselRenders = 0;
+const navigationContext = {
+    obtenerVisiblesFiltrados: () => [1, 2, 3, 4],
+    actualizarCoverflow3DStyles: () => { carouselRenders += 1; },
+    requestAnimationFrame: callback => { pendingFrames.push(callback); return pendingFrames.length; }
+};
+const navigationStart = source.indexOf('function moverCarruselBiblioteca(');
+const navigationEnd = source.indexOf('async function ejecutarAccionRapidaJuego(', navigationStart);
+vm.runInNewContext(`let index3DActivo = 0; let bibliotecaFrameCarrusel = 0; ${source.slice(navigationStart, navigationEnd)}; this.moveCarousel = moverCarruselBiblioteca; this.carouselIndex = () => index3DActivo;`, navigationContext);
+navigationContext.moveCarousel(1);
+navigationContext.moveCarousel(1);
+navigationContext.moveCarousel(1);
+assert.equal(pendingFrames.length, 1, 'La navegación rápida debe agruparse en un único frame pendiente.');
+assert.equal(navigationContext.carouselIndex(), 3, 'Las entradas agrupadas deben conservar el índice final.');
+pendingFrames[0]();
+assert.equal(carouselRenders, 1, 'El carrusel debe renderizar una vez para los eventos del mismo frame.');
 
 const escape = context.bibliotecaEscaparHtml || vm.runInNewContext(source.slice(helperStart, helperEnd) + '\nbibliotecaEscaparHtml;');
 assert.equal(escape('"<script>&'), '&quot;&lt;script&gt;&amp;');
