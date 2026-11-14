@@ -6,6 +6,7 @@
     const translatingAttributes = new WeakMap();
     const translations = {
         'PS4 Manager Tools AJ | Consola PS4': 'PS4 Manager Tools AJ | PS4 Console',
+        'La IP guardada no respondi\u00f3 en vivo; buscar\u00e9 la consola en la LAN.': 'The saved IP did not respond live; searching the LAN for the console.',
         'Configuración': 'Settings', 'Entorno, Audio y SFX': 'Interface, audio and SFX', 'Alertas del Sistema': 'System alerts', 'No instalado': 'Not installed',
         'Vista previa permanente · refleja forma, animación y estilo elegidos': 'Always-visible preview · reflects the selected shape, animation and style',
         'Cuántico · anillos dinámicos': 'Quantum · dynamic rings', 'Hélice · órbitas cruzadas': 'Helix · crossing orbits', 'Portal · núcleo profundo': 'Portal · deep core',
@@ -227,7 +228,7 @@
         'Contenido eliminado con éxito de la consola.': 'Content deleted from the console.', 'Crear la carpeta descartará cambios locales aún no guardados. ¿Continuar?': 'Creating the folder will discard unsaved local changes. Continue?',
         'Debes escribir un nombre válido.': 'Enter a valid name.', 'Descargando portada de la consola...': 'Downloading cover art from the console…', 'Descargando ZIP al almacenamiento...': 'Downloading ZIP to storage…', 'Descargar captura': 'Download capture',
         'Diagnóstico completo. El formato ya está normalizado; revisa cualquier referencia que no tenga su .prx.': 'Diagnostics complete. The format is normalized; check any references without a .prx file.',
-        'Diagnóstico completo. Revisa los hallazgos y abre la vista previa antes de reparar.': 'Diagnostics complete. Review the findings and preview before repairing.', 'Dirección IP actualizada.': 'IP address updated.',
+        'Diagnóstico completo. Revisa los hallazgos y abre la vista previa antes de reparar.': 'Diagnostics complete. Review the findings and preview before repairing.', 'Dirección IP actualizada.': 'IP address updated.', 'IP borrada. Usa Radar de red para buscar la PS4 en la LAN.': 'IP cleared. Use Network Radar to search the LAN for the PS4.',
         'El servidor devolvió un error inesperado.': 'The server returned an unexpected error.', 'El servidor local debe abrirse por HTTP para que la PS4 pueda descargar el PKG.': 'The local server must use HTTP so the PS4 can download the PKG.',
         'Eliminar captura': 'Delete capture', 'Eliminar carpeta': 'Delete folder', 'Error al cargar': 'Load error', 'Error al conectar:': 'Connection error:', 'Error al escanear': 'Scan error', 'Error al leer': 'Read error',
         'FALLO': 'FAILURE', 'Fallo al extraer.': 'Extraction failed.', 'Fallo al generar el archivo ZIP.': 'Could not create the ZIP file.', 'Fallo al hacer backup.': 'Backup failed.', 'Fallo al leer la consola': 'Could not read the console.',
@@ -376,6 +377,10 @@
         [/^Enviado: (.+)\.$/, (_, value) => `Sent: ${value}.`],
         [/^Restaurados (\d+) archivo\(s\)\.$/, (_, count) => `Restored ${count} file(s).`],
         [/^Cargando títulos: (\d+)\/(\d+)$/, (_, done, total) => `Loading titles: ${done}/${total}`],
+        [/^PS4 localizada · cierre automático en (\d+) s · puedes cerrar antes con X\.$/, (_, seconds) => `PS4 found · auto-close in ${seconds}s · tap X to close sooner.`],
+        [/^\[OK\] Conexión FTP validada\.$/, () => '[OK] FTP connection validated.'],
+        [/^\[OK\] Consola guardada y conexión verificada\. El radar se cerrará en 5 segundos; puedes cerrarlo antes con X\.$/, () => '[OK] Console saved and connection verified. Radar closes in 5 seconds; tap X to close sooner.'],
+        [/^PS4 localizada · cierre automático en (\d+) s · puedes cerrar antes con X\.$/, (_, seconds) => `PS4 found · auto-close in ${seconds}s · tap X to close sooner.`],
         [/^Biblioteca actualizada · (\d+) títulos$/, (_, count) => `Library updated · ${count} titles`],
         [/^Se crearán respaldos ZIP verificados para (.+) partidas\. No se borrará nada de la PS4\. ¿Continuar\?$/, (_, count) => `Create verified ZIP backups for ${count} save(s). Nothing will be deleted from the PS4. Continue?`],
         [/^Se crearán ZIP verificados de (.+) partidas \((.+)\) antes de borrarlas\. ¿Seguir\?$/, (_, count, size) => `Create verified ZIPs for ${count} save(s) (${size}) before deleting them. Continue?`],

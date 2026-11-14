@@ -222,8 +222,11 @@ if ($action === 'scan') {
     $montajes = lb_read_directory_names($host_ip, $port, '/mnt', $lectura_montajes);
     $lectura_apps_externas = $lectura_montajes;
     if ($lectura_montajes) {
-        foreach ($montajes as $montaje) {
-            if (!preg_match('/^ext[01]$/i', $montaje)) continue;
+        $montajes_externos_activos = array_values(array_filter(
+            $montajes,
+            static fn(string $montaje): bool => preg_match('/^ext[01]$/i', $montaje) === 1
+        ));
+        foreach ($montajes_externos_activos as $montaje) {
             $directorio_leido = false;
             $base_path = '/mnt/' . $montaje . '/user/app';
             $ids_instalados += lb_read_appmeta_directory($host_ip, $port, $base_path, $directorio_leido);

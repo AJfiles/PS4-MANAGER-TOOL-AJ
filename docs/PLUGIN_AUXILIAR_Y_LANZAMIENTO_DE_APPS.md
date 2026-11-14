@@ -32,3 +32,13 @@ No existe base suficiente para distribuir un 鈥減lugin universal de optimizaci贸
 ## Estado de investigaci贸n
 
 Esta nota es an谩lisis de viabilidad; no contiene un PRX ni payload y no se ha probado c贸digo nuevo dentro de la consola. La consola disponible se us贸 para lecturas FTP y pruebas de red previamente documentadas, nunca para instalar un plugin auxiliar.
+
+## Verificacion con documentacion actual de GoldHEN (2026-11-14)
+
+El repositorio oficial GoldHEN_Plugins_Repository describe PRX cargados antes de iniciar juegos. Su guia requiere GoldHEN 2.3 o superior, activar la carga de plugins en el menu Plugins, guardar los PRX en /data/GoldHEN/plugins/ y referenciarlos desde /data/GoldHEN/plugins.ini; recomienda secciones por CUSA frente a [default]. Por ello un PRX cargado asi puede extender o instrumentar juegos, pero no se convierte por ese acto en un daemon disponible al abrir el Manager en el menu XMB ni en un acelerador del servidor FTP.
+
+La guia de compilacion enumera LLVM 10+, OpenOrbis SDK y GoldHEN Plugin SDK. La carga exige habilitar plugins en la consola. El Manager podria automatizar la copia y la edicion idempotente del INI despues de una seleccion explicita, con hash/version, respaldo, lectura de retorno y opcion de retirar; la instalacion automatica al conectar seguiria siendo enga駉sa porque escribir el archivo no confirma que GoldHEN ya lo cargara. Primero debe existir un PRX concreto, firmado/construible, con objetivo y firmware definidos.
+
+La documentacion de releases actual consultada enumera soporte oficial hasta 11.00. No se usara esta investigacion para atribuir compatibilidad a 14.00 ni para habilitar instalacion remota sin una build probada.
+
+Fuentes primarias: https://github.com/GoldHEN/GoldHEN_Plugins_Repository/blob/main/.github/README.md y https://github.com/GoldHEN/GoldHEN/releases.

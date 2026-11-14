@@ -13,7 +13,9 @@ error_reporting(0);
 function app_asset_url(string $relative): string {
     $relative = ltrim(str_replace('\\', '/', $relative), '/');
     $file = __DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
-    $version = is_file($file) ? (string)@filemtime($file) : '1';
+    // Use a content hash so rebuilt APK/WebView assets cannot keep the same
+    // cache key when files are copied with preserved or coarse timestamps.
+    $version = is_file($file) ? (string)@substr(hash_file('sha256', $file), 0, 16) : '1';
     return '/' . htmlspecialchars($relative, ENT_QUOTES, 'UTF-8') . '?v=' . rawurlencode($version);
 }
 $ghm_runtime = is_file(__DIR__ . '/user/.termux-runtime') ? 'termux' : 'pc';
@@ -165,22 +167,37 @@ header('X-Author: ' . $firma);
 
         .scanner-line { width: 100%; height: 2px; background: #10b981; position: absolute; left: 0; top: 0; box-shadow: 0 0 15px #10b981, 0 0 5px #10b981; opacity: 0.8; animation: scan 1.5s linear infinite; z-index: 20; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        .radar-galaxy { position:relative;height:130px;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 55%,rgba(16,185,129,.24),rgba(17,24,39,.88) 42%,rgba(5,10,20,.98) 76%);isolation:isolate;transition:transform .9s cubic-bezier(.2,.8,.2,1),filter .7s ease; }
-        .radar-galaxy::before,.radar-galaxy::after { content:"";position:absolute;inset:-60%;border-radius:50%;pointer-events:none;background:repeating-conic-gradient(from 0deg,transparent 0deg 16deg,rgba(34,211,238,.09) 17deg 19deg,transparent 20deg 42deg);filter:blur(2px);animation:radar-nebula 22s linear infinite; }
-        .radar-galaxy::after { inset:-30%;background:repeating-radial-gradient(circle at 50% 50%,transparent 0 18px,rgba(167,243,208,.11) 19px 20px,transparent 21px 35px);animation-duration:35s;animation-direction:reverse; }
+        .radar-galaxy { position:relative;width:100%;max-width:100%;min-width:0;height:108px;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 55%,rgba(16,185,129,.24),rgba(17,24,39,.88) 42%,rgba(5,10,20,.98) 76%);isolation:isolate;transition:filter .7s ease; }
+        .radar-galaxy::before { content:"";position:absolute;inset:-18%;border-radius:50%;pointer-events:none;background:conic-gradient(from 0deg,transparent 0 300deg,rgba(34,211,238,.02) 318deg,rgba(52,211,153,.2) 350deg,rgba(167,243,208,.04) 360deg);filter:blur(1px);animation:radar-sweep 5.5s linear infinite; }
+        .radar-galaxy::after { content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:repeating-radial-gradient(circle at 50% 50%,transparent 0 18px,rgba(167,243,208,.11) 19px 20px,transparent 21px 35px);animation:radar-rings 4s ease-in-out infinite; }
         .radar-orbit { position:absolute;left:50%;top:50%;width:82px;height:82px;border:1px solid rgba(52,211,153,.38);border-radius:50%;transform:translate(-50%,-50%) rotateX(66deg);animation:radar-spin 5s linear infinite; }
         .radar-orbit:nth-child(2){width:126px;height:126px;animation-duration:8s;border-color:rgba(34,211,238,.23)}
-        .radar-sun { position:absolute;left:50%;top:50%;width:25px;height:25px;border:1px solid rgba(191,219,254,.72);border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 32% 28%,#dbeafe 0 7%,#38bdf8 15%,#2563eb 48%,#102659 78%);box-shadow:0 0 25px rgba(56,189,248,.8),inset -5px -3px 9px rgba(2,6,23,.8); }
-        .radar-planet { position:absolute;left:calc(50% + 40px);top:50%;width:11px;height:11px;border-radius:50%;background:#22d3ee;box-shadow:0 0 15px #22d3ee;animation:radar-planet 5s linear infinite;z-index:2;transition:left .85s cubic-bezier(.2,.8,.2,1),top .85s cubic-bezier(.2,.8,.2,1); }
-        .radar-galaxy.approach { transform:scale(1.13);filter:brightness(1.16) saturate(1.16); }
-        .radar-galaxy.found { transform:scale(1.2);filter:brightness(1.25) saturate(1.2); }
-        .radar-galaxy.found .radar-planet { left:50%;top:50%;width:16px;height:16px;background:#fbbf24;box-shadow:0 0 24px #fbbf24;animation:radar-dock .85s cubic-bezier(.2,.8,.2,1) forwards; }
+        .radar-sun { position:absolute;left:50%;top:50%;width:25px;height:25px;border:1px solid rgba(191,219,254,.72);border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 32% 28%,#dbeafe 0 7%,#38bdf8 15%,#2563eb 48%,#102659 78%);box-shadow:0 0 25px rgba(56,189,248,.8),inset -5px -3px 9px rgba(2,6,23,.8);transition:background .45s ease,border-color .45s ease,box-shadow .45s ease,transform .65s cubic-bezier(.2,.8,.2,1); }
+        .radar-sun::before { content:"";position:absolute;inset:3px;border-radius:48% 52% 58% 42%;opacity:0;transform:rotate(-24deg) scale(.7);background:radial-gradient(ellipse at 30% 35%,rgba(167,243,208,.9) 0 22%,transparent 25%),radial-gradient(ellipse at 67% 62%,rgba(110,231,183,.76) 0 18%,transparent 22%),radial-gradient(ellipse at 58% 22%,rgba(52,211,153,.68) 0 12%,transparent 16%);transition:opacity .35s ease,transform .55s ease;pointer-events:none; }
+        .radar-sun::after { content:"";position:absolute;inset:-8px;border:1px solid rgba(103,232,249,.42);border-radius:50%;animation:radar-signal-pulse 2.8s ease-out infinite;pointer-events:none; }
+        .radar-planet { position:absolute;left:50%;top:50%;width:11px;height:11px;border-radius:50%;background:#22d3ee;box-shadow:0 0 15px #22d3ee;animation:radar-planet 5s linear infinite;z-index:2;transition:transform .65s cubic-bezier(.2,.8,.2,1),opacity .65s ease; }
+        .radar-galaxy.approach { filter:brightness(1.12) saturate(1.12); }
+        .radar-galaxy.approach .radar-orbit { border-color:rgba(52,211,153,.7); }
+        .radar-galaxy.approach .radar-sun { transform:translate(-50%,-50%) scale(1.18);box-shadow:0 0 34px rgba(56,189,248,.95),inset -5px -3px 9px rgba(2,6,23,.8); }
+        .radar-galaxy.approach .radar-planet { animation:none;transform:translate(-50%,-50%) scale(1.45);opacity:1; }
+        .radar-galaxy.found { filter:brightness(1.2) saturate(1.2); }
+        .radar-galaxy.found .radar-orbit { animation-play-state:paused;border-color:rgba(110,231,183,.82);box-shadow:0 0 12px rgba(16,185,129,.22); }
+        .radar-galaxy.found::before { animation:radar-lock-flash .8s ease-out 1 both; }
+        .radar-galaxy.found::after { animation:radar-lock-pulse 1.4s ease-out infinite; }
+        .radar-galaxy.found .radar-sun { background:radial-gradient(circle at 32% 28%,#ecfdf5 0 7%,#6ee7b7 16%,#10b981 48%,#064e3b 82%);border-color:rgba(167,243,208,.98);box-shadow:0 0 34px rgba(16,185,129,.92),0 0 72px rgba(16,185,129,.28),inset -5px -3px 9px rgba(2,6,23,.8);animation:radar-earth-lock .8s cubic-bezier(.2,.8,.2,1) both; }
+        .radar-galaxy.found .radar-sun::before { opacity:.92;transform:rotate(-24deg) scale(1); }
+        .radar-galaxy.found .radar-sun::after { border-color:rgba(110,231,183,.8);animation-duration:1.15s; }
+        .radar-galaxy.found .radar-planet { animation:none;transform:translate(-50%,-50%) scale(.18);opacity:0;transition-delay:.18s; }
         .radar-stars { position:absolute;inset:0;z-index:1;background-image:radial-gradient(2px 2px at 12% 28%,#a7f3d0 50%,transparent 55%),radial-gradient(1px 1px at 25% 68%,#67e8f9 50%,transparent 55%),radial-gradient(2px 2px at 78% 34%,#d8b4fe 50%,transparent 55%),radial-gradient(1px 1px at 84% 75%,#fff 50%,transparent 55%),radial-gradient(1px 1px at 60% 18%,#fff 50%,transparent 55%);opacity:.75; }
-        @keyframes radar-nebula { to { transform:rotate(360deg) scale(1.04); } }
+        @keyframes radar-sweep { to { transform:rotate(360deg); } }
+        @keyframes radar-rings { 50% { opacity:.55;transform:scale(.96); } }
+        @keyframes radar-lock-flash { 0% { opacity:0;transform:scale(.72) rotate(0); } 35% { opacity:1; } 100% { opacity:.28;transform:scale(1.08) rotate(40deg); } }
+        @keyframes radar-earth-lock { 0% { transform:translate(-50%,-50%) scale(1.6);filter:brightness(1.5); } 68% { transform:translate(-50%,-50%) scale(.92);filter:brightness(1.15); } 100% { transform:translate(-50%,-50%) scale(1);filter:brightness(1); } }
+        @keyframes radar-lock-pulse { 0% { opacity:.88;transform:scale(.82); } 100% { opacity:0;transform:scale(1.28); } }
         @keyframes radar-spin { to { transform:translate(-50%,-50%) rotateX(66deg) rotateZ(360deg); } }
-        @keyframes radar-planet { to { transform:rotate(360deg) translateX(40px) rotate(-360deg); } }
-        @keyframes radar-dock { 0% { transform:translate(-50%,-50%) scale(.75); } 65% { transform:translate(-50%,-50%) scale(1.45); } 100% { transform:translate(-50%,-50%) scale(1); } }
-        @media (prefers-reduced-motion: reduce) { .radar-galaxy,.radar-orbit,.radar-planet,.radar-galaxy::before,.radar-galaxy::after { animation:none !important; transition:none !important; } }
+        @keyframes radar-planet { from { transform:translate(-50%,-50%) rotate(0deg) translateX(42px); } to { transform:translate(-50%,-50%) rotate(360deg) translateX(42px); } }
+        @keyframes radar-signal-pulse { 0% { transform:scale(.55);opacity:.7; } 82%,100% { transform:scale(1.55);opacity:0; } }
+        @media (prefers-reduced-motion: reduce) { .radar-galaxy,.radar-orbit,.radar-planet,.radar-sun,.radar-sun::after,.radar-galaxy::before,.radar-galaxy::after { animation:none !important; transition:none !important; } }
 
         .hide-scrollbar::-webkit-scrollbar { display: none !important; }
         .hide-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
@@ -381,15 +398,16 @@ header('X-Author: ' . $firma);
                 </button>
             </div>
 
-            <div id="radar-galaxy" class="radar-galaxy mb-3"><div class="radar-stars"></div><div class="radar-orbit"></div><div class="radar-orbit"></div><div class="radar-sun"></div><div class="radar-planet"></div><span class="absolute bottom-2 left-0 right-0 z-10 text-center text-[7px] tracking-[.35em] text-emerald-200/70">BUSCANDO PS4 EN LA RED</span></div>
+            <div id="radar-galaxy" class="radar-galaxy mb-3"><div class="radar-stars"></div><div class="radar-orbit"></div><div class="radar-orbit"></div><div class="radar-sun"></div><div class="radar-planet"></div><span id="radar-visual-status" class="absolute bottom-2 left-0 right-0 z-10 text-center text-[7px] tracking-[.35em] text-emerald-200/70">BUSCANDO PS4 EN LA RED</span></div>
             <div class="relative bg-black rounded-xl p-3 h-40 overflow-hidden font-mono text-[9px] border border-emerald-900/50 shadow-inner">
-                <div class="scanner-line"></div>
+                <div id="radar-log-scanline" class="scanner-line"></div>
                 <div id="radar-log-terminal" class="absolute inset-0 p-3 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-emerald-500 z-10"></div>
             </div>
             
             <div class="mt-4 text-center text-[8px] font-mono tracking-widest text-emerald-800 uppercase flex items-center justify-center gap-2">
                 <div class="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-ping"></div>
-                ESCÁNER LAN · SERVICIOS GOLDHEN
+                <span id="radar-scan-status">ESCÁNER LAN · SERVICIOS GOLDHEN</span>
+                <span id="radar-success-countdown" class="hidden" aria-live="polite"></span>
             </div>
         </div>
     </div>

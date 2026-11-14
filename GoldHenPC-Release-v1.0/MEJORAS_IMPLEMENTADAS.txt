@@ -1399,3 +1399,11 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - La nota de payloads aclara la diferencia entre GoldHEN estable v2.3, la pre-release oficial v2.4b18 (compatibilidad documentada hasta 11.00) y offsets aportados/no confirmados del SDK; no se infiere soporte 14.00 ni se fabrica un binario universal sin fuente y pruebas.
 - El plugin residente sigue como viabilidad documentada: no se instala al conectar ni se escribe `plugins.ini`; requiere código PRX compatible, carga demostrada, versión probada, desactivación y recuperación.
 - Los archivos funcionales se copiaron a `GoldHenPC-Release-v1.0`; no se creó ZIP. Esta revisión no reinstaló la APK porque el Vivo tiene instalada 4.5.11 y falta recuperar la clave de firma original para actualizar sin perder la identidad de paquete.
+
+
+PS4 Manager Tools AJ 4.5.12: comprobación de acciones por CUSA en S23 (2026-11-14)
+---------------------------------------------------------------------------------
+- En la APK instalada en Galaxy S23 Ultra se filtró THE PLAYROOM (CUSA00001), mostrado como no instalado. Desde su ficha, SaveGames informó 0 partidas para ese CUSA; Capturas indicó que la única imagen global detectada no corresponde al CUSA filtrado; Parches informó 0 parches disponibles para CUSA00001.
+- Parches informó además que game_patch.prx no está en [default] de plugins.ini. No se añadió la entrada durante la prueba; es lectura real y el botón de cambio requiere acción explícita.
+- El listado de Parches mostró el enlace FTP 192.168.20.39:2121 y analizó 38 juegos/387 XML. No se modificó ni borró ningún dato de PS4.
+- La Biblioteca seguía releyendo títulos tras volver desde otros módulos (30/45 en la captura de esa transición), por lo que ese estado quedó correctamente como “Sin verificar” hasta acabar el análisis; no se presentó como instalación confirmada.

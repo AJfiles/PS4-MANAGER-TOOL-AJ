@@ -50,13 +50,17 @@ assert.equal(carouselImage.replacement.attributes['aria-label'], 'Juego de prueb
 assert.match(source, /card\.classList\.toggle\('carousel-near', absOffset <= 2\)/, 'El carrusel debe mantener visibles solo las tarjetas vecinas para reducir pintura innecesaria.');
 assert.match(source, /card\.classList\.toggle\('carousel-far', absOffset > 2\)/, 'Las tarjetas lejanas deben quedar ocultas durante la animación.');
 assert.match(source, /<img \$\{idx === index3DActivo \? `src=/, 'El carrusel debe activar la portada central sin descargar toda la colección.');
-assert.match(source, /data-src="\$\{bibliotecaEscaparHtml\(principal\)\}"[^>]*loading="lazy"/, 'Las portadas vecinas deben conservar carga diferida.');
-assert.match(source, /const shouldLoad = absOffset <= 1/, 'Solo el título actual y sus vecinos inmediatos deben cargarse al navegar.');
+assert.match(source, /data-src="\$\{bibliotecaEscaparHtml\(principal\)\}"[^>]*loading="\$\{idx === index3DActivo \? 'eager' : 'lazy'\}"/, 'La carátula activa debe priorizarse y las demás mantener carga diferida.');
+assert.match(source, /const shouldLoad = absOffset <= 2/, 'El carrusel debe precargar el título activo y dos tarjetas a cada lado.');
+assert.match(source, /absOffset > 3 && cover\.hasAttribute\('src'\)/, 'Las carátulas cercanas se conservan para no volver a descargarlas al recorrer una tarjeta.');
 assert.match(source, /text-install-state-3d/);
 assert.match(source, /cover\.dataset\.suspended = 'true'[\s\S]*?cover\.removeAttribute\('src'\)/);
 assert.match(source, /bibliotecaFrameCarrusel = requestAnimationFrame/);
 assert.match(styles, /\.ps4-box-case\.library-installed\.active\s*\{\s*border-color:\s*rgba\(52,211,153/);
 assert.match(styles, /\.ps4-box-case\.library-not-installed\.active\s*\{\s*border-color:\s*rgba\(248,113,113/);
+assert.match(styles, /\.ps4-box-case\.library-not-installed \.library-status-badge\s*\{[^}]*bottom:\s*7px/);
+assert.match(styles, /backface-visibility\s*:\s*hidden/);
+assert.match(styles, /transition:\s*transform 0\.11s[^;]+opacity 0\.1s/);
 
 const pendingFrames = [];
 let carouselRenders = 0;

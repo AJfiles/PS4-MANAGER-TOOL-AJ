@@ -77,30 +77,28 @@ foreach ($segments as $segment) {
 }
 $found = [];
 $deadline = microtime(true) + ($timeoutMs / 1000);
+// Use PHP's standard stream connector, like scanner.php does for a manually
+// supplied address. Android's embedded PHP has exposed inconsistent results
+// from nonblocking socket_select batches, which could miss an open FTP port.
+$stopAtFirst = isset($_GET['first']) && $_GET['first'] === '1';
+$connectTimeout = 0.08;
 foreach ($ports as $port) {
-    foreach (array_chunk($ips, 48, true) as $batch) {
-        if (microtime(true) >= $deadline) break 2;
-        $sockets = [];
-        foreach ($batch as $ip => $segment) {
-            $sock = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-            if (!$sock) continue;
-            @socket_set_nonblock($sock);
-            @socket_connect($sock, $ip, $port);
-            $sockets[$ip] = $sock;
-        }
-        if ($sockets) {
-            $write = array_values($sockets); $read = []; $except = [];
-            $remaining = max(1, (int)(($deadline - microtime(true)) * 1000));
-            @socket_select($read, $write, $except, 0, min(60000, $remaining * 1000));
-            foreach ($write as $ready) {
-                $ip = array_search($ready, $sockets, true);
-                if ($ip === false || @socket_get_option($ready, SOL_SOCKET, SO_ERROR) !== 0) continue;
-                if (!isset($found[$ip])) $found[$ip] = ['ip' => $ip, 'ports' => [], 'segment' => $batch[$ip]['label']];
-                $found[$ip]['ports'][] = (int)$port;
-            }
-            foreach ($sockets as $sock) @socket_close($sock);
-        }
-        if (count($found) && isset($_GET['first']) && $_GET['first'] === '1') break 2;
+    foreach ($ips as $ip => $segment) {
+        $remaining = $deadline - microtime(true);
+        if ($remaining <= 0) break 2;
+        $errno = 0; $errstr = '';
+        $connection = @stream_socket_client(
+            'tcp://' . $ip . ':' . (int)$port,
+            $errno,
+            $errstr,
+            min($connectTimeout, $remaining),
+            STREAM_CLIENT_CONNECT
+        );
+        if (!is_resource($connection)) continue;
+        fclose($connection);
+        if (!isset($found[$ip])) $found[$ip] = ['ip' => $ip, 'ports' => [], 'segment' => $segment['label']];
+        $found[$ip]['ports'][] = (int)$port;
+        if ($stopAtFirst) break 2;
     }
 }
 $localIps = array_values(array_unique(array_column($segments, 'local_ip')));

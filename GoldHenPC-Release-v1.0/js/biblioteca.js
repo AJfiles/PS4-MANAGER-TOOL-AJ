@@ -539,7 +539,7 @@ function construirCoverflowDOMEstatico(visibles) {
         const principal = bibliotecaImagenSegura(jg.cover3d) || bibliotecaImagenSegura(jg.img);
         const respaldo = bibliotecaImagenSegura(jg.img);
         const imagen = principal
-            ? `<img ${idx === index3DActivo ? `src="${bibliotecaEscaparHtml(principal)}"` : ''} data-src="${bibliotecaEscaparHtml(principal)}" data-fallback="${bibliotecaEscaparHtml(respaldo)}" loading="lazy" decoding="async" fetchpriority="${idx === index3DActivo ? 'high' : 'auto'}" class="ps4-img-art" draggable="false" alt="Carátula de ${bibliotecaEscaparHtml(jg.nombre || jg.id)}">`
+            ? `<img ${idx === index3DActivo ? `src="${bibliotecaEscaparHtml(principal)}"` : ''} data-src="${bibliotecaEscaparHtml(principal)}" data-fallback="${bibliotecaEscaparHtml(respaldo)}" loading="${idx === index3DActivo ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${idx === index3DActivo ? 'high' : 'auto'}" class="ps4-img-art" draggable="false" alt="Carátula de ${bibliotecaEscaparHtml(jg.nombre || jg.id)}">`
             : '<div class="ps4-img-art flex items-center justify-center text-cyan-200/60"><i class="fa-solid fa-gamepad text-3xl"></i></div>';
         html3D += `
         <div class="ps4-box-case ${bibliotecaClaseEstado(jg.installed)}" role="button" tabindex="0" aria-label="${bibliotecaEscaparHtml(String(jg.nombre || jg.id || 'Título'))}">
@@ -598,13 +598,16 @@ function actualizarCoverflow3DStyles() {
         card.classList.toggle('carousel-far', absOffset > 2);
         const cover = card.querySelector('img.ps4-img-art');
         if (cover) {
-            const shouldLoad = absOffset <= 1;
+            // Keep the active card and its two neighbors on either side ready.
+            // This avoids blank covers and repeat downloads as the carousel moves.
+            const shouldLoad = absOffset <= 2;
             const nextSrc = shouldLoad ? (cover.dataset.src || '') : '';
             if (nextSrc && cover.dataset.loadedSrc !== nextSrc) {
                 cover.dataset.suspended = 'false';
                 cover.dataset.loadedSrc = nextSrc;
+                cover.loading = 'eager';
                 cover.src = nextSrc;
-            } else if (!nextSrc && cover.hasAttribute('src')) {
+            } else if (!nextSrc && absOffset > 3 && cover.hasAttribute('src')) {
                 cover.dataset.suspended = 'true';
                 cover.removeAttribute('src');
                 cover.dataset.loadedSrc = '';

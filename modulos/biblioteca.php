@@ -70,7 +70,7 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease, box-shadow 0.16s ease, border-color 0.16s ease, visibility 0s linear 0.14s;
+        transition: transform 0.11s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.1s ease, box-shadow 0.11s ease, border-color 0.11s ease, visibility 0s linear 0.1s;
         cursor: pointer;
         display: flex;
         flex-direction: column;
@@ -79,11 +79,14 @@
         -webkit-transform-style: preserve-3d;
         will-change: auto;
         contain: layout paint style;
+        backface-visibility:hidden;
+        -webkit-backface-visibility:hidden;
     }
     .ps4-img-art { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
     .ps4-img-art.library-image-failed { visibility: hidden; }
     @media (prefers-reduced-motion: reduce) { .ps4-box-case, .glow-background-master { transition:none !important; } }
     .ps4-box-case .library-status-badge { top: 30px; right: 6px; }
+    .ps4-box-case.library-not-installed .library-status-badge { top:auto; right:7px; bottom:7px; }
 
     .ps4-box-case.active {
         border-width: 2px;

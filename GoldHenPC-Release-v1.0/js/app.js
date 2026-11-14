@@ -26,6 +26,7 @@ let globalAudioCtx = null;
 let globalAudioUnlock = Promise.resolve();
 let ultimoEfectoAudioAt = 0;
 let radarTimeoutId = null; // Para controlar el cierre automático del radar
+let radarCountdownIntervalId = null;
 let pwaInstallPrompt = null;
 let pendingVisualPreview = null;
 
@@ -556,6 +557,22 @@ function configurarEventosDashboard() {
     if (inputIP) {
         inputIP.addEventListener('change', (e) => {
             const nuevaIP = e.target.value.trim();
+            if (!nuevaIP) {
+                // Vaciar el campo es una acción válida: elimina la IP memorizada
+                // para que el Radar pueda buscar la consola en la LAN actual.
+                globalAppConfig.ipConsola = '';
+                globalAppConfig.statusConexion = false;
+                localStorage.removeItem('sebas_ip_final_libre');
+                const lblStatus = document.getElementById('console-status-label');
+                const pingIndicator = document.getElementById('connection-ping-indicator');
+                if (lblStatus) {
+                    lblStatus.innerText = 'IP SIN CONFIGURAR';
+                    lblStatus.className = 'text-[9px] font-mono text-amber-400 font-bold uppercase';
+                }
+                if (pingIndicator) pingIndicator.className = 'w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_#fbbf24]';
+                sysNotification('RADAR', 'IP borrada. Usa Radar de red para buscar la PS4 en la LAN.', 'fa-satellite-dish');
+                return;
+            }
             if (validarEstructuraIP(nuevaIP)) {
                 globalAppConfig.ipConsola = nuevaIP;
                 localStorage.setItem('sebas_ip_final_libre', nuevaIP);
@@ -782,11 +799,55 @@ function animarAcercamientoRadar(galaxy) {
     }, 650));
 }
 
+function programarCierreRadarExitoso() {
+    if (radarTimeoutId) clearTimeout(radarTimeoutId);
+    if (radarCountdownIntervalId) clearInterval(radarCountdownIntervalId);
+    let remaining = 5;
+    const status = document.getElementById('radar-success-countdown');
+    const scanStatus = document.getElementById('radar-scan-status');
+    status?.classList.remove('hidden');
+    scanStatus?.classList.add('hidden');
+    const updateCountdown = () => {
+        if (status) status.textContent = `PS4 localizada · cierre automático en ${remaining} s · puedes cerrar antes con X.`;
+    };
+    updateCountdown();
+    radarCountdownIntervalId = setInterval(() => {
+        remaining = Math.max(0, remaining - 1);
+        updateCountdown();
+    }, 1000);
+    radarTimeoutId = setTimeout(() => {
+        radarTimeoutId = null;
+        abortarYEstabilizarRadar();
+    }, 5000);
+}
+
+function confirmarDeteccionRadar(galaxy, logTerm, mensaje) {
+    // Empieza el cooldown en cuanto la respuesta de red confirma la consola;
+    // una actualización secundaria del estado no debe retrasar el cierre.
+    void animarAcercamientoRadar(galaxy);
+    const visualStatus = document.getElementById('radar-visual-status');
+    const scanline = document.getElementById('radar-log-scanline');
+    if (visualStatus) visualStatus.textContent = 'PS4 DETECTADA · ENLACE ACTIVO';
+    scanline?.classList.add('hidden');
+    if (logTerm) {
+        const line = document.createElement('p');
+        line.className = 'text-white font-bold bg-emerald-950/50 px-1 border border-emerald-500/20';
+        line.textContent = mensaje;
+        logTerm.appendChild(line);
+        logTerm.scrollTop = logTerm.scrollHeight;
+    }
+    programarCierreRadarExitoso();
+}
+
 async function lanzarRadarVentanaEmergente() {
     // Cancelar cualquier cierre automático pendiente
     if (radarTimeoutId) {
         clearTimeout(radarTimeoutId);
         radarTimeoutId = null;
+    }
+    if (radarCountdownIntervalId) {
+        clearInterval(radarCountdownIntervalId);
+        radarCountdownIntervalId = null;
     }
 
     emitirEfectoSonidoNativo('ps-ui'); 
@@ -795,12 +856,20 @@ async function lanzarRadarVentanaEmergente() {
     const logTerm = document.getElementById('radar-log-terminal');
     const subLabel = document.getElementById('radar-subnet-txt');
     const galaxy = document.getElementById('radar-galaxy');
+    const successCountdown = document.getElementById('radar-success-countdown');
+    const scanStatus = document.getElementById('radar-scan-status');
+    const visualStatus = document.getElementById('radar-visual-status');
+    const scanline = document.getElementById('radar-log-scanline');
     const inputIP = document.getElementById('ps-ip-full-input');
     const inputPort = document.getElementById('ps-port-input');
     const candidateIP = String(inputIP?.value ?? globalAppConfig.ipConsola ?? '').trim();
     const parsedPort = Number.parseInt(inputPort?.value || globalAppConfig.portFTP || 2121, 10);
     const radarPort = Number.isInteger(parsedPort) && parsedPort >= 1 && parsedPort <= 65535 ? parsedPort : 2121;
     if (galaxy) galaxy.classList.remove('found', 'approach');
+    if (visualStatus) visualStatus.textContent = 'BUSCANDO PS4 EN LA RED';
+    scanline?.classList.remove('hidden');
+    if (successCountdown) { successCountdown.textContent = ''; successCountdown.classList.add('hidden'); }
+    scanStatus?.classList.remove('hidden');
 
     if (!modal || !logTerm) return;
 
@@ -812,7 +881,7 @@ async function lanzarRadarVentanaEmergente() {
 
     try {
         if (validarEstructuraIP(candidateIP)) {
-            logTerm.innerHTML += `<p class="text-gray-500">Verificando IP guardada: ${candidateIP}...</p>`;
+            logTerm.innerHTML += `<p class="text-gray-500">Validando en vivo la IP guardada: ${candidateIP}...</p>`;
             logTerm.scrollTop = logTerm.scrollHeight;
 
             // Un intento directo mantiene el flujo rápido cuando la dirección sigue vigente.
@@ -823,23 +892,23 @@ async function lanzarRadarVentanaEmergente() {
                 globalAppConfig.portFTP = radarPort;
                 localStorage.setItem('sebas_ip_final_libre', candidateIP);
                 localStorage.setItem('sebas_port_libre', String(radarPort));
-                await animarAcercamientoRadar(galaxy);
-                logTerm.innerHTML += `<p class="text-white font-bold bg-emerald-950/50 px-1 border border-emerald-500/20">🚀 PS4 HALLADA EN CACHÉ: ${candidateIP}</p>`;
+                confirmarDeteccionRadar(galaxy, logTerm, `PS4 LOCALIZADA Y VERIFICADA EN VIVO: ${candidateIP} · FTP ${radarPort}`);
                 if (subLabel) subLabel.innerText = `LINK.ESTABLISHED`;
-                await verificarRadarInicial();
-                logTerm.innerHTML += `<p class="text-emerald-300">[OK] Conexión FTP validada. El registro queda abierto hasta que lo cierres.</p>`;
+                void verificarRadarInicial().catch(error => console.warn('No se pudo actualizar el indicador de conexión:', error));
                 return;
             }
         } else {
             logTerm.innerHTML += `<p class="text-yellow-300">No hay una IP válida en el campo. Buscaré la PS4 en las redes LAN activas.</p>`;
         }
 
-        logTerm.innerHTML += `<p class="text-yellow-500">Caché offline o cambio de red detectado.</p>`;
+        if (validarEstructuraIP(candidateIP)) {
+            logTerm.innerHTML += `<p class="text-yellow-500">La IP guardada no respondió en vivo; buscaré la consola en la LAN.</p>`;
+        }
         logTerm.innerHTML += `<p class="text-emerald-400">Buscando en las interfaces LAN activas; se prueban FTP y RPI/Nova.</p>`;
         logTerm.scrollTop = logTerm.scrollHeight;
 
         const timeoutMs = 8000;
-        let resRadar = await fetch(`api/radar_api.php?timeout=${timeoutMs}&port=${radarPort}`);
+        let resRadar = await fetch(`api/radar_api.php?timeout=${timeoutMs}&port=${radarPort}&first=1`);
         let dataRadar = await resRadar.json();
 
         if (dataRadar && dataRadar.status === 'success') {
@@ -854,7 +923,6 @@ async function lanzarRadarVentanaEmergente() {
             logTerm.scrollTop = logTerm.scrollHeight;
 
             if (dataRadar.ps4_ips && dataRadar.ps4_ips.length > 0) {
-                await animarAcercamientoRadar(galaxy);
                 const orderedDevices = (dataRadar.devices || []).slice().sort((a, b) => {
                     const ftpA = (a.ports || []).some(port => [2121, 2122].includes(Number(port)));
                     const ftpB = (b.ports || []).some(port => [2121, 2122].includes(Number(port)));
@@ -864,7 +932,7 @@ async function lanzarRadarVentanaEmergente() {
                 const detectedDevice = orderedDevices.find(device => device.ip === nuevaIP);
                 const puertos = detectedDevice?.ports || [];
                 const ftpPort = puertos.map(Number).find(port => [2121, 2122].includes(port));
-                logTerm.innerHTML += `<p class="text-white font-bold bg-emerald-950/50 px-1 border border-emerald-500/20">🎯 Dispositivo GoldHEN: ${nuevaIP} · puertos ${puertos.join(', ')}</p>`;
+                confirmarDeteccionRadar(galaxy, logTerm, `PS4 LOCALIZADA: ${nuevaIP} · puertos ${puertos.join(', ') || 'servicio GoldHEN'}`);
                 
                 globalAppConfig.ipConsola = nuevaIP;
                 localStorage.setItem('sebas_ip_final_libre', nuevaIP);
@@ -881,8 +949,7 @@ async function lanzarRadarVentanaEmergente() {
                 const inputIP = document.getElementById('ps-ip-full-input');
                 if (inputIP) inputIP.value = nuevaIP;
 
-                await verificarRadarInicial();
-                logTerm.innerHTML += `<p class="text-emerald-300">[OK] Consola guardada y conexión verificada. Cierra el radar cuando termines.</p>`;
+                void verificarRadarInicial().catch(error => console.warn('No se pudo actualizar el indicador de conexión:', error));
             } else {
                 logTerm.innerHTML += `<p class="text-red-400">[ERROR] No respondió ningún servicio conocido en ${dataRadar.segmento}. Revisa que PS4 y teléfono estén en la misma LAN y que GoldHEN/Package Installer esté activo.</p>`;
                 if (subLabel) subLabel.innerText = `SCAN.FAILED`;
@@ -903,6 +970,10 @@ function abortarYEstabilizarRadar() {
     if (radarTimeoutId) {
         clearTimeout(radarTimeoutId);
         radarTimeoutId = null;
+    }
+    if (radarCountdownIntervalId) {
+        clearInterval(radarCountdownIntervalId);
+        radarCountdownIntervalId = null;
     }
 
     const modal = document.getElementById('modal-radar-emergente');

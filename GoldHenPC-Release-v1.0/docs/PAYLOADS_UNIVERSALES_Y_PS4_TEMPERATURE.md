@@ -1,6 +1,6 @@
 # Payloads universales y PS4 Temperature
 
-Fecha de revisión: 2026-11-13
+Fecha de revisión: 2026-11-14
 
 ## Conclusión
 
@@ -9,6 +9,23 @@ El Manager puede enumerar y enviar payloads existentes mediante BinLoader, pero 
 Un payload de ventilador o de bloqueo de actualizaciones que parchea memoria del kernel depende de código, estructuras, offsets, versión de GoldHEN y, a veces, modelo/revisión de hardware. Para admitir un firmware nuevo se necesita una implementación fuente o una compilación cuya matriz de compatibilidad sea explícita y pruebas en una consola de ese firmware. Cambiar únicamente el nombre de un archivo o ampliar una lista de selección no añade compatibilidad.
 
 ## PKG inspeccionados
+
+### Reextracción estática de las muestras locales (2026-11-14)
+
+Las dos muestras se reextrajeron con `temporal carpeta/tools/PkgTool.exe` a
+`temporal carpeta/pkg-inspection-2026-11-14/`. `pkg_validate --verbose` informó
+dos errores por paquete: **Content Digest** y **Major Param Digest**. Los demás
+hashes y firmas enumerados por PkgTool aparecen como válidos. No se instalaron
+en la PS4.
+
+Los `eboot.bin` extraídos miden 23,070,574 bytes y son idénticos entre ambas
+versiones, con SHA-256
+`5090e7d0fd53c9707977c0bd19add6f5a30475bb23b3022ec6566a92b939ab7a`. Cambian
+`archive.psarc`, `Assembly-CSharp.dll`, `universal.prx` y otros recursos. La
+igualdad del ejecutable de arranque no demuestra que todas las rutinas sean
+iguales ni amplía la compatibilidad. El paquete contiene una aplicación Unity y
+componentes del runtime; no entrega el código fuente del payload de ventilador
+ni una matriz que autorice firmware 14.00.
 
 | Archivo | SHA-256 | Evidencia recuperada |
 | --- | --- | --- |
@@ -21,6 +38,10 @@ El `eboot.bin` extraído de las dos versiones tiene el mismo SHA-256 (`5090E7D0F
 
 ## Firmware 14.00 y alcance de GoldHEN
 
+Actualización de fuentes oficiales (2026-11-14): el autor de PS4 Temperature indica expresamente que v1.07 es compatible con firmwares 5.05–11.00. GoldHEN v2.4b18, publicado como pre-release oficial, también enumera soporte hasta 11.00. El README actual del SDK de payloads marca offsets confirmados hasta 12.02; lista offsets para 12.50/12.52 y 13.00/13.02/13.04, pero los deja sin marcar como probados. Los offsets del SDK no son una prueba de que GoldHEN ejecute en esas versiones, ni de que estos PKG o nuestros payloads sean compatibles. Ninguna de las fuentes primarias consultadas confirma 14.00. Por tanto, no se creó un binario universal ni se habilitó 14.00 en los selectores.
+
+Fuente del autor de PS4 Temperature: [LapyGames – Homebrews Apps](https://lapygames.wordpress.com/apps/).
+
 Consulta actualizada el 2026-11-13: GitHub muestra GoldHEN v2.4b18 como pre-release oficial, cuya lista de compatibilidad llega hasta 11.00; el tag estable más reciente que muestra GitHub es v2.3. Ninguna de esas notas oficiales documenta 14.00. El issue oficial #412 sobre 14.00 está cerrado, pero el cuerpo del issue es una solicitud y el cierre no identifica un binario, matriz de compatibilidad o prueba reproducible; no se toma como confirmación de soporte. Un changelog comunitario que atribuye 14.00 a una beta v2.4b18.13 no es el canal oficial y no basta para recomendarla ni para certificar payloads de terceros.
 
 El repositorio de ejemplo de fan control `grimstatic/payload-fan-control-ps4` declara pruebas en una PS4 Pro CUH-7106B con firmware 12.52 y una sola consola de prueba. Esa evidencia no respalda 14.00 ni todos los modelos. El SDK de payloads enumera offsets de kernel por firmware y advierte que suelen ser específicos por versión. La lista incluye algunas versiones superiores a las publicadas por GoldHEN, pero varios elementos figuran como entradas aportadas y no confirmadas. Tener offsets en un SDK no demuestra que exista soporte de jailbreak/GoldHEN ni valida un payload de ventilador o de actualizaciones. Por ello, un único binario universal no puede asumirse compatible por el mero hecho de que GoldHEN cargue.
@@ -31,6 +52,7 @@ Fuentes primarias consultadas:
 - [Issue oficial de GoldHEN sobre 14.00](https://github.com/GoldHEN/GoldHEN/issues/412)
 - [Fan Control payload y su alcance de prueba](https://github.com/grimstatic/payload-fan-control-ps4)
 - [SDK PS4 y offsets por firmware](https://github.com/ps4-payload-dev/sdk#working-firmwares)
+- [README fuente del SDK, con casillas de firmware probado](https://raw.githubusercontent.com/ps4-payload-dev/sdk/master/README.md)
 
 Referencia comunitaria no usada como confirmación: [changelog v2.4b18.13 en un fork](https://github.com/EEJTek/GoldHEN_v2.4b18.12/blob/main/CHANGELOG.md).
 

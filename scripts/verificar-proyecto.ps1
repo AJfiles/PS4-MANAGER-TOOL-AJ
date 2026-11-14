@@ -180,8 +180,20 @@ $preferenceTestPassed = $LASTEXITCODE -eq 0 -and ($preferenceOutput -join ' ') -
 Report-Check 'Interacción de preferencias del menú con DOM simulado' $preferenceTestPassed ($preferenceOutput -join ' ')
 $radarVisualTest = Join-Path $PSScriptRoot 'test-radar-visual.cjs'
 $radarVisualOutput = & $nodeCommand.Source $radarVisualTest 2>&1
-$radarVisualPassed = $LASTEXITCODE -eq 0 -and ($radarVisualOutput -join ' ') -match 'RADAR_APPROACH_LOG_REDUCED_MOTION_OK'
+$radarVisualPassed = $LASTEXITCODE -eq 0 -and ($radarVisualOutput -join ' ') -match 'RADAR_LIVE_VERIFY_NEW_ANIMATION_CACHE_BUST_AND_5S_CLOSE_OK'
 Report-Check 'Radar anima la aproximación, conserva el registro y respeta movimiento reducido' $radarVisualPassed ($radarVisualOutput -join ' ')
+$radarEmptyIpTest = Join-Path $PSScriptRoot 'test-radar-empty-ip.cjs'
+$radarEmptyIpOutput = & $nodeCommand.Source $radarEmptyIpTest 2>&1
+$radarEmptyIpPassed = $LASTEXITCODE -eq 0 -and ($radarEmptyIpOutput -join ' ') -match 'RADAR_EMPTY_IP_CLEARS_CACHE_AND_ALLOWS_LAN_DISCOVERY_OK'
+Report-Check 'Radar permite borrar la IP guardada y comenzar descubrimiento LAN' $radarEmptyIpPassed ($radarEmptyIpOutput -join ' ')
+$radarDiscoveryTest = Join-Path $PSScriptRoot 'test-radar-discovery.cjs'
+$radarDiscoveryOutput = & $nodeCommand.Source $radarDiscoveryTest 2>&1
+$radarDiscoveryPassed = $LASTEXITCODE -eq 0 -and ($radarDiscoveryOutput -join ' ') -match 'RADAR_ANDROID_STREAM_DISCOVERY_FIRST_MATCH_OK'
+Report-Check 'Radar LAN usa conexiones compatibles con PHP Android y devuelve la primera consola' $radarDiscoveryPassed ($radarDiscoveryOutput -join ' ')
+$radarCloseTest = Join-Path $PSScriptRoot 'test-radar-success-close.cjs'
+$radarCloseOutput = & $nodeCommand.Source $radarCloseTest 2>&1
+$radarClosePassed = $LASTEXITCODE -eq 0 -and ($radarCloseOutput -join ' ') -match 'RADAR_SUCCESS_AUTO_CLOSE_5S_OK'
+Report-Check 'Radar muestra cuenta regresiva y se cierra cinco segundos después de encontrar la PS4' $radarClosePassed ($radarCloseOutput -join ' ')
 $captureDownloadTest = Join-Path $PSScriptRoot 'test-descarga-capturas.cjs'
 $captureDownloadOutput = & $nodeCommand.Source $captureDownloadTest 2>&1
 $captureDownloadPassed = $LASTEXITCODE -eq 0 -and ($captureDownloadOutput -join ' ') -match 'CAPTURE_ZIP_DOWNLOAD_OK'
@@ -190,6 +202,10 @@ $libraryRenderTest = Join-Path $PSScriptRoot 'test-biblioteca-safe-render.cjs'
 $libraryRenderOutput = & $nodeCommand.Source $libraryRenderTest 2>&1
 $libraryRenderPassed = $LASTEXITCODE -eq 0 -and ($libraryRenderOutput -join ' ') -match 'BIBLIOTECA_DYNAMIC_CONTENT_SAFE_OK'
 Report-Check 'Biblioteca trata metadatos e imágenes como datos, no HTML/JavaScript' $libraryRenderPassed ($libraryRenderOutput -join ' ')
+$libraryMountsTest = Join-Path $PSScriptRoot 'test-library-installed-mounts.cjs'
+$libraryMountsOutput = & $nodeCommand.Source $libraryMountsTest 2>&1
+$libraryMountsPassed = $LASTEXITCODE -eq 0 -and ($libraryMountsOutput -join ' ') -match 'LIBRARY_ONLY_ACTIVE_EXTERNAL_MOUNTS_AFFECT_VERIFICATION_OK'
+Report-Check 'Biblioteca verifica instalacion solo en unidades externas montadas' $libraryMountsPassed ($libraryMountsOutput -join ' ')
 $libraryActionsTest = Join-Path $PSScriptRoot 'test-biblioteca-game-actions.cjs'
 $libraryActionsOutput = & $nodeCommand.Source $libraryActionsTest 2>&1
 $libraryActionsPassed = $LASTEXITCODE -eq 0 -and ($libraryActionsOutput -join ' ') -match 'BIBLIOTECA_GAME_ACTIONS_FILTER_BY_CUSA_OK'
