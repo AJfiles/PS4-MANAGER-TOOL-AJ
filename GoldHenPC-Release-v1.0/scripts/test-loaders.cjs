@@ -33,7 +33,7 @@ context.window.ghmLoaderPreview('vortex', 'emerald');
 assert.match(box.innerHTML, /ghm-loader-vortex/);
 assert.match(box.innerHTML, /data-accent="emerald"/);
 assert.match(adjustments, /id="cfg-loader-accent"/);
-assert.equal(Object.keys(context.window.ghmLoaderLabels).length, 16);
+assert.equal(Object.keys(context.window.ghmLoaderLabels).length, 20);
 for (const style of ['quantum', 'helix', 'portal']) assert.match(adjustments, new RegExp(`option value="${style}"`));
 assert.match(adjustments, /id="launcher-preview-panel" class="rounded-2xl/);
 assert.doesNotMatch(adjustments, /launcher-preview-panel" class="hidden/);
@@ -41,5 +41,5 @@ for (const style of ['chime', 'radar', 'mech', 'breeze']) {
     assert.match(adjustments, new RegExp(`option value="${style}"`));
     assert.match(appSource, new RegExp(`${style}: \\{`));
 }
-assert.match(stylesSource, /\.launcher-section-label \{ grid-column:1 \/ -1; margin:1\.5rem/);
-console.log('CUSTOM_LOADERS_16_STYLES_ACCENTS_ALWAYS_VISIBLE_PREVIEW_OK');
+assert.match(stylesSource, /\.launcher-section-label \{ grid-column:1 \/ -1; margin:2rem/);
+console.log('CUSTOM_LOADERS_20_STYLES_ACCENTS_ALWAYS_VISIBLE_PREVIEW_OK');

@@ -10,12 +10,21 @@
     .pill-modern { border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(255, 255, 255, 0.02); color: #9ca3af; transition: all 0.25s ease; }
     .pill-modern.active { border-color: #22d3ee; background: linear-gradient(135deg, rgba(34,211,238,0.1) 0%, rgba(147,51,234,0.1) 100%); color: #22d3ee; box-shadow: 0 0 15px rgba(34,211,238,0.15); }
 
-    .grid-card-modern { border: 1px solid rgba(255, 255, 255, 0.03); background: #0b0f19; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); aspect-ratio: 1 / 1.15; }
+    .grid-card-modern { position:relative; border: 1px solid rgba(255, 255, 255, 0.03); background: #0b0f19; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); aspect-ratio: 1 / 1.15; }
     .grid-card-modern.library-installed, .ps4-box-case.library-installed { border: 2px solid rgba(52, 211, 153, .85); box-shadow:0 0 12px rgba(52,211,153,.12); }
     .grid-card-modern.library-not-installed, .ps4-box-case.library-not-installed { border: 2px solid rgba(248, 113, 113, .95); box-shadow: 0 0 14px rgba(248, 113, 113, .14); }
     .grid-card-modern.library-unverified, .ps4-box-case.library-unverified { border: 2px solid rgba(251, 191, 36, .65); }
     .library-status-badge { position: absolute; top: 8px; right: 8px; z-index: 20; padding: 3px 6px; border: 1px solid rgba(248, 113, 113, .72); border-radius: 999px; background: rgba(69, 10, 10, .82); color: #fecaca; font-size: 8px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
     .library-status-badge.library-status-unverified { border-color:rgba(251,191,36,.65);background:rgba(69,45,10,.84);color:#fde68a; }
+    .library-group-separator { grid-column:1 / -1; display:flex; align-items:center; gap:.65rem; padding:.65rem .35rem .35rem; margin-top:.35rem; border-bottom:1px solid rgba(148,163,184,.2); color:#a5f3fc; font:900 9px/1.2 ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase; }
+    .library-group-separator::after { content:""; height:1px; flex:1; background:linear-gradient(90deg,rgba(34,211,238,.24),transparent); }
+    .library-group-not-installed { color:#fca5a5; border-color:rgba(248,113,113,.28); }
+    .library-group-not-installed::after { background:linear-gradient(90deg,rgba(248,113,113,.26),transparent); }
+    .library-group-unverified { color:#fcd34d; border-color:rgba(251,191,36,.25); }
+    .library-group-unverified::after { background:linear-gradient(90deg,rgba(251,191,36,.24),transparent); }
+    .library-carousel-group { display:block; margin:0 auto .4rem; color:#6ee7b7; font:900 8px/1.2 ui-monospace,monospace; letter-spacing:.18em; text-align:center; }
+    .library-carousel-group.library-group-not-installed { color:#fca5a5; }
+    .library-carousel-group.library-group-unverified { color:#fcd34d; }
     .grid-card-modern:active { transform: scale(0.96); border-color: #22d3ee/30; }
 
     /* 🪐 MOTOR 3D FLUIDO Y ADAPTABLE */
@@ -55,7 +64,7 @@
         transform-style: preserve-3d;
         -webkit-transform-style: preserve-3d;
         z-index: 2;
-        contain: layout paint;
+        contain: layout style;
         will-change: transform;
     }
 
@@ -70,7 +79,7 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        transition: transform 0.11s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.1s ease, box-shadow 0.11s ease, border-color 0.11s ease, visibility 0s linear 0.1s;
+        transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, visibility 0s linear 0.18s;
         cursor: pointer;
         display: flex;
         flex-direction: column;
@@ -112,7 +121,7 @@
     }
     .ps4-ribbon-text { font-size: 8px; font-weight: 800; font-family: 'Outfit'; text-transform: uppercase; margin-left: 4px; letter-spacing: 1px; color: white; }
     
-    .ps4-img-art { flex: 1; width: 100%; object-fit: cover; background-color: #0f121a; position: relative; }
+    .ps4-img-art { flex: 1; width: 100%; min-height:0; object-fit: contain; object-position:center; padding: .2rem; background: radial-gradient(ellipse at 50% 38%,rgba(39,65,100,.35),rgba(9,14,24,.98) 78%); position: relative; }
 
     .sinc-overlay { background: rgba(3, 5, 11, 0.9); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
     
@@ -220,10 +229,13 @@
             <div class="w-full shrink-0 flex flex-col items-center mt-6 mb-20 z-20">
                 <h3 id="text-title-3d" class="text-[16px] font-black uppercase text-white truncate w-full px-4 text-center tracking-widest drop-shadow-md">---</h3>
                 
-                <div class="flex gap-2 mt-1.5">
+                <div class="flex flex-col items-center gap-1 mt-1.5">
+                    <span id="text-install-group-3d" class="library-carousel-group">INSTALADOS EN PS4</span>
+                    <div class="flex gap-2">
                     <span id="text-cusa-3d" class="px-2 py-0.5 rounded border border-white/5 bg-[#0a0e14] text-[9px] font-mono font-bold text-cyan-400 tracking-widest">---</span>
                     <span id="text-version-3d" class="px-2 py-0.5 rounded border border-white/5 bg-[#0a0e14] text-[9px] font-mono font-bold text-gray-400 tracking-widest">---</span>
                     <span id="text-install-state-3d" class="px-2 py-0.5 rounded border border-emerald-400/20 bg-emerald-400/5 text-[8px] font-bold text-emerald-200 tracking-wider">ESTADO SIN VERIFICAR</span>
+                    </div>
                 </div>
 
                 <div class="w-[80%] h-px bg-white/5 my-4"></div>

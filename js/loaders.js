@@ -1,7 +1,7 @@
 (() => {
-    const allowed = ['orbit', 'pulse', 'scan', 'minimal', 'comet', 'matrix', 'prism', 'nova', 'warp', 'holo', 'vortex', 'eclipse', 'signal', 'quantum', 'helix', 'portal'];
+    const allowed = ['orbit', 'pulse', 'scan', 'minimal', 'comet', 'matrix', 'prism', 'nova', 'warp', 'holo', 'vortex', 'eclipse', 'signal', 'quantum', 'helix', 'portal', 'aurora', 'lattice', 'reactor', 'constellation'];
     const accents = ['cyan', 'rose', 'violet', 'amber', 'emerald'];
-    const labels = { orbit: 'Órbita', pulse: 'Pulso', scan: 'Escáner', minimal: 'Minimal', comet: 'Cometa', matrix: 'Matriz', prism: 'Prisma', nova: 'Estrella', warp: 'Salto', holo: 'Holograma', vortex: 'Vórtice', eclipse: 'Eclipse', signal: 'Señal', quantum: 'Cuántico', helix: 'Hélice', portal: 'Portal' };
+    const labels = { orbit: 'Órbita', pulse: 'Pulso', scan: 'Escáner', minimal: 'Minimal', comet: 'Cometa', matrix: 'Matriz', prism: 'Prisma', nova: 'Estrella', warp: 'Salto', holo: 'Holograma', vortex: 'Vórtice', eclipse: 'Eclipse', signal: 'Señal', quantum: 'Cuántico', helix: 'Hélice', portal: 'Portal', aurora: 'Aurora polar', lattice: 'Retícula', reactor: 'Reactor', constellation: 'Constelación' };
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     })[char]);

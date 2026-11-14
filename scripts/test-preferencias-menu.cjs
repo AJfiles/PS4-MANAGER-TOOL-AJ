@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'app.js'), 'utf8');
 const indexSource = fs.readFileSync(path.join(__dirname, '..', 'index.php'), 'utf8');
-assert.match(indexSource, /#launcher-grid, #launcher-preview-grid \{ gap:clamp\(18px,4vw,30px\) !important; \}/, 'El menú debe mantener una separación visible aunque Tailwind no cargue.');
+assert.match(indexSource, /#launcher-grid, #launcher-preview-grid \{ column-gap:clamp\(18px,4vw,30px\) !important; row-gap:clamp\(26px,5vw,38px\) !important; \}/, "Launcher keeps visible row and column gaps without Tailwind.");
 const start = source.indexOf('function alternarVistaLauncher(');
 const end = source.indexOf('function cambiarFuenteApp(', start);
 assert(start >= 0 && end > start, 'No se encontraron las funciones de personalización del menú.');

@@ -2,7 +2,7 @@
   <img src="js/icon-512.png" width="176" alt="Icono de PS4 Manager Tools AJ">
 </p>
 
-<h1 align="center">🎮 PS4 Manager Tools AJ 4.5.12</h1>
+<h1 align="center">🎮 PS4 Manager Tools AJ 4.5.13</h1>
 <p align="center"><strong>Tu PS4, administrada desde tu red local.</strong><br>Consulta y organiza tu consola con GoldHEN desde Termux, la APK Android o Windows.</p>
 
 <p align="center">
@@ -21,8 +21,8 @@ La conexión con la consola se realiza por la red local. No necesitas cuenta ni 
 | Plataforma | Descarga o instalación | Inicio rápido |
 | --- | --- | --- |
 | **📱 Android · Termux** | [Instalar / actualizar desde GitHub](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Pega el comando de abajo en Termux. |
-| **📦 Android · APK** | [Último APK publicado: 4.5.11](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.11/PS4-Manager-Tools-AJ-v4.5.11.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
-| **🖥️ Windows · PC** | [Último paquete publicado: 4.5.11](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.11/PS4-Manager-Tools-AJ-PC-v4.5.11.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
+| **📦 Android · APK** | [Descargar APK 4.5.13](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.13/PS4-Manager-Tools-AJ-v4.5.13.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
+| **🖥️ Windows · PC** | [Ver carpeta actualizada para PC](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/tree/main/GoldHenPC-Release-v1.0) | Ejecuta `Iniciar-PS4-Manager-Tool.bat`. El ZIP de PC se publica por separado cuando AJ lo prepara. |
 
 Consulta [todos los Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases), sus notas de versión y el archivo de hashes SHA-256.
 
@@ -83,7 +83,7 @@ La lectura depende del firmware y las rutas expuestas por GoldHEN. Si el FTP no 
 - **APK Android:** abre `Ajustes → Actualizaciones → Verificar`. Mientras consulta GitHub, el botón muestra una animación. Si Releases contiene una APK más reciente con SHA-256 válido, **Actualizar** descarga el archivo mediante Android. Luego ábrelo desde el gestor de archivos; Android solicita confirmar la instalación. La app no instala APK sin autorización del sistema.
 - **Termux:** desde `Ajustes → Actualizaciones`, verifica y aplica los cambios publicados en la rama principal. También puedes volver a ejecutar el comando de instalación.
 - **Windows:** verifica desde Ajustes. Cuando haya una versión nueva, descarga el ZIP y extráelo sobre la carpeta actual después de cerrar el servidor. Conserva `user/`.
-- **Manual:** descarga la plataforma deseada desde [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest). Cada versión publica `SHA256SUMS-<versión>.txt` con los hashes SHA-256 de APK y ZIP.
+- **Manual:** descarga la APK desde [Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest). Cada Release publica `SHA256SUMS-<versión>.txt` con el SHA-256 de sus artefactos distribuidos. La carpeta de PC del repositorio puede actualizarse antes de que AJ prepare el ZIP correspondiente.
 
 El botón muestra **Consultando GitHub…** mientras busca. El APK necesita que Android confirme la instalación; Windows necesita cerrar el servidor para reemplazar archivos en uso.
 

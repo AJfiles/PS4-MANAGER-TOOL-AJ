@@ -1401,9 +1401,61 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Los archivos funcionales se copiaron a `GoldHenPC-Release-v1.0`; no se creó ZIP. Esta revisión no reinstaló la APK porque el Vivo tiene instalada 4.5.11 y falta recuperar la clave de firma original para actualizar sin perder la identidad de paquete.
 
 
+- Prueba repetida en Vivo X80 Pro (13/11/2026, 16:06 hora local): desde Chrome/WebAPK contra la fuente actual servida en el PC, Biblioteca respondió durante el escaneo y terminó en 38 instalados + 7 no instalados de 45; se ven carátulas, borde verde/rojo y etiqueta No instalado. En carrusel, Siguiente cambió ABZÛ por AJ - GeForce Now, portada y CUSA. El servidor registró respuestas HTTP 200 para las lecturas de Biblioteca. Se retiró ADB reverse, se cerró Chrome y se restauró PS4 Manager Tools; no se hicieron escrituras en la PS4 ni se actualizó la APK.
+- Preparación Android (13/11/2026): se generó temporal carpeta/objetivo-adjunto-2026-11-09/PS4-Manager-Tools-AJ-v4.5.11-current-source.zip desde la fuente actual, excluyendo .git, la copia PC y user/, y se importó en el registro existente de WebToApp del Vivo. Antes de compilar, el panel del builder muestra com.w2a.o3su; la APK instalada y el staging 4.5.11 son com.aj.ps4managertool.app. Se dejó sin compilar/instalar para evitar generar una app paralela. SHA-256 del certificado de staging y de la APK instalada coinciden; falta alinear Custom package name del export config y confirmar que el builder usa la misma clave antes de compilar.
+### Biblioteca, personalización y análisis de payloads (2026-11-13)
+- Biblioteca: el carrusel solo solicita la carátula central y las dos vecinas inmediatas; ya no asigna URLs a toda la colección. Las imágenes se mantienen en caché al navegar, el gesto requiere más distancia para cambiar de tarjeta y las transiciones laterales son más suaves. La cuadrícula usa la portada 3D con fallback seguro y lazy loading.
+- Biblioteca: el carrusel muestra un estado explícito instalado/no instalado/sin verificar; la ficha conserva carátula segura y el estado FTP. Parches, Saves y Capturas siguen abriéndose por CUSA, y los módulos muestran vacío cuando no hay coincidencias.
+- Ajustes: se añadieron loaders Cuántico, Hélice y Portal, animaciones de menú Órbita, Cascada, Escalonada y Zoom, y sonidos Campana digital, Radar, Mecánico y Brisa. La vista previa del menú queda fija y la de loader refleja el color actual. Se tradujeron las etiquetas nuevas al inglés.
+- Menú principal: se aumentó el margen y la separación de los encabezados de sección para distinguir grupos en teléfono, APK y PC.
+- PKG PS4 Temperature: el informe docs/PAYLOADS_UNIVERSALES_Y_PS4_TEMPERATURE.md registra SHA-256, SFO y los límites de evidencia. Los EBOOT v1.06/v1.07 son idénticos, pero los digests PKG no validan y no se derivó compatibilidad hasta FW 14.00. No se instaló ni envió payload.
+- Plugin auxiliar: docs/PLUGIN_AUXILIAR_Y_LANZAMIENTO_DE_APPS.md detalla que un PRX no acelera el FTP del cliente y no debe auto instalarse; su uso requeriría mecanismo de carga, hash, consentimiento, respaldo y matriz de firmware. No se añadieron escrituras ni payload remoto.
+
 PS4 Manager Tools AJ 4.5.12: comprobación de acciones por CUSA en S23 (2026-11-14)
 ---------------------------------------------------------------------------------
 - En la APK instalada en Galaxy S23 Ultra se filtró THE PLAYROOM (CUSA00001), mostrado como no instalado. Desde su ficha, SaveGames informó 0 partidas para ese CUSA; Capturas indicó que la única imagen global detectada no corresponde al CUSA filtrado; Parches informó 0 parches disponibles para CUSA00001.
 - Parches informó además que game_patch.prx no está en [default] de plugins.ini. No se añadió la entrada durante la prueba; es lectura real y el botón de cambio requiere acción explícita.
 - El listado de Parches mostró el enlace FTP 192.168.20.39:2121 y analizó 38 juegos/387 XML. No se modificó ni borró ningún dato de PS4.
 - La Biblioteca seguía releyendo títulos tras volver desde otros módulos (30/45 en la captura de esa transición), por lo que ese estado quedó correctamente como “Sin verificar” hasta acabar el análisis; no se presentó como instalación confirmada.
+
+
+Radar y paquete Android actualizados (14/11/2026)
+-------------------------------------------------
+- La detección del Radar valida la IP guardada en vivo, y al confirmar PS4 inicia un contador de cinco segundos que cierra la ventana automáticamente; la X permite cerrarla antes. La animación nueva deja el planeta centrado y resalta el enlace confirmado.
+- Se confirmó que el S23 aún ejecutaba un paquete anterior de WebToApp: su pantalla mostraba 0 instalados y 45 sin verificar, y el código extraído carecía de los últimos sonidos. Se actualizó el árbol PHP_APP vinculado a com.aj.ps4managertool.app, se generó un APK 4.5.12 con rebuild completo y se inició la actualización con el certificado ya instalado.
+- La instalación del S23 quedó pendiente de una confirmación local de Play Protect/biometría; el APK generado conserva el mismo packageName, versionCode 40512 y certificado.
+- Biblioteca muestra ahora grupos separados y ordenados: instalados, no instalados y sin verificar. El resumen deja de mostrar ceros falsos durante la lectura. En carrusel se conservan proporciones verticales y se ven los bordes de las portadas vecinas en teléfono.
+- Ajustes incluye 20 animaciones de carga y los nuevos sonidos Sonar, Glitch, Cinta y Luz estelar.
+- Pruebas ejecutadas: Radar 5 s y animación; detección/entrada IP vacía; biblioteca segura; 20 loaders; motor SFX.
+
+
+Corrección de árbol APK y validación final en Galaxy S23 Ultra (14/11/2026)
+--------------------------------------------------------------------------
+- El primer rebuild usó por error el proyecto WebToApp 56315…, por eso repitió el APK previo byte por byte. El log identificó el árbol activo 80ba51fd-9ef1-4df6-ab9c-8c9427d5369e; se creó respaldo antes de copiar los archivos de la fuente correcta y reconstruir.
+- Se verificó dentro del APK final que index.php, app.js, biblioteca.js, i18n.js, loaders.js y modulos/biblioteca.php coinciden byte por byte con la fuente vigente. El SHA-256 del APK final es 08c9689c2a32bf610b48525dc58c02506940db3e6bae761530932e3201b0cdb9 y conserva packageName com.aj.ps4managertool.app, versionCode 40512 y el certificado anterior.
+- La APK se actualizó en el S23 sin desinstalar ni borrar los datos. La comprobación en vivo de Radar mostró “Validando en vivo la IP guardada: 192.168.20.39” y “PS4 LOCALIZADA Y VERIFICADA EN VIVO … FTP 2121”; a los cinco segundos la ventana ya estaba cerrada. No apareció “PS4 hallada en caché”.
+- Biblioteca terminó la lectura real en 38 instalados y 7 no instalados de 45. La etiqueta roja “No instalado” quedó dentro de su tarjeta. En carrusel se ven las portadas vecinas a ambos lados; la portada central conserva proporción vertical.
+- Se añadió position:relative a las tarjetas de cuadrícula para anclar el badge de estado, se retiró el recorte paint del track 3D y se ajustó el desplazamiento para mostrar vistas previas laterales.
+- La compilación conserva 4.5.12 porque no se solicitó un cambio de versión. El APK local quedó en PS4_Manager_Tools_AJ_v4.5.12-radar-final.APK. No se publicó un nuevo Release de GitHub.
+
+
+Analisis estatico PS4 Temperature 1.06/1.07 (2026-11-14)
+------------------------------------------------------
+- El C# de ambos PKG importa FreeUnjail, Temperature y SetTemperature desde universal.prx; el cliente 1.06 pide seleccionar firmware y el 1.07 llama FreeUnjail(0). Los PRX difieren en tamano y SHA-256.
+- Evidencia, hashes y limites de reutilizacion: docs/ANALISIS_PS4_TEMPERATURE_1_06_1_07.md. No se creo ni envio un payload universal: los binarios no prueban compatibilidad por firmware y la lista oficial de GoldHEN no cubre todas las versiones reclamadas.
+- Quedan registrados los requisitos del objetivo que ya cubren Biblioteca, carrusel, acciones por CUSA, Radar, personalizacion y bytes de limpieza; las nuevas compatibilidades de payload requieren firmware y hardware verificados.
+
+- Revalidacion instalada en el S23: se extrajo base.apk por ADB; package com.aj.ps4managertool.app, versionName 4.5.12, versionCode 40512 y SHA-256 08c9689c2a32bf610b48525dc58c02506940db3e6bae761530932e3201b0cdb9; coincide con el APK local distribuible.
+- Matriz de finalizacion y limites del objetivo adjunto, con archivos y evidencia de pruebas: docs/ESTADO_OBJETIVO_ADJUNTO_2026-11-14.md.
+- Ampliacion de la evidencia PS4 Temperature: PkgTool reporto Content Digest y Major Param Digest no validos; los eboot de ambas muestras son identicos, pero eso no autentica el PKG ni prueba compatibilidad. No instalar muestras sin verificar. Detalle en docs/ANALISIS_PS4_TEMPERATURE_1_06_1_07.md.
+- Revalidacion de fuentes (2026-11-14): LapyGames declara PS4 Temperature 1.07 para FW 5.05-11.00; el tag v2.4b18.14 no existe en el repositorio oficial de GoldHEN (404). Los anuncios/empaquetados de terceros no se toman como matriz de compatibilidad oficial.
+- Ajustes: contraste reforzado en Acerca de y agrupacion visual en General y archivos, Experiencia e interfaz, y Version y actualizaciones.
+- Actualizacion multiplataforma: un Android WebView en Termux local (puertos 8080/8081) ya no se clasifica como APK para descargar; conserva la ruta de actualizacion del proyecto. El progreso identifica Termux, APK Android o PC.
+
+PS4 Manager Tools AJ 4.5.13: radar y actualización de APK verificados (2026-11-14)
+-------------------------------------------------------------------------------
+- La fuente 4.5.13 se importó en el proyecto WebToApp correcto; se conservó `com.aj.ps4managertool.app` y la firma original `D8:8B:5F:08:7E:9A:6A:4C:C5:58:B9:2C:63:6E:FF:3C:9E:D2:3F:34:E7:17:CC:E4:70:37:B2:72:C4:46:99:E3`. La versión final es 4.5.13 (40513).
+- APK compilada y actualizada en el Galaxy S23 Ultra con `adb install -r`, sin desinstalar la 4.5.12 ni borrar los datos. SHA-256: `704714cd45d58a848b5732f795cd72ffe290d67e4eb0d3feaea3cd286808f4f7`.
+- Prueba real del Radar en la red de la PS4: se validó en vivo `192.168.20.39:2121`, la animación quedó dentro del modal y mostró el enlace activo; el contador indicó 4 s tras un segundo y la ventana se cerró sola al cumplirse los 5 s.
+- La prueba usó la IP guardada pero comprobó respuesta en vivo; no se toma como evidencia de búsqueda de una consola que haya cambiado de IP o subred.
+- La fuente se sincronizó con `GoldHenPC-Release-v1.0` y los scripts/documentos de Termux reflejan 4.5.13. Se deja el ZIP de PC para que AJ lo genere, según la instrucción previa.

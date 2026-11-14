@@ -412,21 +412,33 @@ window.cerrarFichaJuego = function() {
     setTimeout(() => modal.classList.add('hidden'), 300);
 };
 
-function aplicarOrdenamientoInterno() {
-    if (criterioOrdenGlobal === 'nombre_az') {
-        listadoJuegos.sort((a, b) => a.nombre.localeCompare(b.nombre));
-    } else if (criterioOrdenGlobal === 'nombre_za') {
-        listadoJuegos.sort((a, b) => b.nombre.localeCompare(a.nombre));
-    } else if (criterioOrdenGlobal === 'recientes') {
-        listadoJuegos.sort((a, b) => b.id.localeCompare(a.id));
-    } else if (criterioOrdenGlobal === 'tamano') {
-        listadoJuegos.sort((a, b) => {
-            let sizeA = a.realSizeBytes || 0;
-            let sizeB = b.realSizeBytes || 0;
-            if (sizeA === sizeB) return a.nombre.localeCompare(b.nombre);
-            return sizeB - sizeA;
-        });
+function bibliotecaRangoInstalacion(installed) {
+    return installed === true ? 0 : installed === false ? 1 : 2;
+}
+
+function bibliotecaCompararEstadoInstalacion(a, b) {
+    return bibliotecaRangoInstalacion(a?.installed) - bibliotecaRangoInstalacion(b?.installed);
+}
+
+function bibliotecaTextoResumenEstado(instalados, noInstalados, sinVerificar, total, sincronizando) {
+    if (sinVerificar > 0) {
+        const estado = sincronizando ? 'Verificando estado de instalación' : 'Estado de instalación no verificado';
+        return `${estado} · ${sinVerificar} de ${total} títulos`;
     }
+    return `${instalados} instalados · ${noInstalados} no instalados (${total})`;
+}
+
+function aplicarOrdenamientoInterno() {
+    const porPreferencia = (a, b) => {
+        if (criterioOrdenGlobal === 'nombre_za') return b.nombre.localeCompare(a.nombre);
+        if (criterioOrdenGlobal === 'recientes') return b.id.localeCompare(a.id);
+        if (criterioOrdenGlobal === 'tamano') {
+            const sizeA = a.realSizeBytes || 0, sizeB = b.realSizeBytes || 0;
+            if (sizeA !== sizeB) return sizeB - sizeA;
+        }
+        return a.nombre.localeCompare(b.nombre);
+    };
+    listadoJuegos.sort((a, b) => bibliotecaCompararEstadoInstalacion(a, b) || porPreferencia(a, b));
 }
 
 function recompilarTodo() {
@@ -438,9 +450,8 @@ function recompilarTodo() {
         const instalados = visibles.filter(game => game.installed === true).length;
         const noInstalados = visibles.filter(game => game.installed === false).length;
         const sinVerificar = visibles.length - instalados - noInstalados;
-        badgeText.innerText = sinVerificar > 0
-            ? `${instalados} instalados · ${noInstalados} no instalados · ${sinVerificar} sin verificar (${visibles.length})`
-            : `${instalados} instalados · ${noInstalados} no instalados (${visibles.length})`;
+        const resumen = bibliotecaTextoResumenEstado(instalados, noInstalados, sinVerificar, visibles.length, bibliotecaAutoScanEnCurso);
+        badgeText.innerText = window.ghmTranslateText ? window.ghmTranslateText(resumen) : resumen;
         badgeText.title = 'Estado de instalación de los títulos visibles en este filtro';
     }
 
@@ -468,7 +479,19 @@ function renderizarGridDOM(visibles) {
         return;
     }
     
-    visibles.forEach((jg) => {
+    const groups = [
+        { key: 'installed', label: 'INSTALADOS EN PS4', rows: visibles.filter(game => game.installed === true) },
+        { key: 'not-installed', label: 'NO INSTALADOS', rows: visibles.filter(game => game.installed === false) },
+        { key: 'unverified', label: 'ESTADO SIN VERIFICAR', rows: visibles.filter(game => game.installed !== true && game.installed !== false) }
+    ].filter(group => group.rows.length > 0);
+    groups.forEach(group => {
+        const heading = document.createElement('div');
+        heading.className = `library-group-separator library-group-${group.key}`;
+        heading.setAttribute('role', 'heading');
+        heading.setAttribute('aria-level', '3');
+        heading.textContent = `${group.label} · ${group.rows.length}`;
+        gridDom.appendChild(heading);
+        group.rows.forEach((jg) => {
         const divCard = document.createElement('div');
         const noInstalado = jg.installed === false;
         const sinVerificar = jg.installed !== true && jg.installed !== false;
@@ -517,6 +540,7 @@ function renderizarGridDOM(visibles) {
             divCard.appendChild(badge);
         }
         gridDom.appendChild(divCard);
+        });
     });
 }
 
@@ -585,8 +609,9 @@ function actualizarCoverflow3DStyles() {
 
     const tarjetas = target3D.querySelectorAll('.ps4-box-case');
     const desktop = document.body.classList.contains('layout-desktop');
-    const pasoCarrusel = desktop ? 220 : 145;
-    const pasoLateral = desktop ? 50 : 35;
+    const viewportWidth = Math.max(320, window.innerWidth || 390);
+    const pasoCarrusel = desktop ? 158 : Math.min(128, Math.max(108, Math.round(viewportWidth * 0.31)));
+    const pasoLateral = desktop ? 32 : 22;
     
     tarjetas.forEach((card, i) => {
         let offset = i - index3DActivo;
@@ -631,6 +656,7 @@ function actualizarCoverflow3DStyles() {
             const tCusa = document.getElementById('text-cusa-3d');
             const tVersion = document.getElementById('text-version-3d');
             const installState = document.getElementById('text-install-state-3d');
+            const installGroup = document.getElementById('text-install-group-3d');
 
             if (tTitle) tTitle.innerText = currentJg.nombre;
             if (tCusa) tCusa.innerText = currentJg.id;
@@ -642,6 +668,16 @@ function actualizarCoverflow3DStyles() {
                     : currentJg.installed === false
                         ? 'px-2 py-0.5 rounded border border-rose-400/30 bg-rose-400/10 text-[8px] font-bold text-rose-200 tracking-wider'
                         : 'px-2 py-0.5 rounded border border-amber-400/30 bg-amber-400/10 text-[8px] font-bold text-amber-200 tracking-wider';
+            }
+            if (installGroup) {
+                installGroup.innerText = currentJg.installed === true ? 'INSTALADOS EN PS4'
+                    : currentJg.installed === false ? 'NO INSTALADOS'
+                        : 'ESTADO SIN VERIFICAR';
+                installGroup.className = currentJg.installed === true
+                    ? 'library-carousel-group library-group-installed'
+                    : currentJg.installed === false
+                        ? 'library-carousel-group library-group-not-installed'
+                        : 'library-carousel-group library-group-unverified';
             }
             if (glowBg) glowBg.style.background = `radial-gradient(circle, rgba(0, 162, 255, 0.5) 0%, rgba(0, 114, 230, 0.15) 45%, rgba(0,0,0,0) 70%)`;
         } else if (offset > 0) {

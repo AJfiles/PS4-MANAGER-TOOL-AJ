@@ -23,15 +23,19 @@ vm.runInNewContext(source.slice(helperStart, helperEnd) + source.slice(renderSta
 
 const attackTitle = '<img src=x onerror=alert(1)>';
 context.renderizarGridDOM([
-    { id: 'CUSA12345', nombre: attackTitle, img: 'javascript:alert(1)' },
-    { id: 'CUSA54321', nombre: 'Título seguro', img: 'https://images.example.test/cover.png?v=2' }
+    { id: 'CUSA12345', nombre: attackTitle, img: 'javascript:alert(1)', installed: false },
+    { id: 'CUSA54321', nombre: 'Título seguro', img: 'https://images.example.test/cover.png?v=2', installed: true }
 ]);
-assert.equal(cards.length, 2);
-assert.equal(cards[0].children[1].textContent, attackTitle, 'El título debe añadirse como texto, nunca como HTML.');
-assert.equal(cards[0].children[0].children.length, 0, 'Debe rechazarse javascript: como imagen y mostrar placeholder.');
-assert.equal(cards[1].children[0].children[0].src, 'https://images.example.test/cover.png?v=2');
-assert.equal(cards[1].children[0].children[0].loading, 'lazy');
-
+const renderedCards = cards.filter(card => card.className.includes("grid-card-modern"));
+const groupHeadings = cards.filter(card => card.className.includes("library-group-separator"));
+assert.equal(renderedCards.length, 2);
+assert.equal(groupHeadings.length, 2);
+assert.match(groupHeadings[0].textContent, /^INSTALADOS EN PS4/);
+assert.match(groupHeadings[1].textContent, /^NO INSTALADOS/);
+assert.equal(renderedCards[1].children[1].textContent, attackTitle);
+assert.equal(renderedCards[1].children[0].children.length, 0);
+assert.equal(renderedCards[0].children[0].children[0].src, "https://images.example.test/cover.png?v=2");
+assert.equal(renderedCards[0].children[0].children[0].loading, "lazy");
 const carouselImage = {
     dataset: { fallback: 'user/cache/biblioteca/CUSA12345.png', suspended: 'false' },
     src: 'https://images.example.test/broken-cover.jpg',
@@ -60,7 +64,11 @@ assert.match(styles, /\.ps4-box-case\.library-installed\.active\s*\{\s*border-co
 assert.match(styles, /\.ps4-box-case\.library-not-installed\.active\s*\{\s*border-color:\s*rgba\(248,113,113/);
 assert.match(styles, /\.ps4-box-case\.library-not-installed \.library-status-badge\s*\{[^}]*bottom:\s*7px/);
 assert.match(styles, /backface-visibility\s*:\s*hidden/);
-assert.match(styles, /transition:\s*transform 0\.11s[^;]+opacity 0\.1s/);
+assert.match(styles, /transition:\s*transform 0\.22s[^;]+opacity 0\.18s/);
+assert.match(styles, /\.grid-card-modern\s*\{\s*position:\s*relative/);
+assert.match(styles, /\.carousel-track-master\s*\{[^}]*contain:\s*layout style;/);
+
+assert.ok(source.includes("const pasoCarrusel = desktop ? 158 : Math.min(128, Math.max(108, Math.round(viewportWidth * 0.31)))"));
 
 const pendingFrames = [];
 let carouselRenders = 0;

@@ -57,14 +57,14 @@ header('X-Author: ' . $firma);
             background-color: rgba(4, 7, 16, 0.65) !important; 
         }
         .app-layer.active { opacity: 1; pointer-events: auto; transform: scale(1); }
-        #launcher-grid, #launcher-preview-grid { gap:clamp(18px,4vw,30px) !important; }
+        #launcher-grid, #launcher-preview-grid { column-gap:clamp(18px,4vw,30px) !important; row-gap:clamp(26px,5vw,38px) !important; }
         
         .launcher-card { 
             background: rgba(10, 13, 24, 0.55) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(8px); 
         }
         .launcher-card:active { transform: scale(0.95); border-color: rgba(34, 211, 238, 0.4) !important; background: rgba(10, 13, 24, 0.7) !important; }
         .launcher-card > span { width:100%; text-align:center; line-height:1.35; }
-        .launcher-section-label { grid-column:1 / -1; margin:1.5rem 0 .15rem; padding:.7rem .45rem .55rem; border-bottom:1px solid rgba(148,163,184,.16); color:rgba(148,163,184,.82); font:900 9px/1.25 ui-monospace,monospace; letter-spacing:.2em; text-transform:uppercase; }
+        .launcher-section-label { grid-column:1 / -1; margin:2rem 0 .35rem; padding:.8rem .55rem .65rem; border-bottom:1px solid rgba(148,163,184,.2); color:rgba(148,163,184,.9); font:900 9px/1.25 ui-monospace,monospace; letter-spacing:.22em; text-transform:uppercase; }
         :is(#launcher-grid, #launcher-preview-grid) .launcher-card > div:first-child { transition: border-radius .2s ease, filter .2s ease, box-shadow .2s ease, background-color .2s ease; }
         :is(#launcher-grid, #launcher-preview-grid).shape-rounded .launcher-card { border-radius:2rem !important; }
         :is(#launcher-grid, #launcher-preview-grid).shape-circle .launcher-card { border-radius:50% !important; }
@@ -129,7 +129,7 @@ header('X-Author: ' . $firma);
         :is(#launcher-grid, #launcher-preview-grid).launcher-vertical .launcher-card > span { width:auto;text-align:left;justify-self:stretch; }
         body.layout-desktop #layer-launcher { padding:2rem clamp(2rem,5vw,6rem); }
         body.layout-desktop #layer-launcher > .w-full.max-w-4xl { max-width:1100px; }
-        body.layout-desktop :is(#launcher-grid, #launcher-preview-grid) { grid-template-columns:repeat(4,minmax(0,1fr)); max-width:1100px; gap:1.2rem; }
+        body.layout-desktop :is(#launcher-grid, #launcher-preview-grid) { grid-template-columns:repeat(4,minmax(0,1fr)); max-width:1100px; column-gap:1.35rem; row-gap:1.8rem; }
         body.layout-desktop :is(#launcher-grid, #launcher-preview-grid) .launcher-card { aspect-ratio:1.45/1; }
         body.layout-desktop :is(#launcher-grid, #launcher-preview-grid).launcher-vertical { grid-template-columns:minmax(0,1fr); max-width:760px; }
         body.layout-desktop :is(#launcher-grid, #launcher-preview-grid).launcher-vertical .launcher-card { aspect-ratio:auto; }
@@ -287,6 +287,25 @@ header('X-Author: ' . $firma);
         .ghm-loader-portal .ghm-loader-ring-a { inset:.2rem;border-width:4px;border-color:var(--loader-color) transparent #a78bfa transparent;animation:ghm-loader-spin 1.7s cubic-bezier(.6,.05,.4,.95) infinite; }
         .ghm-loader-portal .ghm-loader-ring-b { inset:.7rem;border-width:3px;border-color:transparent #f0abfc var(--loader-color) #67e8f9;animation:ghm-loader-spin 1s linear infinite reverse; }
         .ghm-loader-portal .ghm-loader-ring-c { inset:1.25rem;border:0;border-radius:50%;background:radial-gradient(circle,var(--loader-color),transparent 72%);animation:ghm-loader-breathe 1s ease-in-out infinite; }
+        .ghm-loader-aurora .ghm-loader-art { background:radial-gradient(ellipse at 50% 75%,color-mix(in srgb,var(--loader-color) 22%,transparent),transparent 65%); }
+        .ghm-loader-aurora .ghm-loader-ring-a { inset:.15rem .8rem;border-width:2px;border-color:transparent #67e8f9 var(--loader-color) #a78bfa;transform:rotate(-28deg);animation:ghm-loader-spin 2.8s ease-in-out infinite; }
+        .ghm-loader-aurora .ghm-loader-ring-b { inset:.65rem .25rem;border-width:2px;border-color:#a78bfa transparent #6ee7b7 transparent;transform:rotate(28deg);animation:ghm-loader-spin 3.8s ease-in-out infinite reverse; }
+        .ghm-loader-aurora .ghm-loader-ring-c { inset:1.25rem .55rem;border-width:1px;border-color:color-mix(in srgb,var(--loader-color) 60%,transparent) transparent transparent; }
+        .ghm-loader-lattice .ghm-loader-art { border:1px solid color-mix(in srgb,var(--loader-color) 24%,transparent);border-radius:1.15rem;background:repeating-linear-gradient(0deg,transparent 0 10px,color-mix(in srgb,var(--loader-color) 10%,transparent) 11px),repeating-linear-gradient(90deg,transparent 0 10px,color-mix(in srgb,var(--loader-color) 10%,transparent) 11px); }
+        .ghm-loader-lattice .ghm-loader-ring-a { inset:.45rem;border-radius:.65rem;border-style:solid;animation:ghm-loader-spin 5s linear infinite; }
+        .ghm-loader-lattice .ghm-loader-ring-b { inset:.9rem;border-style:dashed;animation:ghm-loader-spin 3.4s linear infinite reverse; }
+        .ghm-loader-lattice .ghm-loader-ring-c { inset:1.25rem;border-width:2px;background:color-mix(in srgb,var(--loader-color) 9%,transparent); }
+        .ghm-loader-reactor .ghm-loader-ring-a { inset:.1rem;border-width:3px;border-color:var(--loader-color) transparent #fb7185 transparent;animation:ghm-loader-spin .9s linear infinite; }
+        .ghm-loader-reactor .ghm-loader-ring-b { inset:.55rem;border-width:2px;border-color:transparent #fcd34d #67e8f9 #a78bfa;animation:ghm-loader-spin 1.7s linear infinite reverse; }
+        .ghm-loader-reactor .ghm-loader-ring-c { inset:1rem;border:0;background:radial-gradient(circle,color-mix(in srgb,var(--loader-color) 45%,transparent),transparent 72%);animation:ghm-loader-breathe .72s ease-in-out infinite; }
+        .ghm-loader-reactor .ghm-loader-symbol { animation:ghm-loader-reactor-core .9s ease-in-out infinite alternate; }
+        .ghm-loader-constellation .ghm-loader-art { border-radius:1.2rem;background:radial-gradient(circle at 25% 25%,color-mix(in srgb,var(--loader-color) 18%,transparent),transparent 35%),radial-gradient(circle at 75% 68%,rgba(167,139,250,.16),transparent 34%); }
+        .ghm-loader-constellation .ghm-loader-ring-a,.ghm-loader-constellation .ghm-loader-ring-b,.ghm-loader-constellation .ghm-loader-ring-c { inset:auto;width:7px;height:7px;border:0;border-radius:50%;background:var(--loader-color);box-shadow:0 0 10px var(--loader-color);animation:ghm-loader-matrix-dot 1.4s ease-in-out infinite; }
+        .ghm-loader-constellation .ghm-loader-ring-a { left:17%;top:23%; }
+        .ghm-loader-constellation .ghm-loader-ring-b { right:15%;top:33%;animation-delay:.35s; }
+        .ghm-loader-constellation .ghm-loader-ring-c { left:45%;bottom:12%;animation-delay:.7s; }
+        .ghm-loader-constellation .ghm-loader-symbol { text-shadow:0 0 15px #a78bfa; }
+        @keyframes ghm-loader-reactor-core { to { transform:scale(1.16) rotate(10deg);filter:drop-shadow(0 0 14px var(--loader-color)); } }
         @media (prefers-reduced-motion: reduce) { .ghm-loading *, .ghm-loader-track i { animation:none !important; } .ghm-loader-track i { width:35%; transform:none !important; } }
     </style>
 </head>
@@ -309,7 +328,7 @@ header('X-Author: ' . $firma);
             </h1>
             <div class="flex items-center justify-center gap-3 mt-2.5 opacity-80">
                 <span class="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-500/80"></span>
-                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.12 • AJ</span>
+                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.13 • AJ</span>
                 <span class="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-500/80"></span>
             </div>
         </div>

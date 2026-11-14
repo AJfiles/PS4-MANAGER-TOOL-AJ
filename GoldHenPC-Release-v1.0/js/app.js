@@ -418,7 +418,11 @@ function emitirEfectoSonidoNativo(tipo, force = false) {
             chime: { wave:'sine', click:[1046,784,.14], open:[784,1568,.28] },
             radar: { wave:'triangle', click:[360,720,.1], open:[420,1260,.24] },
             mech: { wave:'square', click:[180,540,.09], open:[220,880,.2] },
-            breeze: { wave:'sine', click:[620,460,.2], open:[480,960,.34] }
+            breeze: { wave:'sine', click:[620,460,.2], open:[480,960,.34] },
+            sonar: { wave:'sine', click:[740,420,.16], open:[520,1040,.28] },
+            glitch: { wave:'sawtooth', click:[260,980,.09], open:[180,920,.2] },
+            tape: { wave:'triangle', click:[392,294,.2], open:[294,588,.34] },
+            starlight: { wave:'sine', click:[1046,1568,.14], open:[880,1760,.28] }
         };
         const preset = presets[style] || presets.soft, values = tipo === 'ps-ui' ? preset.open : preset.click;
         const play = () => {
@@ -453,7 +457,7 @@ document.addEventListener('pointerdown', evento => {
 }, { capture: true, passive: true });
 document.addEventListener('keydown', desbloquearAudioInterfaz, { capture: true });
 
-function cambiarEstiloSonido(style) { globalAppConfig.estiloSfx = ['soft','console','arcade','minimal','sparkle','deep','retro','synthwave','crystal','pulse','chime','radar','mech','breeze'].includes(style) ? style : 'soft'; localStorage.setItem('cfg_sfx_style', globalAppConfig.estiloSfx); emitirEfectoSonidoNativo('ps-ui', true); }
+function cambiarEstiloSonido(style) { globalAppConfig.estiloSfx = ['soft','console','arcade','minimal','sparkle','deep','retro','synthwave','crystal','pulse','chime','radar','mech','breeze','sonar','glitch','tape','starlight'].includes(style) ? style : 'soft'; localStorage.setItem('cfg_sfx_style', globalAppConfig.estiloSfx); emitirEfectoSonidoNativo('ps-ui', true); }
 function probarSonidoSeleccionado() {
     const status = document.getElementById('cfg-audio-status');
     if (status) status.textContent = 'Probando el sonido de interfaz…';
@@ -993,6 +997,7 @@ window.conectarIPManualValidando = conectarIPManualValidando;
 
 // ============ PWA INSTALL ============
 
+const ghmRuntime = document.body?.dataset?.ghmRuntime || 'pc';
 let deferredPrompt;
 const ghmNativeAndroidShell = /Android/i.test(navigator.userAgent)
     && (/;\s*wv\)/i.test(navigator.userAgent)
@@ -1000,7 +1005,11 @@ const ghmNativeAndroidShell = /Android/i.test(navigator.userAgent)
         // WebToApp serves this APK on its private loopback port. Its UA does
         // not always include the Android WebView "wv" marker.
         || (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === '18500'));
+const ghmTermuxWeb = /Android/i.test(navigator.userAgent)
+    && ghmRuntime === 'termux'
+    && ['8080', '8081'].includes(location.port);
 const ghmNativeAndroidApk = /Android/i.test(navigator.userAgent)
+    && !ghmTermuxWeb
     && (/;\s*wv\)/i.test(navigator.userAgent)
         || (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port === '18500'));
 
@@ -1078,8 +1087,13 @@ window.mostrarInstalacionPWA = async function() {
 window.androidReleaseCandidate = null;
 window.pcReleaseCandidate = null;
 let comprobacionActualizacionEnCurso = false;
-const ghmRuntime = document.body?.dataset?.ghmRuntime || 'pc';
+function ghmUpdatePlatformLabel() {
+    const label = document.getElementById('update-platform-label');
+    if (!label) return;
+    label.textContent = ghmNativeAndroidApk ? 'APK Android' : ghmRuntime === 'termux' ? 'Termux' : 'PC';
+}
 function ghmUpdateProgress(value, label) {
+    ghmUpdatePlatformLabel();
     const bar = document.getElementById('update-progress-bar');
     const wrap = document.getElementById('update-progress-wrap');
     const text = document.getElementById('update-progress-label');

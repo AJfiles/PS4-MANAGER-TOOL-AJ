@@ -10,6 +10,8 @@
         'Configuración': 'Settings', 'Entorno, Audio y SFX': 'Interface, audio and SFX', 'Alertas del Sistema': 'System alerts', 'No instalado': 'Not installed',
         'Vista previa permanente · refleja forma, animación y estilo elegidos': 'Always-visible preview · reflects the selected shape, animation and style',
         'Cuántico · anillos dinámicos': 'Quantum · dynamic rings', 'Hélice · órbitas cruzadas': 'Helix · crossing orbits', 'Portal · núcleo profundo': 'Portal · deep core',
+        'Aurora polar · ondas de color': 'Polar aurora · color waves', 'Retícula · cuadrícula luminosa': 'Lattice · luminous grid', 'Reactor · núcleo de energía': 'Reactor · energy core', 'Constelación · nodos estelares': 'Constellation · star nodes',
+        'Eco sonar': 'Sonar echo', 'Glitch digital': 'Digital glitch', 'Cinta retro': 'Retro tape', 'Luz estelar': 'Starlight',
         'Órbita': 'Orbit', 'Mecánico': 'Mechanical', 'Órbita · anillos y núcleo': 'Orbit · rings and core',
         'Verde: instalado · rojo: no instalado': 'Green: installed · red: not installed',
         'ESTADO SIN VERIFICAR': 'STATUS UNVERIFIED', 'INSTALADO': 'INSTALLED', 'NO INSTALADO': 'NOT INSTALLED',
@@ -103,7 +105,7 @@
         'Nombre no disponible': 'Name unavailable', 'Juego instalado': 'Installed game', 'Juego no instalado': 'Game not installed',
         'Respaldo de la base de datos XMB': 'XMB database backup', 'Se guarda una copia local de app.db. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': 'A local copy of app.db is saved. Each change creates another backup automatically. Close games and do not turn off the console during the operation.'
         , 'Centro de conexión PS4': 'PS4 connection center', 'Desconectado': 'Disconnected', 'SaveGames': 'Save Games', 'Limpieza': 'Cleanup',
-        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.12 • AJ': 'VERSION 4.5.12 • AJ',
+        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.13 • AJ': 'VERSION 4.5.13 • AJ',
         'BUSCANDO PS4 EN LA RED': 'SEARCHING FOR PS4 ON THE NETWORK', 'Conecta la PS4 y pulsa Actualizar para leer partidas.': 'Connect the PS4 and tap Refresh to read save data.',
         'Biblioteca de partidas': 'Save Data Library', 'DATOS DE CONSOLA': 'CONSOLE DATA', 'Respaldos locales': 'Local backups',
         'Los ZIP se conservan aunque elimines la partida de la consola.': 'ZIP backups are kept even if you delete the console save.',
@@ -169,7 +171,7 @@
         'Transfiriendo datos en la memoria de la consola. Dependiendo del peso, esto puede demorar varios segundos.': 'Transferring data to console memory. Depending on the file size, this may take several seconds.', 'Trucos y Parches': 'Cheats and patches', 'Ubicación (Grupo):': 'Location (group):', 'Ubicación Estructural:': 'Structural location:', 'Ubicado en categoría:': 'In category:',
         'Update plugin archive': 'Update plugin archive', 'Uso por categoría': 'Usage by category', 'Ver, guardar y eliminar': 'View, save and delete',
         'Verifica el firmware exacto antes de enviar cualquier payload. La aceptación se guardará en este navegador para no repetir el aviso en cada visita.': 'Verify the exact firmware before sending any payload. Your acknowledgement is saved in this browser so the warning is not repeated on every visit.',
-        'VERSION 4.5.12 • AJ': 'VERSION 4.5.12 • AJ', 'Versión 4.5.12 • Mantenido por AJ': 'Version 4.5.12 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
+        'VERSION 4.5.13 • AJ': 'VERSION 4.5.13 • AJ', 'Versión 4.5.13 • Mantenido por AJ': 'Version 4.5.13 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
         'ya existe en la consola. ¿Qué deseas hacer con él?': 'already exists on the console. What would you like to do with it?',
         '; Apollo genera la estructura `PS4/APOLLO/...` con `sce_sys`. Verifica la importación antes de borrar la partida original.': '; Apollo creates the `PS4/APOLLO/...` structure with `sce_sys`. Verify the import before deleting the original save.',
         '. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': '. Each save creates another backup automatically. Close games and do not turn off the console during the operation.',
@@ -179,7 +181,7 @@
         '. Solo se muestran payloads para FW 5.05 y 9.00; confirma el firmware antes de enviarlos.': '. Only payloads for FW 5.05 and 9.00 are listed; verify the firmware before sending.',
         '. Usa solo payloads compatibles con tu firmware.': '. Use only payloads compatible with your firmware.',
         '⚠️ NO CIERRES LA APP NI REINICIES EL JUEGO AÚN': '⚠️ DO NOT CLOSE THE APP OR RESTART THE GAME YET',
-        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.12': 'VERSION 4.5.12'
+        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.13': 'VERSION 4.5.13'
     };
     Object.assign(translations, {
         'Aparición gradual': 'Fade in',
@@ -377,6 +379,11 @@
         [/^Enviado: (.+)\.$/, (_, value) => `Sent: ${value}.`],
         [/^Restaurados (\d+) archivo\(s\)\.$/, (_, count) => `Restored ${count} file(s).`],
         [/^Cargando títulos: (\d+)\/(\d+)$/, (_, done, total) => `Loading titles: ${done}/${total}`],
+        [/^Verificando estado de instalación · (\d+) de (\d+) títulos$/, (_, pending, total) => `Checking install status · ${pending} of ${total} titles`],
+        [/^Estado de instalación no verificado · (\d+) de (\d+) títulos$/, (_, pending, total) => `Install status unverified · ${pending} of ${total} titles`],
+        [/^INSTALADOS EN PS4 · (\d+)$/, (_, count) => `INSTALLED ON PS4 · ${count}`],
+        [/^NO INSTALADOS · (\d+)$/, (_, count) => `NOT INSTALLED · ${count}`],
+        [/^ESTADO SIN VERIFICAR · (\d+)$/, (_, count) => `STATUS UNVERIFIED · ${count}`],
         [/^PS4 localizada · cierre automático en (\d+) s · puedes cerrar antes con X\.$/, (_, seconds) => `PS4 found · auto-close in ${seconds}s · tap X to close sooner.`],
         [/^\[OK\] Conexión FTP validada\.$/, () => '[OK] FTP connection validated.'],
         [/^\[OK\] Consola guardada y conexión verificada\. El radar se cerrará en 5 segundos; puedes cerrarlo antes con X\.$/, () => '[OK] Console saved and connection verified. Radar closes in 5 seconds; tap X to close sooner.'],
