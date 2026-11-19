@@ -5,9 +5,15 @@ title PS4 Manager Tools AJ v4.5.13 - PC
 color 0B
 for %%I in ("%~dp0.") do set "ROOT=%%~fI"
 set "PHP=%ROOT%\runtime\php.exe"
+set "SERVER_BAT=%ROOT%\Iniciar-Servidor-PS4-Manager-Tool.bat"
 set "URL=http://127.0.0.1:8080/"
 if not exist "%PHP%" (
   echo No se encontro runtime\php.exe. Extrae de nuevo el ZIP completo.
+  pause
+  exit /b 1
+)
+if not exist "%SERVER_BAT%" (
+  echo No se encontro Iniciar-Servidor-PS4-Manager-Tool.bat. Extrae de nuevo el ZIP completo.
   pause
   exit /b 1
 )
@@ -20,15 +26,14 @@ if not errorlevel 1 (
 echo ================================================
 echo       PS4 Manager Tools AJ v4.5.13 - PC
 echo ================================================
-echo Iniciando PHP. Se abrira una segunda ventana del servidor.
-echo Si PHP muestra un error, revisa alli el mensaje y runtime Visual C++ x86.
-start "" /D "%ROOT%" "%PHP%" -c "%ROOT%\runtime\php.ini" -S 0.0.0.0:8080 -t "%ROOT%" "%ROOT%\server-router.php"
+echo Iniciando PHP en una segunda ventana que conservara los errores visibles.
+start "PS4 Manager Tools AJ - Servidor PHP" "%SERVER_BAT%"
 for /L %%I in (1,1,30) do (
   powershell.exe -NoProfile -Command "try {$r=Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 'http://127.0.0.1:8080/'; if ($r.StatusCode -eq 200) {exit 0} else {exit 1}} catch {exit 1}" >nul 2>&1
   if not errorlevel 1 goto ready
   timeout /t 1 /nobreak >nul
 )
-echo PHP no respondio en el puerto 8080. Revisa la ventana del servidor y el runtime Visual C++ x86.
+echo PHP no respondio en el puerto 8080. Revisa la ventana del servidor PHP; alli quedara visible el error.
 pause
 exit /b 3
 :ready
