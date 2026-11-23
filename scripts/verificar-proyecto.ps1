@@ -9,7 +9,13 @@ $libraryControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\bibliot
 $libraryPage = Get-Content -LiteralPath (Join-Path $root 'modulos\biblioteca.php') -Raw
 $releaseCandidates = @((Join-Path $root 'GoldHenPC-Release-v1.0'))
 $releaseCandidates += @(Get-ChildItem -LiteralPath $root -Directory -Filter 'PS4-Manager-Tools-AJ-PC-v*' -ErrorAction SilentlyContinue | Sort-Object Name -Descending | ForEach-Object FullName)
-$release = $releaseCandidates | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'runtime\php.exe') } | Select-Object -First 1
+# El mismo verificador se ejecuta desde el repositorio y desde el ZIP PC extraído.
+# En el paquete distribuible el runtime está directamente en la raíz del proyecto.
+$release = if (Test-Path -LiteralPath (Join-Path $root 'runtime\php.exe')) {
+    $root
+} else {
+    $releaseCandidates | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'runtime\php.exe') } | Select-Object -First 1
+}
 if (-not $release) { $release = $releaseCandidates | Select-Object -First 1 }
 $php = Join-Path $release 'runtime\php.exe'
 $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
@@ -146,7 +152,7 @@ Report-Check 'Todos los endpoints API y el router aplican guard de origen local'
 $projectVersion = Get-Content -LiteralPath (Join-Path $root 'project-version.json') -Raw | ConvertFrom-Json
 $androidReleaseApi = Get-Content -LiteralPath (Join-Path $root 'api\android_release_api.php') -Raw
 $androidReleaseScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
-Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.16' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
+Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.17' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
 $fwPayloadTest = Join-Path $PSScriptRoot 'test-fw-payload-catalogue.cjs'
 $fwPayloadOutput = & $nodeCommand.Source $fwPayloadTest $root 2>&1
 $fwPayloadPassed = $LASTEXITCODE -eq 0 -and ($fwPayloadOutput -join ' ') -match 'FW_PAYLOAD_CATALOGUE_OK'

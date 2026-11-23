@@ -1534,3 +1534,28 @@ PS4 Manager Tools AJ 4.5.16 — Plugins FTP y sincronización multiplataforma (2
 - Se reutiliza el inventario remoto en el diagnóstico de `plugins.ini`; el catálogo de idiomas incluye el error de conexión/listado.
 - Prueba de solo lectura desde la API de la APK 4.5.16 en el S23 contra la PS4 `192.168.20.39:2121`: devolvió 16 `.prx` y leyó `[default]`, `[CUSA00133]` y `[CUSA01015]` desde `plugins.ini`. La pantalla Plugins mostró el conteo de 16 y el plugin activo `AJ_ControlALL_reader.prx`. No se modificó `plugins.ini` ni ningún archivo de la consola.
 - La APK 4.5.16 (versionCode 40516) se reconstruyó con la firma original y se actualizó en el S23 sin borrar sus datos. El verificador completo de PHP, JavaScript, flujos de UI, traducciones y sincronización PC terminó sin errores.
+PS4 Manager Tools AJ 4.5.17 — carrusel de Biblioteca y auditoría de la APK (2026-11-23)
+----------------------------------------------------------------------------------
+- El carrusel de Biblioteca ahora navega con flechas izquierda/derecha cuando esa vista está activa; la tarjeta enfocada anuncia su selección y permite abrir opciones con Enter o Espacio.
+- Biblioteca muestra una indicación para navegar con teclado y bajar a las acciones del juego; el progreso de sincronización informa un tiempo restante estimado después de acumular muestras.
+- Explorador FTP muestra dónde abrir el menú de acciones en PC: clic derecho o botón ⋮ por elemento.
+- Auditoría de solo lectura desde la APK en el S23 y la PS4: Biblioteca 48 títulos (40 instalados verificados), SaveGames 61 partidas, Almacenamiento 40 títulos y 61 partidas, Parches 11 juegos con 387 XML legibles, Organizar Apps 2 perfiles/132 apps y Payloads 9 archivos remotos.
+- Capturas respondió correctamente, pero la PS4 solo expuso 23 archivos auxiliares .dat/.ext y ninguna imagen JPG/JPEG/PNG accesible; la galería no puede mostrar imágenes que el FTP no ofrece como tales.
+- La lectura FTP nativa encontró 16 plugins remotos y leyó plugins.ini. Se probó update_ini por la APK con el CUSA temporal CUSA00000, se desactivó y se restauró el plugins.ini original byte por byte (SHA-256 verificado); no se alteraron asignaciones reales.
+- Explorer FTP respondió correctamente al listar /data; en esta lectura no se escribió ni eliminó ningún archivo.
+- No se ejecutaron payloads de ventilador ni de actualizaciones durante esta auditoría. Se mantienen las compatibilidades confirmadas y por verificar indicadas por el mantenedor.
+
+
+### 4.5.17 · Cierre de verificación y release PC
+- El verificador ahora detecta el runtime portable cuando se ejecuta desde la raíz del paquete PC, además de funcionar desde el repositorio.
+- La prueba de catálogo Fan/Updates admite auditar directamente el espejo PC.
+- Corregido el mensaje de tiempo estimado de Biblioteca para que se actualice dentro del escaneo manual, sin referencia fuera de ámbito.
+- Añadida la traducción al inglés de la ayuda de acciones del Explorador FTP.
+- Validación completa: PHP 60/60, JavaScript 21/21 y verificaciones funcionales del proyecto aprobadas en repositorio y espejo PC.
+- Release PC limpio preparado con un solo BAT; 189 archivos, sin datos de sesión ni panel privado. SHA-256 disponible en SHA256SUMS-4.5.17.txt.
+
+### 4.5.17 · Correcciones PC y payloads Android
+- El BAT PC crea una cache OPcache por usuario en `%LOCALAPPDATA%` y pasa a PHP la ruta absoluta de `opcache.file_cache` junto con `opcache.file_cache_fallback=1`, evitando el fatal de OPcache por ASLR observado en Windows/PHP 8.5. La prueba del servidor local respondió HTTP 200.
+- El ZIP/fuente Android ahora incluye `UniversalPayloadsFW_FAN` con los ocho BIN de ventilador y los dos BIN de actualizaciones que verifica el endpoint. Antes el empaquetador Android omitía esa carpeta y la alternativa histórica `payloads fw` no contenía estos nombres universales; por eso la APK 4.5.16 respondía “No se encontró el payload en el catálogo local”.
+- APK 4.5.17 compilada en WebToApp con `com.aj.ps4managertool.app`, versionCode 40517 y certificado SHA-256 `d88b5f087e9e6a4cc558b92c636eff3c9ed23f34e717cce47037b272c44699e3`; instalada como actualización conservando datos.
+- La APK contiene los BIN universales. Se consultó su endpoint con `127.0.0.1` para Ventilador y Bloquear actualizaciones: ambos localizaron y validaron el payload, y terminaron en `Connection refused` al no existir BinLoader local. No se conectó a la PS4 ni se transmitieron payloads durante esta prueba.

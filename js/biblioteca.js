@@ -87,6 +87,19 @@ function initBiblio() {
             recompilarTodo();
         });
     }
+    if (!window.__ghmLibraryCarouselKeysBound) {
+        window.__ghmLibraryCarouselKeysBound = true;
+        document.addEventListener('keydown', event => {
+            const layer = document.getElementById('layer-biblioteca');
+            if (!layer?.classList.contains('active') || vistaModo !== '3d' || event.altKey || event.ctrlKey || event.metaKey) return;
+            if (event.target?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                event.preventDefault();
+                moverCarruselBiblioteca(event.key === 'ArrowRight' ? 1 : -1);
+                requestAnimationFrame(() => document.querySelector('#dom-3d-target .ps4-box-case.active')?.focus({ preventScroll: true }));
+            }
+        });
+    }
     // ======== FIN MEJORA ========
 }
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initBiblio); } 
@@ -157,6 +170,7 @@ async function ejecutarSincronizacionFantasmasFondo() {
         });
         let colaTrabajoCUSAs = Object.keys(mapJuegosDetectados);
         const totalEscaneo = colaTrabajoCUSAs.length;
+        const inicioTiempoEscaneo = Date.now();
         let procesadosEscaneo = 0;
         let huboCambiosNuevos = false;
         if (estadoSync) {
@@ -232,7 +246,7 @@ async function ejecutarSincronizacionFantasmasFondo() {
                     }
                 }
             });
-            if (estadoSync) estadoSync.innerText = `Cargando títulos: ${procesadosEscaneo}/${totalEscaneo}`;
+            if (estadoSync) estadoSync.innerText = bibliotecaTextoProgresoEscaneo(procesadosEscaneo, totalEscaneo, inicioTiempoEscaneo);
         }
 
         // La lectura también cambia installed aunque nombre, imagen y tipo
@@ -340,6 +354,7 @@ async function forzarSincronizacionManual() {
             recompilarTodo();
         }
 
+        const inicioTiempoManual = Date.now();
         while (colaCUSA.length > 0) {
             if (signal.aborted) break;
             let lote = colaCUSA.splice(0, 3);
@@ -360,12 +375,11 @@ async function forzarSincronizacionManual() {
             procesados += lote.length;
             if (title) title.innerText = `LEYENDO (${procesados}/${total})`;
             if (text) text.innerText = lote[lote.length - 1];
+            if (bytesLabel) bytesLabel.innerText = bibliotecaTextoProgresoEscaneo(procesados, total, inicioTiempoManual);
 
             let calcPct = (procesados / total) * 100;
             if (bar) bar.style.width = calcPct + '%';
             if (pctLabel) pctLabel.innerText = Math.round(calcPct) + '%';
-            if (bytesLabel) bytesLabel.innerText = `${procesados} / ${total} títulos procesados — guardando caché local...`;
-
             let respuestasLote = await Promise.all(promesas);
             respuestasLote.forEach(res => {
                 if (res && res.status === 'success' && res.game) {
@@ -590,6 +604,12 @@ function construirCoverflowDOMEstatico(visibles) {
             if (idx !== index3DActivo) { index3DActivo = idx; actualizarCoverflow3DStyles(); }
             else { abrirOpcionesDesde3D(); }
         };
+        card.onkeydown = event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            if (idx !== index3DActivo) { index3DActivo = idx; actualizarCoverflow3DStyles(); }
+            else abrirOpcionesDesde3D();
+        };
     });
 
     configurarRastreadorSwipe();
@@ -640,11 +660,15 @@ function actualizarCoverflow3DStyles() {
             }
         }
         card.classList.remove('active');
+        card.tabIndex = -1;
+        card.setAttribute('aria-current', 'false');
 
         if (absOffset > 2) return;
 
         if (absOffset === 0) {
             card.classList.add('active');
+            card.tabIndex = 0;
+            card.setAttribute('aria-current', 'true');
             card.style.transform = `translateX(0px) translateZ(100px) rotateY(0deg) scale(1.15)`;
             card.style.opacity = '1';
             card.style.zIndex = '100';
@@ -934,6 +958,17 @@ function moverCarruselBiblioteca(delta) {
         bibliotecaFrameCarrusel = 0;
         actualizarCoverflow3DStyles();
     });
+}
+
+function bibliotecaTextoProgresoEscaneo(processed, total, startedAt) {
+    const base = `Cargando títulos: ${processed}/${total}`;
+    if (processed <= 0 || processed >= total) return base;
+    const elapsed = Math.max(0, (Date.now() - startedAt) / 1000);
+    if (elapsed < 1.5) return base;
+    const seconds = Math.max(1, Math.ceil(elapsed * (total - processed) / processed));
+    const minutes = Math.floor(seconds / 60);
+    const remainder = seconds % 60;
+    return `${base} · aprox. ${minutes}:${String(remainder).padStart(2, '0')} restantes`;
 }
 
 async function ejecutarAccionRapidaJuego(accion) {

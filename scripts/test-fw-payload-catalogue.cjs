@@ -10,6 +10,8 @@ const expected = Object.fromEntries(
 );
 
 const pcCandidates = [
+  // A PC source/package can be audited directly; its root is the PC mirror.
+  root,
   path.join(root, 'GoldHenPC-Release-v1.0'),
   ...fs.readdirSync(root, { withFileTypes: true })
     .filter(entry => entry.isDirectory() && /^PS4-Manager-Tools-AJ-PC-v/.test(entry.name))

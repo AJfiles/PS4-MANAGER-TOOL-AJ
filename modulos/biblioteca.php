@@ -226,8 +226,9 @@
                 <button type="button" onclick="moverCarruselBiblioteca(1)" aria-label="Siguiente juego" class="library-carousel-nav right-2" title="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
             
-            <div class="w-full shrink-0 flex flex-col items-center mt-6 mb-20 z-20">
+            <div class="w-full shrink-0 flex flex-col items-center mt-4 mb-20 z-20">
                 <h3 id="text-title-3d" class="text-[16px] font-black uppercase text-white truncate w-full px-4 text-center tracking-widest drop-shadow-md">---</h3>
+                <p class="mt-1 text-[8px] text-gray-500 text-center">← / → para recorrer · Enter o centro para abrir · desliza hacia abajo para acciones</p>
                 
                 <div class="flex flex-col items-center gap-1 mt-1.5">
                     <span id="text-install-group-3d" class="library-carousel-group">INSTALADOS EN PS4</span>

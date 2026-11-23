@@ -214,8 +214,8 @@ function respaldar_plugins_ini($raw, $prefix='plugins') {
     return $name;
 }
 function subir_plugins_ini_verificado($host, $path, $old, $new) {
-    // Some embedded PHP servers include this API from inside a router function.
-    // Pass the target explicitly instead of relying on a top-level variable in $GLOBALS.
+    // Embedded servers can include this API inside a router function. Pass the
+    // target explicitly instead of relying on a top-level variable in $GLOBALS.
     $uploaded = ftp_put_plugins($host,$path,$new);
     $readback = $uploaded ? ftp_get_plugins($host,$path) : false;
     if ($readback !== false && hash_equals(hash('sha256',$new),hash('sha256',$readback))) return ['ok'=>true,'sha256'=>hash('sha256',$readback)];
