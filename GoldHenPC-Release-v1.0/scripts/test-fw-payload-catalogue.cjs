@@ -9,17 +9,27 @@ const expected = Object.fromEntries(
   [...api.matchAll(/'([^']+\.bin)'\s*=>\s*'([a-f0-9]{64})'/gi)].map(([, name, hash]) => [name, hash.toLowerCase()])
 );
 
+const pcCandidates = [
+  path.join(root, 'GoldHenPC-Release-v1.0'),
+  ...fs.readdirSync(root, { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && /^PS4-Manager-Tools-AJ-PC-v/.test(entry.name))
+    .map(entry => path.join(root, entry.name)),
+];
+const pcRoot = pcCandidates.find(candidate => fs.existsSync(path.join(candidate, 'UniversalPayloadsFW_FAN')));
 const roots = [
-  path.join(root, 'UniversalPayloadsFW_FAN'),
-  path.join(root, 'payloads fw'),
-  path.join(root, 'GoldHenPC-Release-v1.0', 'UniversalPayloadsFW_FAN'),
-  path.join(root, 'GoldHenPC-Release-v1.0', 'payloads fw'),
+  { path: path.join(root, 'UniversalPayloadsFW_FAN'), required: true },
+  { path: path.join(root, 'payloads fw'), required: false },
+  { path: pcRoot ? path.join(pcRoot, 'UniversalPayloadsFW_FAN') : '', required: true },
+  { path: pcRoot ? path.join(pcRoot, 'payloads fw') : '', required: false },
 ];
 const missing = [];
 const mismatched = [];
+for (const base of roots.filter(item => item.required && (!item.path || !fs.existsSync(item.path)))) {
+  missing.push(base.path || 'PC package UniversalPayloadsFW_FAN');
+}
 for (const [name, hash] of Object.entries(expected)) {
   const category = name.startsWith('fan_') ? 'FAN' : 'UPDATES';
-  for (const base of roots) {
+  for (const { path: base } of roots.filter(item => item.path && fs.existsSync(item.path))) {
     const file = path.join(base, category, name);
     if (!fs.existsSync(file)) {
       missing.push(file);

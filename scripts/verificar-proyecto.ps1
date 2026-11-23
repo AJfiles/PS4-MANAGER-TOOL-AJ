@@ -7,7 +7,10 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $captureControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
 $libraryControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\biblioteca.js') -Raw
 $libraryPage = Get-Content -LiteralPath (Join-Path $root 'modulos\biblioteca.php') -Raw
-$release = Join-Path $root 'GoldHenPC-Release-v1.0'
+$releaseCandidates = @((Join-Path $root 'GoldHenPC-Release-v1.0'))
+$releaseCandidates += @(Get-ChildItem -LiteralPath $root -Directory -Filter 'PS4-Manager-Tools-AJ-PC-v*' -ErrorAction SilentlyContinue | Sort-Object Name -Descending | ForEach-Object FullName)
+$release = $releaseCandidates | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'runtime\php.exe') } | Select-Object -First 1
+if (-not $release) { $release = $releaseCandidates | Select-Object -First 1 }
 $php = Join-Path $release 'runtime\php.exe'
 $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
 $failures = [System.Collections.Generic.List[string]]::new()
@@ -299,7 +302,7 @@ if ($TestCaptureApi) {
     Report-Check 'API genera ZIP, elimina y verifica captura por FTP; rechaza ruta traversal' $captureApiPassed ($captureApiOutput -join ' ')
 }
 
-$sourceRoots = @('api', 'js', 'modulos', 'payloads', 'payloads fw', 'plugins')
+$sourceRoots = @('api', 'js', 'modulos', 'payloads', 'payloads fw', 'plugins', 'UniversalPayloadsFW_FAN') | Where-Object { Test-Path -LiteralPath (Join-Path $root $_) }
 $mirrorErrors = [System.Collections.Generic.List[string]]::new()
 foreach ($relativeRoot in $sourceRoots) {
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $root $relativeRoot) -Recurse -File) {
@@ -309,7 +312,7 @@ foreach ($relativeRoot in $sourceRoots) {
         if ((Get-Sha256Hex -LiteralPath $file.FullName) -ne (Get-Sha256Hex -LiteralPath $destination)) { $mirrorErrors.Add("Difiere en PC: $relative") }
     }
 }
-$rootFiles = @('index.php', 'manifest.json', 'README.md', 'MEJORAS_IMPLEMENTADAS.txt', 'server-router.php', 'store.php', 'sw.js')
+$rootFiles = @('index.php', 'manifest.json', 'project-version.json', 'README.md', 'MEJORAS_IMPLEMENTADAS.txt', 'server-router.php', 'store.php', 'sw.js')
 foreach ($relative in $rootFiles) {
     $source = Join-Path $root $relative
     $destination = Join-Path $release $relative
@@ -317,6 +320,9 @@ foreach ($relative in $rootFiles) {
     if ((Get-Sha256Hex -LiteralPath $source) -ne (Get-Sha256Hex -LiteralPath $destination)) { $mirrorErrors.Add("Difiere en PC: $relative") }
 }
 Report-Check 'Sincronización de archivos distribuidos con PC' ($mirrorErrors.Count -eq 0) ($mirrorErrors -join '; ')
+
+$pcLauncherCount = @(Get-ChildItem -LiteralPath $release -File -Filter '*.bat').Count
+Report-Check 'La distribuciÃ³n PC actual contiene un Ãºnico lanzador BAT' ($pcLauncherCount -eq 1) "Encontrados: $pcLauncherCount"
 
 if ($failures.Count) {
     Write-Host "Revisión terminada con $($failures.Count) comprobación(es) fallida(s)." -ForegroundColor Red
