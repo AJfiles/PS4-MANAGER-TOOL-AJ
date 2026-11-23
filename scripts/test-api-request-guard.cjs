@@ -1,5 +1,4 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const { spawn } = require('node:child_process');
 const net = require('node:net');
 const path = require('node:path');
@@ -35,10 +34,9 @@ async function waitForServer(url, child) {
 (async () => {
   const port = await freePort();
   const base = `http://127.0.0.1:${port}`;
-  const ini = path.join(path.dirname(php), 'php.ini');
-  // The portable php.ini uses a package-relative opcache.file_cache path.
-  // This fixture runs with cwd=root, so disable only OPcache for its ephemeral server.
-  const args = fs.existsSync(ini) ? ['-c', ini, '-d', 'opcache.file_cache=off'] : ['-d', 'opcache.file_cache=off'];
+  // This endpoint guard test needs no PHP extensions. Ignore php.ini so the
+  // portable Windows build does not initialize OPcache without its file cache.
+  const args = ['-n', '-d', 'opcache.enable=0', '-d', 'opcache.enable_cli=0'];
   args.push('-S', `127.0.0.1:${port}`, '-t', path.resolve(root));
   const child = spawn(php, args, {
     cwd: path.resolve(root), windowsHide: true, stdio: 'ignore'

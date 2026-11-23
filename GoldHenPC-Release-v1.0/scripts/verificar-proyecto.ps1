@@ -215,6 +215,10 @@ $libraryActionsPassed = $LASTEXITCODE -eq 0 -and ($libraryActionsOutput -join ' 
 $pluginScript = Get-Content -LiteralPath (Join-Path $root 'js\plugins.js') -Raw
 $libraryActionsPassed = $libraryActionsPassed -and $libraryPage -match 'abrirPluginsParaJuego\(juegoSeleccionadoLocal\.id\)' -and $pluginScript -match 'window\.abrirPluginsParaJuego'
 Report-Check 'Acciones de Biblioteca abren Parches, Saves, Capturas y Plugins para el CUSA seleccionado' $libraryActionsPassed ($libraryActionsOutput -join ' ')
+$explorerActionsTest = Join-Path $PSScriptRoot 'test-explorer-context-actions.cjs'
+$explorerActionsOutput = & $nodeCommand.Source $explorerActionsTest 2>&1
+$explorerActionsPassed = $LASTEXITCODE -eq 0 -and ($explorerActionsOutput -join ' ') -match 'FTP_CONTEXT_MENU_MOUSE_TOUCH_KEYBOARD_ACTIONS_OK'
+Report-Check 'Explorador FTP abre acciones con clic derecho y botón accesible; escapa nombres remotos' $explorerActionsPassed ($explorerActionsOutput -join ' ')
 $captureScript = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
 $capturePage = Get-Content -LiteralPath (Join-Path $root 'modulos\capturas.php') -Raw
 $captureApi = Get-Content -LiteralPath (Join-Path $root 'api\ps4_screenshots_api.php') -Raw

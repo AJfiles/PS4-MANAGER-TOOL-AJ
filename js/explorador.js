@@ -51,6 +51,10 @@ function formatearTamanoBytes(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+function exploradorEscaparHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+}
+
 function normalizePath(p) { return p.replace(/\/+/g, '/'); }
 
 async function cargarRutaFtp(rutaDestino, esNavegacionAtras = false) {
@@ -166,7 +170,7 @@ function renderizarListaExplorador(carpetas, archivos) {
         let fullPath = normalizePath(exploradorRutaActual + '/' + item.name);
         let isSelected = multiSelectedPaths.has(fullPath);
 
-        div.className = `item-hover flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer select-none ${isSelected ? 'selected-row' : 'border-transparent'}`;
+        div.className = `item-hover group flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer select-none ${isSelected ? 'selected-row' : 'border-transparent'}`;
 
         // El menú táctil también debe estar disponible en PC con el botón derecho.
         div.addEventListener('contextmenu', (event) => {
@@ -201,8 +205,8 @@ function renderizarListaExplorador(carpetas, archivos) {
             <div class="flex items-center gap-3 flex-1 min-w-0 pointer-events-none">
                 <div class="w-9 h-9 rounded-lg ${colorClasses} flex items-center justify-center shrink-0"><i class="${iconCode}"></i></div>
                 <div class="flex flex-col flex-1 min-w-0">
-                    <span class="text-[12px] font-bold text-gray-200 truncate">${item.name}</span>
-                    <span class="text-[9px] font-mono text-gray-500">${item.date}</span>
+                    <span class="text-[12px] font-bold text-gray-200 truncate">${exploradorEscaparHtml(item.name)}</span>
+                    <span class="text-[9px] font-mono text-gray-500">${exploradorEscaparHtml(item.date)}</span>
                 </div>
             </div>
             <div class="flex items-center pointer-events-none">
@@ -210,6 +214,22 @@ function renderizarListaExplorador(carpetas, archivos) {
                 ${checkHTML}
             </div>
         `;
+        // En PC no dependemos del clic derecho: el botón de acciones queda
+        // visible y también es accesible con teclado y pantalla táctil.
+        const actionsButton = document.createElement('button');
+        actionsButton.type = 'button';
+        actionsButton.className = 'ml-2 shrink-0 w-9 h-9 rounded-lg border border-cyan-400/15 bg-cyan-400/5 text-cyan-200/80 hover:bg-cyan-400/15 hover:text-cyan-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300 transition-colors';
+        actionsButton.setAttribute('aria-label', `Acciones para ${item.name}`);
+        actionsButton.title = 'Acciones';
+        actionsButton.innerHTML = '<i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>';
+        actionsButton.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            clearTimeout(longPressTimer);
+            if (isMultiSelectMode) toggleSeleccion(fullPath, isDir, div);
+            else abrirContextMenu(item, isDir, iconCode);
+        });
+        div.appendChild(actionsButton);
         container.appendChild(div);
     };
 
