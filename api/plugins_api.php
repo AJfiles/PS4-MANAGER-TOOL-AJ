@@ -213,13 +213,15 @@ function respaldar_plugins_ini($raw, $prefix='plugins') {
     if (!is_string($hash) || !hash_equals(hash('sha256',$raw),$hash)) { @unlink($file); return false; }
     return $name;
 }
-function subir_plugins_ini_verificado($host, $old, $new) {
-    $uploaded = ftp_put_plugins($host,$GLOBALS['ini_path'],$new);
-    $readback = $uploaded ? ftp_get_plugins($host,$GLOBALS['ini_path']) : false;
+function subir_plugins_ini_verificado($host, $path, $old, $new) {
+    // Some embedded PHP servers include this API from inside a router function.
+    // Pass the target explicitly instead of relying on a top-level variable in $GLOBALS.
+    $uploaded = ftp_put_plugins($host,$path,$new);
+    $readback = $uploaded ? ftp_get_plugins($host,$path) : false;
     if ($readback !== false && hash_equals(hash('sha256',$new),hash('sha256',$readback))) return ['ok'=>true,'sha256'=>hash('sha256',$readback)];
     // FTP may truncate the target before reporting an upload error; always try to restore.
-    $restorePut = ftp_put_plugins($host,$GLOBALS['ini_path'],$old);
-    $restoreRead = $restorePut ? ftp_get_plugins($host,$GLOBALS['ini_path']) : false;
+    $restorePut = ftp_put_plugins($host,$path,$old);
+    $restoreRead = $restorePut ? ftp_get_plugins($host,$path) : false;
     $restored = $restoreRead !== false && hash_equals(hash('sha256',$old),hash('sha256',$restoreRead));
     return ['ok'=>false,'restored'=>$restored];
 }
@@ -302,7 +304,7 @@ if ($action === 'repair_ini') {
     if (!$diagnosis['preview_changed']) responder_plugins(['status'=>'success','changed'=>false,'message'=>'No se requieren cambios de formato. Las advertencias de archivos .prx ausentes deben revisarse por separado.','sections'=>parse_ini_plugins($raw)]);
     $backupName = respaldar_plugins_ini($raw,'plugins_diagnostico');
     if ($backupName === false) responder_plugins(['status'=>'error','message'=>'No se pudo crear y validar el respaldo local. La PS4 no se modificó.']);
-    $write = subir_plugins_ini_verificado($host,$raw,$preview);
+    $write = subir_plugins_ini_verificado($host,$ini_path,$raw,$preview);
     if (!$write['ok']) responder_plugins(['status'=>'error','message'=>'No se pudo confirmar la reparación.' . ($write['restored']?' Se restauró y verificó el archivo anterior.':' No se pudo confirmar la restauración; conserva el respaldo local para recuperarlo.'),'backup'=>$backupName]);
     $readback = $preview;
     responder_plugins(['status'=>'success','changed'=>true,'message'=>'plugins.ini reparado y verificado por SHA-256.','backup'=>$backupName,'sha256'=>hash('sha256',$readback),'sections'=>parse_ini_plugins($readback),'diagnosis'=>diagnosticar_ini_plugins($readback,$remoteNames)]);
@@ -321,7 +323,7 @@ if ($action === 'import_ini') {
     }
     $old = ftp_get_plugins($host, $ini_path); if ($old === false) responder_plugins(['status'=>'error','message'=>'No se pudo leer y respaldar el plugins.ini actual; la PS4 no se modificó.']);
     $backup = respaldar_plugins_ini($old,'plugins_antes_importar'); if ($backup === false) responder_plugins(['status'=>'error','message'=>'No se pudo validar un respaldo local; la PS4 no se modificó.']);
-    $write = subir_plugins_ini_verificado($host,$old,rtrim($new) . "\n");
+    $write = subir_plugins_ini_verificado($host,$ini_path,$old,rtrim($new) . "\n");
     if (!$write['ok']) responder_plugins(['status'=>'error','message'=>'No se pudo verificar el plugins.ini importado.' . ($write['restored']?' Se restauró y verificó el archivo anterior.':' No se pudo confirmar la restauración; conserva el respaldo local.'),'backup'=>$backup]);
     responder_plugins(['status' => 'success', 'sections' => parse_ini_plugins($new)]);
 }
@@ -348,7 +350,7 @@ if ($action === 'update_ini') {
     $path = "$remote_dir/$name";
     $canonicalOld = diagnosticar_ini_plugins($old,false)['preview'];
     $new = diagnosticar_ini_plugins(actualizar_ini_plugins($canonicalOld, $section, $path, $enabled),false)['preview'];
-    $write = subir_plugins_ini_verificado($host,$old,$new);
+    $write = subir_plugins_ini_verificado($host,$ini_path,$old,$new);
     if (!$write['ok']) responder_plugins(['status'=>'error','message'=>'No se pudo verificar la asignación.' . ($write['restored']?' Se restauró y verificó el archivo anterior.':' No se pudo confirmar la restauración; conserva el respaldo local.'),'backup'=>$backup]);
     responder_plugins(['status' => 'success', 'sections' => parse_ini_plugins($new), 'backup'=>$backup]);
 }

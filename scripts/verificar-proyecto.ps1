@@ -61,6 +61,10 @@ $storageSizeTest = Join-Path $PSScriptRoot 'test-storage-size.php'
 $storageSizeOutput = & $php $storageSizeTest 2>&1
 $storageSizePassed = $LASTEXITCODE -eq 0 -and ($storageSizeOutput -join ' ') -match 'STORAGE_SIZE_SENTINELS_OK'
 Report-Check 'Almacenamiento solo declara posible truncamiento en tamaños FTP centinela' $storageSizePassed ($storageSizeOutput -join ' ')
+$pluginsWriteScopeTest = Join-Path $PSScriptRoot 'test-plugins-api-write-scope.php'
+$pluginsWriteScopeOutput = & $php $pluginsWriteScopeTest 2>&1
+$pluginsWriteScopePassed = $LASTEXITCODE -eq 0 -and ($pluginsWriteScopeOutput -join ' ') -match 'PLUGINS_API_WRITE_PATH_SCOPE_OK'
+Report-Check 'Plugins pasa explícitamente la ruta de plugins.ini en escritura, lectura y rollback' $pluginsWriteScopePassed ($pluginsWriteScopeOutput -join ' ')
 
 $jsFiles = @(Get-ChildItem (Join-Path $root 'js') -Recurse -File -Filter '*.js')
 $jsErrors = [System.Collections.Generic.List[string]]::new()

@@ -1,3 +1,11 @@
+PS4 Manager Tools AJ 4.5.16 — corrección de escritura de Plugins en APK (2026-11-23)
+----------------------------------------------------------------------------------------
+- Se reprodujo en WebToApp el HTTP 500 al guardar un plugin: el router incluye el endpoint dentro de una función y la ruta definida en el ámbito superior no existe en $GLOBALS.
+- La rutina ahora recibe explícitamente la ruta de plugins.ini para escritura, lectura de verificación y restauración; se agregó una prueba de regresión al verificador.
+- Rebuild completo de la APK 4.5.16 (40516), instalada como actualización de la app existente. Android aceptó la firma y conservó la instalación y sus datos.
+- Prueba real en la PS4 con la asignación ya activa: update_ini devolvió éxito y respaldo; get_ini y diagnose_ini confirmaron las mismas tres secciones, 18 plugins remotos y cero problemas. No se cambió qué plugins están activos.
+- El verificador completo pasó en el proyecto y en el clon GitHub. El paquete PC continúa con un único BAT funcional.
+
 PS4 Manager Tools AJ 4.5.16 - PC and Android validation (2026-11-23)
 ---------------------------------------------------------------------
 - PC FTP Explorer rows now expose a visible actions button as well as the
@@ -42,8 +50,8 @@ PS4 Manager Tools AJ 4.5.16 - PC and Android validation (2026-11-23)
   smoke check returned HTTP 200 on 127.0.0.1:18080.
 - scripts/verificar-proyecto.ps1 passed on 4.5.16: PHP syntax (60 files),
   JavaScript syntax (21 files), and module, updater, UI, and PC sync checks.
-- No payload was executed and no PS4 settings or installed data were changed
-  during these checks.
+- No payload was executed. The only PS4 write was a verified rewrite of the same
+  existing plugins.ini assignment; active plugin settings remained unchanged.
 
 PS4 Manager Tools - CAMBIOS Y PRUEBAS
 =====================================
