@@ -225,6 +225,10 @@ Report-Check 'Acciones de Biblioteca abren Parches, Saves, Capturas y Plugins pa
 $explorerActionsTest = Join-Path $PSScriptRoot 'test-explorer-context-actions.cjs'
 $explorerActionsOutput = & $nodeCommand.Source $explorerActionsTest 2>&1
 $explorerActionsPassed = $LASTEXITCODE -eq 0 -and ($explorerActionsOutput -join ' ') -match 'FTP_CONTEXT_MENU_MOUSE_TOUCH_KEYBOARD_ACTIONS_OK'
+$transferRetryTest = Join-Path $PSScriptRoot 'test-transfer-retry.cjs'
+$transferRetryOutput = & $nodeCommand.Source $transferRetryTest $root 2>&1
+$transferRetryPassed = $LASTEXITCODE -eq 0 -and ($transferRetryOutput -join ' ') -match 'FTP_MANUAL_RETRY_FLOW_OK'
+Report-Check 'Transferencia FTP offers retry from zero and defaults to /data/pkg/' $transferRetryPassed ($transferRetryOutput -join ' ')
 Report-Check 'Explorador FTP abre acciones con clic derecho y botón accesible; escapa nombres remotos' $explorerActionsPassed ($explorerActionsOutput -join ' ')
 $captureScript = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
 $capturePage = Get-Content -LiteralPath (Join-Path $root 'modulos\capturas.php') -Raw

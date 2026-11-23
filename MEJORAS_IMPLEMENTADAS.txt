@@ -5,6 +5,17 @@ PS4 Manager Tools AJ 4.5.16 - PC and Android validation (2026-11-23)
 - A DOM regression check covers the Explorer action button, right-click event,
   propagation, and escaping. The API-guard test now disables CLI OPcache when
   starting the portable x86 PHP server; this avoids its ASLR startup failure.
+- The manual FTP chunk endpoint was exercised against the PS4 at
+  192.168.20.39:2121: it uploaded a uniquely named text file to `/data/pkg/`,
+  the Explorer listed and deleted it, and a final listing confirmed it absent.
+  No PKG was installed.
+- FTP Manual now defaults to `/data/pkg/` in the UI, JavaScript fallback and
+  API fallback; the retry button resends from byte zero after a failed upload.
+- Rebuilt the 4.5.16 Android APK from the corrected source archive, installed
+  it over the existing app on the Galaxy S23 without clearing app data, and
+  confirmed the installed package remains `com.aj.ps4managertool.app` 4.5.16.
+  The APK contains the exact corrected FTP API and JavaScript; the source ZIP
+  and APK SHA-256 sidecar were refreshed for the draft GitHub release.
 - Fan/Updates now read `UniversalPayloadsFW_FAN` first and fall back to the
   packaged `payloads fw` folder per file. All ten payload copies in the source
   and PC package match their catalog SHA-256 values; only AJ-reported firmware
@@ -12,16 +23,13 @@ PS4 Manager Tools AJ 4.5.16 - PC and Android validation (2026-11-23)
 - Added a regression check for payload paths, binary hashes, and confirmed
   firmware labels in the source and PC package.
 - Rechecked the Windows verifier: 60 PHP files, 21 JavaScript files and all
-  functional/static checks pass. A temporary uniquely named text file uploaded
-  through the Android FTP API to /data/pkg/, appeared in the PS4 listing, and
-  was deleted and confirmed absent. No PKG was installed.
+  functional/static checks pass, including the retry-from-zero flow and the
+  single-launcher PC package check.
 - Added Plugins to the quick actions for each game in Library. It opens the
   Plugins module with the selected CUSA.
 - Fan and FW Updates now explain that AJ supplied the universal payloads,
   identify confirmed and unverified firmware ranges, retain the GoldHEN
   server requirements, and describe the three-layer Updates protection.
-- The S23 and PS4 FTP check uploaded, reread, and deleted a temporary file in
-  /data/pkg/. No PKG was installed.
 - Rebuilt the APK as 4.5.16 (40516), checked its manifest and signing
   certificate, and updated the installed APK with adb install -r. The S23
   retained the app and opened it; its local web server returned HTTP 200.

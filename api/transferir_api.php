@@ -304,7 +304,7 @@ if ($action === 'rpi_install') {
 $host_ip = $_POST['host_ip'] ?? '';
 $chunk_index = (int)($_POST['chunk_index'] ?? 0);
 $filename = $_POST['filename'] ?? '';
-$target_dir = $_POST['target_dir'] ?? '/data/';
+$target_dir = $_POST['target_dir'] ?? '/data/pkg/';
 $port = 2121;
 
 if (!filter_var($host_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)

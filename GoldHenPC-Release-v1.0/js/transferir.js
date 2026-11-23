@@ -512,7 +512,7 @@ async function verificarColisionConsola(nombreAProbar) {
     const ip = localStorage.getItem('sebas_ip_final_libre');
     if (!ip) { window.ps5Notification("ERROR", "No hay IP conectada.", "fa-wifi"); resetTransferUI(); return; }
 
-    let targetDir = document.getElementById('transfer-target-path').value.trim() || '/data/';
+    let targetDir = document.getElementById('transfer-target-path').value.trim() || '/data/pkg/';
     if (!targetDir.endsWith('/')) targetDir += '/';
 
     try {
@@ -569,7 +569,7 @@ function accionColision(accion) {
 // =======================================================
 async function ejecutarSubidaUnica() {
     const ip = localStorage.getItem('sebas_ip_final_libre');
-    let targetDir = document.getElementById('transfer-target-path').value.trim() || '/data/';
+    let targetDir = document.getElementById('transfer-target-path').value.trim() || '/data/pkg/';
     if (!targetDir.endsWith('/')) targetDir += '/';
 
     transferAbortController = new AbortController();
