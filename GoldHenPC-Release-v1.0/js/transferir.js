@@ -457,6 +457,19 @@ function iniciarGestorDeCola() {
     procesarSiguienteEnLaCola();
 }
 
+function reintentarTransferenciaFTP() {
+    if (!archivoActualBlob || isTransferring) return;
+    const retry = document.getElementById('btn-reintentar-transferencia');
+    retry?.classList.add('hidden');
+    isTransferring = true;
+    const btn = document.getElementById('btn-iniciar-transferencia');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reintentando...';
+    btn.disabled = true;
+    document.getElementById('btn-abortar-transferencia')?.classList.remove('hidden');
+    window.ps5Notification('REINTENTO FTP', 'Se volverá a enviar el archivo desde el byte cero.', 'fa-rotate-right');
+    ejecutarSubidaUnica();
+}
+
 function abortarTransferenciaActiva() {
     // Abortar el XHR actual si existe
     if (currentXhr) {
@@ -604,7 +617,14 @@ async function ejecutarSubidaUnica() {
                         reject(new Error('Respuesta inválida del servidor'));
                     }
                 } else {
-                    reject(new Error(`HTTP ${xhr.status}`));
+                    let detail = '';
+                    try {
+                        const body = JSON.parse(xhr.responseText);
+                        detail = body.message || body.detail || '';
+                    } catch (_) {
+                        detail = (xhr.responseText || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180);
+                    }
+                    reject(new Error(`HTTP ${xhr.status}${detail ? ` · ${detail}` : ''}`));
                 }
             };
             xhr.onerror = function() {
@@ -641,6 +661,8 @@ async function ejecutarSubidaUnica() {
         } catch (err) {
             if (err.message !== 'Abortado') {
                 window.ps5Notification("ERROR FTP", err.message || "Fallo en la subida.", "fa-exclamation-triangle");
+                const retry = document.getElementById('btn-reintentar-transferencia');
+                if (retry && archivoActualBlob) retry.classList.remove('hidden');
             }
             resetTransferUI();
             return;
@@ -692,6 +714,7 @@ function resetTransferUI(success = false) {
     const btnAbort = document.getElementById('btn-abortar-transferencia');
     
     btnAbort.classList.add('hidden'); 
+    if (success) document.getElementById('btn-reintentar-transferencia')?.classList.add('hidden');
 
     if (success) {
         btn.innerHTML = `<i class="fa-solid fa-check"></i> Transferencia Exitosa`;
@@ -720,6 +743,7 @@ function limpiarEstadoTransferencia() {
     document.getElementById('transfer-eta').innerText = '--:--';
     document.getElementById('transfer-duration').innerText = '00:00';
     document.getElementById('btn-limpiar-transferencia').classList.add('hidden');
+    document.getElementById('btn-reintentar-transferencia')?.classList.add('hidden');
     const button = document.getElementById('btn-iniciar-transferencia');
     button.disabled = true;
     button.innerHTML = '<i class="fa-solid fa-rocket"></i> Enviar por FTP';

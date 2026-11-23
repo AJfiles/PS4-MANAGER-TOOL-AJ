@@ -198,12 +198,61 @@ function sm_storage_report(string $ip,int $port): array {
     return ['categories'=>$categories,'total_bytes'=>$total,'capacity_bytes'=>null,'free_bytes'=>null,'capacity_source'=>'unsupported_by_goldhen_ftp','scan_errors'=>$errors,'limited'=>$limited||$count>5000,'lower_bound'=>$lowerBound||count($errors)>0];
 }
 
+function sm_title_storage_details(string $ip, int $port, string $titleId): array {
+    $groups = [
+        'Juego base' => ['/user/app/'.$titleId, '/mnt/ext0/user/app/'.$titleId, '/mnt/ext1/user/app/'.$titleId],
+        'Actualización' => ['/user/patch/'.$titleId, '/mnt/ext0/user/patch/'.$titleId, '/mnt/ext1/user/patch/'.$titleId],
+        'DLC y contenido adicional' => ['/user/addcont/'.$titleId, '/mnt/ext0/user/addcont/'.$titleId, '/mnt/ext1/user/addcont/'.$titleId],
+        'Metadatos de la aplicación' => ['/user/appmeta/'.$titleId, '/user/appmeta/external/'.$titleId, '/system_data/priv/appmeta/'.$titleId, '/system_data/priv/appmeta/external/'.$titleId],
+    ];
+    $items = [];
+    $complete = true;
+    $bytesTotal = 0.0;
+    foreach ($groups as $label => $candidates) {
+        $found = false;
+        $parentReadable = false;
+        foreach ($candidates as $root) {
+            $rows = sm_list($ip, $port, dirname($root));
+            if ($rows === false) { $complete = false; continue; }
+            $parentReadable = true;
+            foreach ($rows as $row) {
+                if (!$row['dir'] || strcasecmp($row['name'], $titleId) !== 0) continue;
+                $bytes = 0.0; $files = 0; $entries = 0; $capped = false;
+                if (!sm_tree_stats($ip, $port, $root, 0, $bytes, $files, $entries, $capped)) {
+                    $complete = false;
+                    $found = true;
+                    break 2;
+                }
+                $items[] = ['category'=>$label,'path'=>$root,'bytes'=>$bytes,'files'=>$files,'size_limited'=>$capped];
+                $bytesTotal += $bytes;
+                $found = true;
+                if ($capped) $complete = false;
+                break;
+            }
+        }
+        if (!$found && !$parentReadable) $complete = false;
+    }
+    $saveCapped = false;
+    $saves = sm_save_rows($ip, $port, $saveCapped);
+    $saveRows = [];
+    if ($saves === false) $complete = false;
+    else foreach ($saves as $save) {
+        if (strtoupper((string)$save['title_id']) !== $titleId) continue;
+        $bytes = (float)$save['bytes'] + (float)$save['metadata_bytes'];
+        $saveRows[] = ['profile'=>$save['profile'],'bytes'=>$bytes,'files'=>(int)$save['files'] + (int)$save['metadata_files']];
+        $bytesTotal += $bytes;
+    }
+    if ($saveCapped) $complete = false;
+    return ['title_id'=>$titleId,'items'=>$items,'saves'=>$saveRows,'total_bytes'=>$bytesTotal,'complete'=>$complete];
+}
+
 $action=$_POST['action']??$_GET['action']??'';
 if($action==='download'){$id=(string)($_GET['backup_id']??'');if(!preg_match('/^save_[A-Z]{4}\d{5}_[0-9]{8}_[0-9]{6}_[a-f0-9]{6}$/',$id))sm_out(['status'=>'error','message'=>'Respaldo no válido.'],400);$path=sm_backup_dir().'/'.$id.'.zip';$manifest=sm_manifest_path($id);if(!is_file($path)||!is_file($manifest))sm_out(['status'=>'error','message'=>'Respaldo no encontrado.'],404);header_remove('Content-Type');header('Content-Type: application/zip');header('Content-Disposition: attachment; filename="'.$id.'.zip"');header('Content-Length: '.filesize($path));readfile($path);exit;}
 $ip=sm_host($_POST['host_ip']??$_GET['host_ip']??'');$port=(int)($_POST['port']??$_GET['port']??2121);if(!$ip||!in_array($port,[2121,2122],true))sm_out(['status'=>'error','message'=>'IP o puerto FTP inválido.'],400);
 try {
  if($action==='scan'){$saves=sm_save_rows($ip,$port);if($saves===false)sm_out(['status'=>'error','message'=>'No se pudo completar la lectura FTP de perfiles y títulos.']);$orphans=array_values(array_filter($saves,fn($s)=>!$s['installed']));sm_out(['status'=>'success','saves'=>$saves,'orphan_bytes'=>array_sum(array_map(fn($s)=>$s['bytes']+$s['metadata_bytes'],$orphans)),'orphan_count'=>count($orphans)]);}
  if($action==='storage')sm_out(['status'=>'success','report'=>sm_storage_report($ip,$port)]);
+ if($action==='title_storage'){$id=strtoupper((string)($_POST['title_id']??''));if(!preg_match('/^[A-Z]{4}\d{5}$/',$id))sm_out(['status'=>'error','message'=>'CUSA inválido.'],400);sm_out(['status'=>'success','report'=>sm_title_storage_details($ip,$port,$id)]);}
  if($action==='list_backups'){$key=(string)($_POST['profile_key']??'');$id=strtoupper((string)($_POST['title_id']??''));$target=sm_lookup($ip,$port,$key,$id);if(!$target)sm_out(['status'=>'error','message'=>'Perfil o ID de juego inválido.']);$items=[];foreach(glob(sm_backup_dir().'/save_'.$id.'_*.json')?:[] as $file){$m=json_decode((string)file_get_contents($file),true);if(is_array($m)&&hash_equals((string)($m['profile_key']??''),$key)&&!empty($m['verified']))$items[]=['id'=>$m['id'],'created_at'=>$m['created_at']??'','total_bytes'=>$m['total_bytes']??0,'zip_bytes'=>$m['zip_bytes']??0,'download'=>'api/saves_api.php?action=download&backup_id='.$m['id']];}usort($items,fn($a,$b)=>strcmp($b['created_at'],$a['created_at']));sm_out(['status'=>'success','backups'=>$items]);}
  if($action==='list_all_backups'){$items=[];$profileLabels=[];$profiles=sm_profiles($ip,$port);if($profiles!==false)foreach($profiles as $i=>$folder)$profileLabels[hash('sha256','ghm-save-profile:'.$folder)]=sm_profile_name($ip,$port,$folder,$i);foreach(glob(sm_backup_dir().'/save_*.json')?:[] as $file){$m=json_decode((string)file_get_contents($file),true);if(!is_array($m)||empty($m['verified'])||!preg_match('/^save_[A-Z]{4}\d{5}_[0-9]{8}_[0-9]{6}_[a-f0-9]{6}$/',(string)($m['id']??''))||!is_file(sm_backup_dir().'/'.$m['id'].'.zip'))continue;$profileKey=(string)($m['profile_key']??'');$items[]=['id'=>$m['id'],'title_id'=>$m['title_id']??'','title'=>(['CUSA00419'=>'Grand Theft Auto V','CUSA12824'=>'Hogwarts Legacy'][$m['title_id']??'']??($m['title_id']??'Partida')),'profile'=>$profileLabels[$profileKey]??($m['profile']??'Usuario PS4 sin nombre'),'profile_key'=>$profileKey,'created_at'=>$m['created_at']??'','total_bytes'=>$m['total_bytes']??0,'zip_bytes'=>$m['zip_bytes']??0,'download'=>'api/saves_api.php?action=download&backup_id='.$m['id']];}usort($items,fn($a,$b)=>strcmp($b['created_at'],$a['created_at']));sm_out(['status'=>'success','backups'=>$items]);}
  if($action==='backup'){$key=(string)($_POST['profile_key']??'');$id=strtoupper((string)($_POST['title_id']??''));$target=sm_lookup($ip,$port,$key,$id);if(!$target)sm_out(['status'=>'error','message'=>'Perfil o ID de juego no válido.']);$m=sm_download_backup($ip,$port,$target);if(!$m)sm_out(['status'=>'error','message'=>'No se pudo crear y verificar el ZIP con partida y metadatos.']);sm_out(['status'=>'success','backup'=>$m,'download'=>'api/saves_api.php?action=download&backup_id='.$m['id']]);}

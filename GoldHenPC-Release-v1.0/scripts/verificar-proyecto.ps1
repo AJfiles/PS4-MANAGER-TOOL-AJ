@@ -4,6 +4,9 @@ param([switch]$TestCaptureApi)
 
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$captureControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
+$libraryControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\biblioteca.js') -Raw
+$libraryPage = Get-Content -LiteralPath (Join-Path $root 'modulos\biblioteca.php') -Raw
 $release = Join-Path $root 'GoldHenPC-Release-v1.0'
 $php = Join-Path $release 'runtime\php.exe'
 $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
@@ -136,7 +139,7 @@ Report-Check 'Todos los endpoints API y el router aplican guard de origen local'
 $projectVersion = Get-Content -LiteralPath (Join-Path $root 'project-version.json') -Raw | ConvertFrom-Json
 $androidReleaseApi = Get-Content -LiteralPath (Join-Path $root 'api\android_release_api.php') -Raw
 $androidReleaseScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
-Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.13' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
+Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.16' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
 $androidReleaseTransportTest = Join-Path $PSScriptRoot 'test-android-release-transport.php'
 $androidReleaseTransportOutput = & $php $androidReleaseTransportTest 2>&1
 $androidReleaseTransportPassed = $LASTEXITCODE -eq 0 -and ($androidReleaseTransportOutput -join ' ') -match 'ANDROID_RELEASE_TRANSPORT_FASTPATH_OK'
@@ -149,10 +152,10 @@ $guardTest = Join-Path $PSScriptRoot 'test-api-request-guard.cjs'
 $guardTestOutput = & $nodeCommand.Source $guardTest $php $root 2>&1
 $guardTestPassed = $LASTEXITCODE -eq 0 -and ($guardTestOutput -join ' ') -match 'API_ORIGIN_GUARD_OK'
 Report-Check 'Guard bloquea POST cruzado y permite POST del origen local sin router' $guardTestPassed ($guardTestOutput -join ' ')
-Report-Check 'Capturas fuerza lectura fresca al abrir' ($page -match "capturasCargar\(true\)")
+Report-Check 'Capturas conserva su caché al reabrir; refresco explícito sigue disponible' ($page -match "capturasCargar\(false\)" -and $captureControllerSource -match "window\.capturasCargar\s*=\s*async force\s*=>")
 $captureControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
 $libraryControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\biblioteca.js') -Raw
-Report-Check 'Galería, descarga y borrado de capturas viven en su módulo independiente' ($captureControllerSource -match 'function renderGallery' -and $captureControllerSource -match 'download_selected' -and $captureControllerSource -match 'delete_capture' -and $libraryControllerSource -notmatch '(?i)captura|screenshot|galeria|gallery')
+Report-Check 'Galería, descarga y borrado de capturas viven en módulo propio; Biblioteca solo enlaza al filtro por CUSA' ($captureControllerSource -match 'function renderGallery' -and $captureControllerSource -match 'download_selected' -and $captureControllerSource -match 'delete_capture' -and $libraryControllerSource -notmatch '(?i)capturasCargar|ps4_screenshots_api|function renderGallery' -and $libraryPage -match "abrirHerramientaJuego\('capturas'")
 Report-Check 'Limpieza evita clasificar guardados como inútiles' ($page -notmatch 'Datos huérfanos' -and (Get-Content -LiteralPath (Join-Path $root 'js\limpieza.js') -Raw) -match 'partidas de juegos no instalados')
 $saveWarning = Get-Content -LiteralPath (Join-Path $root 'modulos\saves.php') -Raw
 Report-Check 'SaveGames distingue su ZIP de respaldo del formato de importación Apollo' ($saveWarning -match 'no es una exportación directa para Apollo' -and $saveWarning -match 'HDD Saves' -and $saveWarning -match 'Copy save game' -and $saveWarning -match 'PS4/APOLLO')
@@ -209,7 +212,9 @@ Report-Check 'Biblioteca verifica instalacion solo en unidades externas montadas
 $libraryActionsTest = Join-Path $PSScriptRoot 'test-biblioteca-game-actions.cjs'
 $libraryActionsOutput = & $nodeCommand.Source $libraryActionsTest 2>&1
 $libraryActionsPassed = $LASTEXITCODE -eq 0 -and ($libraryActionsOutput -join ' ') -match 'BIBLIOTECA_GAME_ACTIONS_FILTER_BY_CUSA_OK'
-Report-Check 'Acciones de Biblioteca abren Parches, Saves y Capturas filtrados por CUSA' $libraryActionsPassed ($libraryActionsOutput -join ' ')
+$pluginScript = Get-Content -LiteralPath (Join-Path $root 'js\plugins.js') -Raw
+$libraryActionsPassed = $libraryActionsPassed -and $libraryPage -match 'abrirPluginsParaJuego\(juegoSeleccionadoLocal\.id\)' -and $pluginScript -match 'window\.abrirPluginsParaJuego'
+Report-Check 'Acciones de Biblioteca abren Parches, Saves, Capturas y Plugins para el CUSA seleccionado' $libraryActionsPassed ($libraryActionsOutput -join ' ')
 $captureScript = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
 $capturePage = Get-Content -LiteralPath (Join-Path $root 'modulos\capturas.php') -Raw
 $captureApi = Get-Content -LiteralPath (Join-Path $root 'api\ps4_screenshots_api.php') -Raw

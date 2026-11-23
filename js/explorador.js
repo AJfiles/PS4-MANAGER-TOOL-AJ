@@ -168,6 +168,13 @@ function renderizarListaExplorador(carpetas, archivos) {
 
         div.className = `item-hover flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer select-none ${isSelected ? 'selected-row' : 'border-transparent'}`;
 
+        // El menú táctil también debe estar disponible en PC con el botón derecho.
+        div.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!isMultiSelectMode) abrirContextMenu(item, isDir, iconCode);
+        });
+
         div.addEventListener('touchstart', (e) => {
             longPressTimer = setTimeout(() => {
                 if (!isMultiSelectMode) abrirContextMenu(item, isDir, iconCode);

@@ -105,7 +105,7 @@
         'Nombre no disponible': 'Name unavailable', 'Juego instalado': 'Installed game', 'Juego no instalado': 'Game not installed',
         'Respaldo de la base de datos XMB': 'XMB database backup', 'Se guarda una copia local de app.db. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': 'A local copy of app.db is saved. Each change creates another backup automatically. Close games and do not turn off the console during the operation.'
         , 'Centro de conexión PS4': 'PS4 connection center', 'Desconectado': 'Disconnected', 'SaveGames': 'Save Games', 'Limpieza': 'Cleanup',
-        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.13 • AJ': 'VERSION 4.5.13 • AJ',
+        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.16 • AJ': 'VERSION 4.5.16 • AJ',
         'BUSCANDO PS4 EN LA RED': 'SEARCHING FOR PS4 ON THE NETWORK', 'Conecta la PS4 y pulsa Actualizar para leer partidas.': 'Connect the PS4 and tap Refresh to read save data.',
         'Biblioteca de partidas': 'Save Data Library', 'DATOS DE CONSOLA': 'CONSOLE DATA', 'Respaldos locales': 'Local backups',
         'Los ZIP se conservan aunque elimines la partida de la consola.': 'ZIP backups are kept even if you delete the console save.',
@@ -171,7 +171,7 @@
         'Transfiriendo datos en la memoria de la consola. Dependiendo del peso, esto puede demorar varios segundos.': 'Transferring data to console memory. Depending on the file size, this may take several seconds.', 'Trucos y Parches': 'Cheats and patches', 'Ubicación (Grupo):': 'Location (group):', 'Ubicación Estructural:': 'Structural location:', 'Ubicado en categoría:': 'In category:',
         'Update plugin archive': 'Update plugin archive', 'Uso por categoría': 'Usage by category', 'Ver, guardar y eliminar': 'View, save and delete',
         'Verifica el firmware exacto antes de enviar cualquier payload. La aceptación se guardará en este navegador para no repetir el aviso en cada visita.': 'Verify the exact firmware before sending any payload. Your acknowledgement is saved in this browser so the warning is not repeated on every visit.',
-        'VERSION 4.5.13 • AJ': 'VERSION 4.5.13 • AJ', 'Versión 4.5.13 • Mantenido por AJ': 'Version 4.5.13 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
+        'VERSION 4.5.16 • AJ': 'VERSION 4.5.16 • AJ', 'Versión 4.5.16 • Mantenido por AJ': 'Version 4.5.16 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
         'ya existe en la consola. ¿Qué deseas hacer con él?': 'already exists on the console. What would you like to do with it?',
         '; Apollo genera la estructura `PS4/APOLLO/...` con `sce_sys`. Verifica la importación antes de borrar la partida original.': '; Apollo creates the `PS4/APOLLO/...` structure with `sce_sys`. Verify the import before deleting the original save.',
         '. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': '. Each save creates another backup automatically. Close games and do not turn off the console during the operation.',
@@ -181,7 +181,7 @@
         '. Solo se muestran payloads para FW 5.05 y 9.00; confirma el firmware antes de enviarlos.': '. Only payloads for FW 5.05 and 9.00 are listed; verify the firmware before sending.',
         '. Usa solo payloads compatibles con tu firmware.': '. Use only payloads compatible with your firmware.',
         '⚠️ NO CIERRES LA APP NI REINICIES EL JUEGO AÚN': '⚠️ DO NOT CLOSE THE APP OR RESTART THE GAME YET',
-        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.13': 'VERSION 4.5.13'
+        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.16': 'VERSION 4.5.16'
     };
     Object.assign(translations, {
         'Aparición gradual': 'Fade in',
@@ -295,6 +295,7 @@
         'Destino RPI inválido.': 'Invalid RPI destination.', 'Faltan datos de consola.': 'Console details are missing.', 'Faltan datos de consola o imagen.': 'Console details or image are missing.',
         'Faltan datos de conexión o CUSA.': 'Connection details or CUSA are missing.', 'Faltan datos de consola o imagen.': 'Console details or image are missing.',
         'No se pudo leer y respaldar el plugins.ini actual; la PS4 no se modificó.': 'Could not read and back up the current plugins.ini; the PS4 was not changed.',
+        'No se pudo leer la carpeta de plugins de la PS4. Verifica IP, puerto FTP y acceso a /data/GoldHEN/plugins.': 'Could not read the PS4 plugins folder. Check the IP, FTP port, and access to /data/GoldHEN/plugins.',
         'No se pudo validar un respaldo local; la PS4 no se modificó.': 'Could not validate a local backup; the PS4 was not changed.',
         'Borrado bloqueado: falta la confirmación explícita de borrado permanente.': 'Deletion blocked: explicit confirmation of permanent deletion is required.',
         'Borrado bloqueado: falta un respaldo íntegro y coincidente de este perfil o ID de juego.': 'Deletion blocked: a verified backup matching this profile or game ID is required.',
@@ -360,7 +361,40 @@
         'Selecciona uno o más respaldos para eliminar.': 'Select one or more backups to delete.', 'Solo se pueden abrir archivos de texto permitidos.': 'Only allowed text files can be opened.',
         'Una de las carpetas seleccionadas ya no existe. No se aplicaron cambios.': 'One of the selected folders no longer exists. No changes were applied.'
     });
+    Object.assign(translations, {
+        'Actualizar análisis': 'Refresh analysis',
+        'Analizando carpetas conocidas y partidas de este CUSA por FTP…': 'Scanning known folders and save data for this CUSA over FTP…',
+        'Conecta la PS4 por FTP para analizar estos datos.': 'Connect to the PS4 over FTP to analyze this data.',
+        'Consulta carpetas asociadas a este CUSA y partidas por perfil. Es una lectura FTP; no elimina ni modifica archivos.': 'Review folders associated with this CUSA and saves by profile. This is an FTP read; it does not delete or modify files.',
+        'CUSA inválido.': 'Invalid CUSA.',
+        'El SHA-256 del payload no coincide con el catálogo. No se envió nada.': 'The payload SHA-256 does not match the catalog. Nothing was sent.',
+        'Error controlado durante el envío por BinLoader.': 'Handled error while sending through BinLoader.',
+        'Error fatal controlado en Plugins.': 'Handled fatal error in Plugins.',
+        'Error interno controlado en Plugins.': 'Handled internal error in Plugins.',
+        'Error interno en la transferencia FTP. Revisa el registro del servidor.': 'Internal FTP transfer error. Check the server log.',
+        'Estimación parcial · datos guardados': 'Partial estimate · saved data',
+        'Firmware no incluido en el catálogo de esta sección.': 'Firmware is not included in this section’s catalog.',
+        'Fragmento o ruta FTP no válidos.': 'Invalid FTP fragment or path.',
+        'General y archivos': 'General and files',
+        'Nombre de archivo no válido.': 'Invalid filename.',
+        'Se requieren las tres confirmaciones para quitar la protección y permitir actualizaciones.': 'All three confirmations are required to remove protection and allow updates.',
+        'Se transmitieron todos los bytes. GoldHEN no confirma si aplicó el payload; verifica el resultado en la consola antes de otro envío.': 'All bytes were transmitted. GoldHEN does not confirm whether the payload was applied; verify the result on the console before sending another payload.',
+        'Se volverá a enviar el archivo desde el byte cero.': 'The file will be sent again from byte zero.',
+        'Versión y actualizaciones': 'Version and updates'
+    });
     const textPatterns = [
+        [/^\. Confirma el firmware exacto y el valor antes de enviar\. Requiere GoldHEN → Server Settings: activa$/, () => '. Confirm the exact firmware and value before sending. Requires GoldHEN → Server Settings: enabled.'],
+        [/^\. El control del ventilador puede afectar temperatura y ruido; supervisa la consola y restaura el perfil predeterminado si hace falta\.$/, () => '. Fan control can affect temperature and noise; monitor the console and restore the default profile if needed.'],
+        [/^\. Selecciona el firmware exacto de la consola\.$/, () => '. Select the console’s exact firmware.'],
+        [/^1\/3 · RIESGO ALTO: este payload quita la protección de tres capas y permite actualizaciones\. Podrías perder GoldHEN\/jailbreak\. ¿Continuar para FW (.+)\?$/, (_, fw) => `1/3 · HIGH RISK: this payload removes the three-layer protection and allows updates. You could lose GoldHEN/jailbreak. Continue for FW ${fw}?`],
+        [/^aplica la protección de tres capas;$/, () => 'applies the three-layer protection;'],
+        [/^Enviar (.+) a una PS4 que ejecuta FW (.+)\? (.+)\. Verifica el firmware antes de continuar\.$/, (_, name, fw, warning) => `Send ${name} to a PS4 running FW ${fw}? ${warning}. Verify the firmware before continuing.`],
+        [/^la elimina y puede exponer la consola a una actualización oficial, con posible pérdida de GoldHEN o jailbreak\. Las versiones en naranja están por verificar\.$/, () => 'removes it and may expose the console to an official update, with possible loss of GoldHEN or jailbreak. Orange versions are unverified.'],
+        [/^No se completó la lectura: (.+)$/, (_, reason) => `Read did not complete: ${reason}`],
+        [/^No se encontró el payload en el catálogo local\.$/, () => 'Payload not found in the local catalog.'],
+        [/^Payloads universales nuevos creados por AJ\. Compatibilidad confirmada por el mantenedor para FW 5\.05 y 9\.00; las demás versiones se muestran como$/, () => 'New universal payloads created by AJ. The maintainer confirmed compatibility with FW 5.05 and 9.00; other versions are shown as'],
+        [/^Payloads universales nuevos creados por AJ\. Requiere GoldHEN → Server Settings: activa$/, () => 'New universal payloads created by AJ. Requires GoldHEN → Server Settings: enabled.'],
+        [/^(.+): (.+) bytes transmitidos\. El servicio no confirma aplicación; verifica la consola antes de otro payload\.$/, (_, name, bytes) => `${name}: ${bytes} bytes transmitted. The service does not confirm application; verify the console before sending another payload.`],
         [/^\[OK\] Conexión FTP validada\. El registro queda abierto hasta que lo cierres\.$/, () => '[OK] FTP connection verified. The log stays open until you close it.'],
         [/^\[OK\] Consola guardada y conexión verificada\. Cierra el radar cuando termines\.$/, () => '[OK] Console saved and connection verified. Close the radar when you are done.'],
         [/^(\d+) partidas eliminadas y ausencia verificada\.$/, (_, count) => `${count} save files deleted and absence verified.`],

@@ -21,6 +21,7 @@
         pink: { active: 'border-pink-300/40 bg-pink-400/10 text-pink-100', icon: 'bg-pink-500/10 text-pink-200' }
     };
     let currentReport = null;
+    let storageCacheKey = '';
     let selectedCategory = 'juegos y aplicaciones';
     const loadingMarkupFallback = () => `
         <div class="mx-auto flex min-h-64 max-w-md flex-col items-center justify-center rounded-3xl border border-emerald-400/15 bg-gradient-to-b from-emerald-400/[.07] to-transparent p-6 text-center" role="status" aria-live="polite">
@@ -80,26 +81,36 @@
         box.innerHTML = `<section class="mb-3 flex items-center justify-between rounded-2xl border border-white/5 bg-white/[.025] p-3"><div><b class="text-xs font-black uppercase text-white">${label}</b><p class="mt-1 text-[8px] text-gray-500">${items.length} elementos · lectura FTP</p></div><b class="text-sm text-emerald-100">${formatBytes(category.bytes)}</b></section><div class="space-y-2">${rows}</div><p class="mt-3 rounded-xl border border-white/5 p-3 text-[8px] leading-relaxed text-gray-500">${totalNote}${report.scan_errors?.length ? ` Rutas incompletas: ${report.scan_errors.map(esc).join(', ')}.` : ''}</p>`;
     }
 
-    window.almacenamientoCargar = async function () {
+    window.almacenamientoCargar = async function (force = false) {
         const box = $('storage-items');
         if (!box) return;
+        const host = localStorage.getItem('sebas_ip_final_libre') || '';
+        const port = localStorage.getItem('sebas_port_libre') || '2121';
+        const cacheKey = `${host}:${port}`;
+        if (!force && currentReport && storageCacheKey === cacheKey) {
+            renderQuick(currentReport); renderTabs(currentReport); renderCategory(currentReport);
+            if ($('storage-summary')) $('storage-summary').textContent = currentReport.lower_bound || currentReport.limited ? 'Estimación parcial · datos guardados' : 'Inventario guardado';
+            return;
+        }
         box.innerHTML = loadingMarkup();
         if ($('storage-summary')) $('storage-summary').textContent = 'Escaneo FTP en curso…';
         const form = new FormData();
         form.append('action', 'storage');
-        form.append('host_ip', localStorage.getItem('sebas_ip_final_libre') || '');
-        form.append('port', localStorage.getItem('sebas_port_libre') || '2121');
+        form.append('host_ip', host);
+        form.append('port', port);
         try {
             const response = await fetch('api/saves_api.php', { method: 'POST', body: form, cache: 'no-store' });
             const result = await response.json();
             if (!response.ok || result.status !== 'success') throw new Error(result.message || 'No se pudo leer el almacenamiento.');
             currentReport = result.report;
+            storageCacheKey = cacheKey;
             renderQuick(currentReport);
             renderTabs(currentReport);
             renderCategory(currentReport);
             if ($('storage-summary')) $('storage-summary').textContent = currentReport.lower_bound || currentReport.limited ? 'Estimación parcial' : 'Inventario leído';
         } catch (error) {
             currentReport = null;
+            storageCacheKey = '';
             if ($('storage-quick')) $('storage-quick').innerHTML = '';
             if ($('storage-tabs')) $('storage-tabs').innerHTML = '';
             box.innerHTML = `<p class="rounded-xl border border-rose-400/20 p-4 text-xs text-rose-200">${esc(error.message)}</p>`;

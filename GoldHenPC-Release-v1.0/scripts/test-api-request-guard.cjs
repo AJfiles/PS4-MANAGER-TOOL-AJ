@@ -36,7 +36,9 @@ async function waitForServer(url, child) {
   const port = await freePort();
   const base = `http://127.0.0.1:${port}`;
   const ini = path.join(path.dirname(php), 'php.ini');
-  const args = fs.existsSync(ini) ? ['-c', ini] : [];
+  // The portable php.ini uses a package-relative opcache.file_cache path.
+  // This fixture runs with cwd=root, so disable only OPcache for its ephemeral server.
+  const args = fs.existsSync(ini) ? ['-c', ini, '-d', 'opcache.file_cache=off'] : ['-d', 'opcache.file_cache=off'];
   args.push('-S', `127.0.0.1:${port}`, '-t', path.resolve(root));
   const child = spawn(php, args, {
     cwd: path.resolve(root), windowsHide: true, stdio: 'ignore'

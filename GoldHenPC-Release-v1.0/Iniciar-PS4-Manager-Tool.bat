@@ -16,7 +16,7 @@ if not exist "%INI%" (
   exit /b 1
 )
 if /i "%~1"=="/server" goto php_server
-title PS4 Manager Tools AJ v4.5.13 - PC
+title PS4 Manager Tools AJ v4.5.16 - PC
 color 0B
 powershell.exe -NoProfile -Command "$c=New-Object Net.Sockets.TcpClient; try {$c.Connect('127.0.0.1',8080); exit 0} catch {exit 1} finally {$c.Dispose()}" >nul 2>&1
 if not errorlevel 1 (
@@ -25,7 +25,7 @@ if not errorlevel 1 (
   exit /b 2
 )
 echo ================================================
-echo       PS4 Manager Tools AJ v4.5.13 - PC
+echo       PS4 Manager Tools AJ v4.5.16 - PC
 echo ================================================
 echo Iniciando el servidor PHP en esta ventana.
 echo La ventana se mantendra abierta para mostrar los mensajes y errores.
@@ -46,7 +46,7 @@ exit /b 0
 :php_server
 title PS4 Manager Tools AJ - Servidor PHP
 color 0B
-echo PS4 Manager Tools AJ 4.5.13 - servidor local
+echo PS4 Manager Tools AJ 4.5.16 - servidor local
 echo Escuchando en http://0.0.0.0:8080/
 echo No cierres esta ventana mientras uses la aplicacion.
 echo.

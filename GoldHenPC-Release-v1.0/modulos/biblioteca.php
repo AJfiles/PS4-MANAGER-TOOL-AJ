@@ -217,7 +217,7 @@
             <div id="dom-grid-target" class="grid grid-cols-3 gap-3 w-full"></div>
         </div>
 
-        <div id="container-view-3d" class="absolute inset-0 w-full h-full flex flex-col justify-start pt-6">
+        <div id="container-view-3d" class="absolute inset-0 w-full h-full flex flex-col justify-start pt-6 overflow-y-auto overscroll-contain touch-pan-y" style="-webkit-overflow-scrolling:touch">
             
             <div class="carousel-viewport-master shrink-0" id="swipe-touch-zone">
                 <div class="glow-background-master" id="dom-glow-target"></div>
@@ -260,6 +260,10 @@
                     <button onclick="ejecutarAccionRapidaJuego('dlcs')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-blue-500/30">
                         <i class="fa-solid fa-puzzle-piece text-blue-400 text-lg mb-1.5"></i>
                         <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">DLCs</span>
+                    </button>
+                    <button onclick="abrirPluginsParaJuego(juegoSeleccionadoLocal.id)" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-fuchsia-500/30">
+                        <i class="fa-solid fa-plug text-fuchsia-400 text-lg mb-1.5"></i>
+                        <span class="text-[7.5px] font-black tracking-widest text-gray-400 uppercase">Plugins</span>
                     </button>
                 </div>
             </div>
@@ -373,6 +377,12 @@
                     <button onclick="abrirHerramientaJuego('parches-juego', juegoSeleccionadoLocal)" class="rounded-xl border border-violet-400/20 bg-violet-500/10 p-2 text-[9px] font-bold text-violet-100"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Parches</button>
                     <button onclick="abrirHerramientaJuego('savegames', juegoSeleccionadoLocal)" class="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-2 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-floppy-disk mr-1"></i>Partidas</button>
                     <button onclick="abrirHerramientaJuego('capturas', juegoSeleccionadoLocal)" class="rounded-xl border border-pink-400/20 bg-pink-500/10 p-2 text-[9px] font-bold text-pink-100"><i class="fa-solid fa-images mr-1"></i>Capturas</button>
+                    <button onclick="abrirPluginsParaJuego(juegoSeleccionadoLocal.id)" class="rounded-xl border border-violet-400/20 bg-violet-500/10 p-2 text-[9px] font-bold text-violet-100"><i class="fa-solid fa-plug mr-1"></i>Plugins</button>
+                </div>
+                <div id="library-residual-storage" class="hidden mt-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-3">
+                    <button type="button" onclick="bibliotecaAnalizarDatosResiduales()" class="w-full rounded-xl border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-left text-[10px] font-bold text-amber-100"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Ver datos residuales y espacio</button>
+                    <p class="mt-2 text-[8px] leading-relaxed text-gray-400">Consulta carpetas asociadas a este CUSA y partidas por perfil. Es una lectura FTP; no elimina ni modifica archivos.</p>
+                    <div id="library-residual-storage-results" class="mt-2 max-h-48 space-y-1 overflow-y-auto text-[9px] text-gray-300" aria-live="polite"></div>
                 </div>
                 <p class="mt-2 text-[8px] leading-relaxed text-gray-500">Cada módulo consulta el contenido de este CUSA por FTP y muestra un estado vacío si no hay coincidencias.</p>
             </div>

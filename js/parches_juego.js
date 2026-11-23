@@ -1,6 +1,8 @@
 (() => {
     const API = 'api/patches_api.php';
     let games = [];
+    let patchCacheKey = '';
+    let patchCacheResult = null;
     const $ = id => document.getElementById(id);
     const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -55,14 +57,15 @@
         localStorage.setItem('sebas_ip_final_libre', host);
         localStorage.setItem('sebas_port_libre', port);
         $('patch-connection').textContent = `FTP ${host}:${port} · conectando`;
-        await window.parchesRecargar();
+        await window.parchesRecargar(true);
     };
 
-    window.parchesRecargar = async function () {
+    window.parchesRecargar = async function (force = false) {
         const box = $('patch-game-list');
         const counter = $('patch-count');
         const connection = $('patch-connection');
         const current = conn();
+        const cacheKey = `${current.host_ip}:${current.port}`;
         if (!current.host_ip) {
             games = [];
             counter.textContent = 'Sin analizar';
@@ -80,7 +83,9 @@
             : '<p class="text-cyan-200 text-xs animate-pulse">Buscando juegos instalados y XML de parches…</p>';
         $('patch-no-games').classList.add('hidden');
         try {
-            const result = await req('scan');
+            const result = !force && patchCacheResult && patchCacheKey === cacheKey ? patchCacheResult : await req('scan');
+            patchCacheResult = result;
+            patchCacheKey = cacheKey;
             games = Array.isArray(result.games) ? result.games : [];
             const requestedFilter = (localStorage.getItem('ghm_filter_patch_cusa') || '').toUpperCase();
             const filter = /^[A-Z]{4}\d{5}$/.test(requestedFilter) ? requestedFilter : '';
@@ -156,7 +161,7 @@
                 }
                 const result = await req('toggle', { cusa: game.cusa, key: button.dataset.key, accept_version_risk: acceptVersionRisk });
                 note('Estado de parche', result.enabled ? 'Activado' : 'Desactivado');
-                await window.parchesRecargar();
+                await window.parchesRecargar(true);
                 window.parchesAbrirJuego(cusa);
             } catch (error) { note('No se cambió el parche', error.message, true); }
             finally { button.disabled = false; }
@@ -173,7 +178,7 @@
         try {
             const result = await req('enable_loader');
             note('Plugin de parches', result.message);
-            await window.parchesRecargar();
+            await window.parchesRecargar(true);
         } catch (error) { note('No se modificó plugins.ini', error.message, true); }
     };
 })();

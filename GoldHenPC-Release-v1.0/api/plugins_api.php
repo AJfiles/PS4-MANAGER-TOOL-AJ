@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once __DIR__ . '/request_guard.php';
 require_once __DIR__ . '/ftp_compat.php';
 error_reporting(0);
@@ -8,39 +9,107 @@ header('Content-Type: application/json; charset=utf-8');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $host = $_POST['host_ip'] ?? $_GET['host_ip'] ?? '';
-$port = 2121;
+$requestedPort = filter_var($_POST['port'] ?? $_GET['port'] ?? '2121', FILTER_VALIDATE_INT);
+$port = ($requestedPort !== false && $requestedPort >= 1 && $requestedPort <= 65535) ? $requestedPort : 2121;
 $local_dirs = [__DIR__ . '/../user/plugins', __DIR__ . '/../plugins'];
 $remote_dir = '/data/GoldHEN/plugins';
 $ini_path = '/data/GoldHEN/plugins.ini';
 
-function responder_plugins($data) { echo json_encode($data); exit; }
+function responder_plugins($data) {
+    if (ob_get_level() > 0) ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    exit;
+}
+set_exception_handler(static function (Throwable $error): void {
+    error_log('[plugins_api] ' . $error);
+    http_response_code(500);
+    responder_plugins(['status'=>'error','message'=>'Error interno controlado en Plugins.','detail'=>$error->getMessage()]);
+});
+register_shutdown_function(static function (): void {
+    $error = error_get_last();
+    if (!$error || !in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) return;
+    error_log('[plugins_api] Fatal: ' . ($error['message'] ?? 'unknown') . ' in ' . ($error['file'] ?? 'unknown') . ':' . ($error['line'] ?? 0));
+    if (ob_get_level() > 0) ob_clean();
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status'=>'error','message'=>'Error fatal controlado en Plugins.','detail'=>$error['message'] ?? 'Error interno'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+});
 function validar_host_plugins($host) { return filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4); }
 function nombre_prx($name) { $name = basename($name); return preg_match('/^[A-Za-z0-9._-]+\.prx$/i', $name) ? $name : false; }
 function seccion_valida($section) { return $section === 'default' || preg_match('/^[A-Z0-9_-]{1,32}$/i', $section); }
-function ftp_url_plugins($host, $path) { return 'ftp://' . $host . ':2121' . implode('/', array_map('rawurlencode', explode('/', $path))); }
+function plugins_ftp_port() {
+    $requested = filter_var($_POST['port'] ?? $_GET['port'] ?? 2121, FILTER_VALIDATE_INT);
+    return ($requested !== false && $requested >= 1 && $requested <= 65535) ? (int)$requested : 2121;
+}
+function ftp_url_plugins($host, $path) { return 'ftp://' . $host . ':' . plugins_ftp_port() . implode('/', array_map('rawurlencode', explode('/', $path))); }
 function ftp_list_plugins($host, $path) {
-    if (function_exists('ftp_connect')) { $rows=ghm_ftp_list($host,2121,$path,15); return $rows===false?[]:array_map(static fn($r)=>['name'=>$r['name'],'size'=>$r['size'],'is_dir'=>$r['dir']],$rows); }
+    $nativeRowsRead = false;
+    if (function_exists('ftp_connect')) {
+        $ftp = ghm_ftp_open($host, plugins_ftp_port(), 15);
+        if ($ftp) {
+            $rows = ghm_ftp_list($host, plugins_ftp_port(), $path, 15);
+            $out = $rows === false ? [] : array_map(static fn($r) => ['name'=>$r['name'], 'size'=>$r['size'], 'is_dir'=>$r['dir']], $rows);
+            if ($out) return $out;
+            $nativeRowsRead = $rows !== false;
+
+            // GoldHEN FTP can return a LIST format that ext-ftp cannot parse
+            // into Unix-style rows. Use NLST as a filename-only fallback.
+            if (function_exists('ftp_nlist')) {
+                $names = @ftp_nlist($ftp, $path);
+                if (is_array($names)) {
+                    foreach ($names as $entry) {
+                        $name = basename(str_replace('\\', '/', trim((string)$entry)));
+                        if ($name === '' || $name === '.' || $name === '..' || !nombre_prx($name)) continue;
+                        $size = @ftp_size($ftp, rtrim($path, '/') . '/' . $name);
+                        $out[] = ['name'=>$name, 'size'=>max(0, (int)$size), 'is_dir'=>false];
+                    }
+                    if ($out || !$names) return array_values(array_unique($out, SORT_REGULAR));
+                }
+            }
+        }
+    }
+    if (!function_exists('curl_init')) return $nativeRowsRead ? [] : false;
     $ch = curl_init(ftp_url_plugins($host, rtrim($path, '/') . '/'));
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => 'LIST', CURLOPT_TIMEOUT => 10]);
-    $raw = curl_exec($ch); curl_close($ch);
+    if ($ch === false) return false;
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => 'LIST', CURLOPT_TIMEOUT => 10, CURLOPT_PROXY=>'']);
+    $raw = curl_exec($ch);
+    curl_close($ch);
     $out = [];
-    foreach (explode("\n", trim((string)$raw)) as $line) {
-        $parts = preg_split('/\s+/', trim($line), 9);
-        if (count($parts) >= 9 && $parts[8] !== '.' && $parts[8] !== '..') $out[] = ['name' => $parts[8], 'size' => (int)$parts[4], 'is_dir' => $parts[0][0] === 'd'];
+    if (is_string($raw)) {
+        foreach (explode("\n", trim($raw)) as $line) {
+            $parts = preg_split('/\s+/', trim($line), 9);
+            if (count($parts) >= 9 && $parts[8] !== '.' && $parts[8] !== '..') $out[] = ['name' => $parts[8], 'size' => (int)$parts[4], 'is_dir' => $parts[0][0] === 'd'];
+        }
+    }
+    if (!$out && defined('CURLOPT_DIRLISTONLY')) {
+        // Some Android libcurl builds accept the FTP connection but return
+        // GoldHEN's LIST format without Unix metadata. DIRLISTONLY issues
+        // NLST and gives us names that can still be filtered by extension.
+        $ch = curl_init(ftp_url_plugins($host, rtrim($path, '/') . '/'));
+        if ($ch === false) return false;
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_DIRLISTONLY=>true, CURLOPT_CONNECTTIMEOUT=>6, CURLOPT_TIMEOUT=>12, CURLOPT_FTP_USE_EPSV=>false, CURLOPT_PROXY=>'']);
+        $namesRaw = curl_exec($ch);
+        curl_close($ch);
+        if ($namesRaw === false) return false;
+        foreach (preg_split('/\r\n|\n|\r/', trim((string)$namesRaw)) as $entry) {
+            $name = basename(str_replace('\\', '/', trim($entry)));
+            if ($name !== '' && nombre_prx($name)) $out[] = ['name'=>$name, 'size'=>0, 'is_dir'=>false];
+        }
     }
     return $out;
 }
 function ftp_get_plugins($host, $path) {
-    if (function_exists('ftp_connect')) return ghm_ftp_get($host,2121,$path,30);
+    if (function_exists('ftp_connect')) return ghm_ftp_get($host,plugins_ftp_port(),$path,30);
     $ch = curl_init(ftp_url_plugins($host, $path));
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20]);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20, CURLOPT_PROXY=>'']);
     $data = curl_exec($ch); curl_close($ch); return $data;
 }
 function ftp_put_plugins($host, $path, $data) {
     $tmp = tempnam(sys_get_temp_dir(), 'ghm_'); file_put_contents($tmp, $data);
-    if (function_exists('ftp_connect')) { $ok=ghm_ftp_put($host,2121,$path,$tmp,false,60); @unlink($tmp); return $ok; }
+    if (function_exists('ftp_connect')) { $ok=ghm_ftp_put($host,plugins_ftp_port(),$path,$tmp,false,60); @unlink($tmp); return $ok; }
     $fp = fopen($tmp, 'r'); $ch = curl_init(ftp_url_plugins($host, $path));
-    curl_setopt_array($ch, [CURLOPT_UPLOAD => true, CURLOPT_INFILE => $fp, CURLOPT_INFILESIZE => filesize($tmp), CURLOPT_FTP_CREATE_MISSING_DIRS => true, CURLOPT_TIMEOUT => 60]);
+    curl_setopt_array($ch, [CURLOPT_UPLOAD => true, CURLOPT_INFILE => $fp, CURLOPT_INFILESIZE => filesize($tmp), CURLOPT_FTP_CREATE_MISSING_DIRS => true, CURLOPT_TIMEOUT => 60, CURLOPT_PROXY=>'']);
     $ok = curl_exec($ch); curl_close($ch); fclose($fp); @unlink($tmp); return $ok;
 }
 function parse_ini_plugins($text) {
@@ -126,13 +195,14 @@ function diagnosticar_ini_plugins($raw, $remoteNames = false) {
     return ['issues'=>$issues,'preview'=>$preview,'preview_changed'=>!hash_equals(hash('sha256',(string)$raw),hash('sha256',$preview)),'sha256'=>hash('sha256',(string)$raw),'invalid_utf8'=>$invalidUtf8,'sections'=>count($sections),'assignments'=>count($allPaths),'missing_files'=>$missing,'remote_plugins'=>is_array($remoteNames)?count($remoteNames):null];
 }
 function listar_nombres_plugins($host, $path) {
-    if (function_exists('ftp_connect')) { $rows=ghm_ftp_list($host,2121,$path,15); if($rows===false)return false; return array_values(array_unique(array_map(static fn($r)=>$r['name'],array_filter($rows,static fn($r)=>!$r['dir']&&nombre_prx($r['name']))))); }
-    $ch = curl_init(ftp_url_plugins($host, rtrim($path, '/') . '/'));
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_CUSTOMREQUEST=>'LIST', CURLOPT_CONNECTTIMEOUT=>6, CURLOPT_TIMEOUT=>12]);
-    $raw = curl_exec($ch); curl_close($ch);
-    if ($raw === false) return false;
-    $names=[]; foreach (explode("\n", trim((string)$raw)) as $line) { $parts=preg_split('/\s+/',trim($line),9); if(count($parts)>=9 && $parts[0][0]!=='d' && nombre_prx($parts[8])) $names[]=$parts[8]; }
-    return array_values(array_unique($names));
+    if (function_exists('ftp_connect')) {
+        $rows = ftp_list_plugins($host, $path);
+        if ($rows === false) return false;
+        return array_values(array_unique(array_map(static fn($r) => $r['name'], $rows)));
+    }
+    $rows = ftp_list_plugins($host, $path);
+    if ($rows === false) return false;
+    return array_values(array_unique(array_map(static fn($r) => $r['name'], array_filter($rows, static fn($r) => !$r['is_dir'] && nombre_prx($r['name'])))));
 }
 function respaldar_plugins_ini($raw, $prefix='plugins') {
     $dir = __DIR__ . '/../user/backups/plugins';
@@ -255,7 +325,11 @@ if ($action === 'import_ini') {
     if (!$write['ok']) responder_plugins(['status'=>'error','message'=>'No se pudo verificar el plugins.ini importado.' . ($write['restored']?' Se restauró y verificó el archivo anterior.':' No se pudo confirmar la restauración; conserva el respaldo local.'),'backup'=>$backup]);
     responder_plugins(['status' => 'success', 'sections' => parse_ini_plugins($new)]);
 }
-if ($action === 'list_remote') responder_plugins(['status' => 'success', 'data' => array_values(array_filter(ftp_list_plugins($host, $remote_dir), fn($f) => !$f['is_dir'] && nombre_prx($f['name'])))]);
+if ($action === 'list_remote') {
+    $files = ftp_list_plugins($host, $remote_dir);
+    if ($files === false) responder_plugins(['status'=>'error','message'=>'No se pudo leer la carpeta de plugins de la PS4. Verifica IP, puerto FTP y acceso a /data/GoldHEN/plugins.']);
+    responder_plugins(['status'=>'success','data'=>array_values(array_filter($files, static fn($f) => !$f['is_dir'] && nombre_prx($f['name'])))]);
+}
 if ($action === 'get_ini') responder_plugins(['status' => 'success', 'sections' => parse_ini_plugins(ftp_get_plugins($host, $ini_path) ?: '')]);
 if ($action === 'upload_plugin') {
     $name = nombre_prx($_POST['name'] ?? '');

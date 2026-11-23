@@ -1,5 +1,7 @@
 (() => {
     let orphanRows = [];
+    let orphanCacheKey = '';
+    let orphanCacheReady = false;
     let selected = new Set();
     let operationRunning = false;
 
@@ -74,8 +76,11 @@
         syncSelection();
     }
 
-    window.limpiezaCargar = async function () {
+    window.limpiezaCargar = async function (force = false) {
         if (operationRunning) return;
+        const current = connection();
+        const cacheKey = `${current.host_ip}:${current.port}`;
+        if (!force && orphanCacheReady && orphanCacheKey === cacheKey) { syncSelection(); return; }
         const list = $('orphan-list');
         orphanRows = [];
         selected.clear();
@@ -86,6 +91,8 @@
         try {
             const result = await request('scan');
             orphanRows = (result.saves || []).filter(save => !save.installed);
+            orphanCacheKey = cacheKey;
+            orphanCacheReady = true;
             const totalBytes = orphanRows.reduce((total, save) => total + save.bytes + save.metadata_bytes, 0);
             if ($('orphan-summary')) {
                 $('orphan-summary').textContent = orphanRows.length + ' partidas de juegos no instalados · ' + formatBytes(totalBytes);
@@ -106,6 +113,7 @@
             }
             syncSelection();
         } catch (error) {
+            orphanCacheReady = false;
             orphanRows = [];
             selected.clear();
             if (list) list.innerHTML = '<p class="text-xs text-rose-300">' + escapeHtml(error.message) + '</p>';
@@ -221,6 +229,6 @@
             notify('Limpieza parcial', message, true);
         }
         setOperationRunning(false);
-        await window.limpiezaCargar();
+        await window.limpiezaCargar(true);
     };
 })();

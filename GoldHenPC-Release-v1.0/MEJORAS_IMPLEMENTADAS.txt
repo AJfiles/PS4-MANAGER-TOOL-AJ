@@ -1,3 +1,27 @@
+PS4 Manager Tools AJ 4.5.16 - PC and Android validation (2026-11-23)
+---------------------------------------------------------------------
+- Added Plugins to the quick actions for each game in Library. It opens the
+  Plugins module with the selected CUSA.
+- Fan and FW Updates now explain that AJ supplied the universal payloads,
+  identify confirmed and unverified firmware ranges, retain the GoldHEN
+  server requirements, and describe the three-layer Updates protection.
+- The S23 and PS4 FTP check uploaded, reread, and deleted a temporary file in
+  /data/pkg/. No PKG was installed.
+- Rebuilt the APK as 4.5.16 (40516), checked its manifest and signing
+  certificate, and updated the installed APK with adb install -r. The S23
+  retained the app and opened it; its local web server returned HTTP 200.
+- Read-only PS4 checks from APK 4.5.16 succeeded for Library, SaveGames
+  (61 entries; 32 orphaned saves, about 1.59 GB), Storage, Patches (11 games,
+  387 XML files), Plugins (16 files), Payloads (9 remote files), and FTP
+  Explorer. Captures found 23 auxiliary .dat/.ext files and no accessible
+  JPG/JPEG/PNG images, so they are not presented as screenshots.
+- The portable PC folder has one launcher, PHP 8.5.11, and a local server
+  smoke check returned HTTP 200 on 127.0.0.1:18080.
+- scripts/verificar-proyecto.ps1 passed on 4.5.16: PHP syntax (60 files),
+  JavaScript syntax (21 files), and module, updater, UI, and PC sync checks.
+- No payload was executed and no PS4 settings or installed data were changed
+  during these checks.
+
 PS4 Manager Tools - CAMBIOS Y PRUEBAS
 =====================================
 
@@ -1411,6 +1435,14 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - PKG PS4 Temperature: el informe docs/PAYLOADS_UNIVERSALES_Y_PS4_TEMPERATURE.md registra SHA-256, SFO y los límites de evidencia. Los EBOOT v1.06/v1.07 son idénticos, pero los digests PKG no validan y no se derivó compatibilidad hasta FW 14.00. No se instaló ni envió payload.
 - Plugin auxiliar: docs/PLUGIN_AUXILIAR_Y_LANZAMIENTO_DE_APPS.md detalla que un PRX no acelera el FTP del cliente y no debe auto instalarse; su uso requeriría mecanismo de carga, hash, consentimiento, respaldo y matriz de firmware. No se añadieron escrituras ni payload remoto.
 
+### Biblioteca, personalización y análisis de payloads (2026-11-13)
+- Biblioteca: el carrusel solo solicita la carátula central y las dos vecinas inmediatas; ya no asigna URLs a toda la colección. Las imágenes se mantienen en caché al navegar, el gesto requiere más distancia para cambiar de tarjeta y las transiciones laterales son más suaves. La cuadrícula usa la portada 3D con fallback seguro y lazy loading.
+- Biblioteca: el carrusel muestra un estado explícito instalado/no instalado/sin verificar; la ficha conserva carátula segura y el estado FTP. Parches, Saves y Capturas siguen abriéndose por CUSA, y los módulos muestran vacío cuando no hay coincidencias.
+- Ajustes: se añadieron loaders Cuántico, Hélice y Portal, animaciones de menú Órbita, Cascada, Escalonada y Zoom, y sonidos Campana digital, Radar, Mecánico y Brisa. La vista previa del menú queda fija y la de loader refleja el color actual. Se tradujeron las etiquetas nuevas al inglés.
+- Menú principal: se aumentó el margen y la separación de los encabezados de sección para distinguir grupos en teléfono, APK y PC.
+- PKG PS4 Temperature: el informe docs/PAYLOADS_UNIVERSALES_Y_PS4_TEMPERATURE.md registra SHA-256, SFO y los límites de evidencia. Los EBOOT v1.06/v1.07 son idénticos, pero los digests PKG no validan y no se derivó compatibilidad hasta FW 14.00. No se instaló ni envió payload.
+- Plugin auxiliar: docs/PLUGIN_AUXILIAR_Y_LANZAMIENTO_DE_APPS.md detalla que un PRX no acelera el FTP del cliente y no debe auto instalarse; su uso requeriría mecanismo de carga, hash, consentimiento, respaldo y matriz de firmware. No se añadieron escrituras ni payload remoto.
+
 PS4 Manager Tools AJ 4.5.12: comprobación de acciones por CUSA en S23 (2026-11-14)
 ---------------------------------------------------------------------------------
 - En la APK instalada en Galaxy S23 Ultra se filtró THE PLAYROOM (CUSA00001), mostrado como no instalado. Desde su ficha, SaveGames informó 0 partidas para ese CUSA; Capturas indicó que la única imagen global detectada no corresponde al CUSA filtrado; Parches informó 0 parches disponibles para CUSA00001.
@@ -1462,3 +1494,12 @@ PS4 Manager Tools AJ 4.5.13: radar y actualización de APK verificados (2026-11-
 - Distribución PC 4.5.13: se corrigió `runtime/php.ini` al retirar `opcache.file_cache` relativa, que terminaba PHP con `Fatal Error opcache.file_cache must be a full path`. El BAT ahora abre un lanzador de servidor que mantiene visible el error si PHP termina.
 - El ZIP PC se extrajo en una ruta limpia con espacios; `Iniciar-PS4-Manager-Tool.bat` informó “Servidor listo”, y la página respondió HTTP 200 en `127.0.0.1:8080`. El paquete incluye PHP 8.5.11 x86 y excluye datos personales de `user/`.
 - Se simplificó la distribución PC a un solo BAT: `Iniciar-PS4-Manager-Tool.bat` se relanza a sí mismo con `/server` en la ventana de PHP; se eliminó el BAT auxiliar. Verificación en extracción limpia con puerto alternativo de prueba: el lanzador mostró “Servidor listo” y la página respondió HTTP 200; el paquete sigue usando 8080 por defecto.
+
+PS4 Manager Tools AJ 4.5.16 — Plugins FTP y sincronización multiplataforma (2026-11-23)
+------------------------------------------------------------------------------------
+- Se incrementó la versión visible del proyecto a 4.5.16 en la app, scripts, guías y paquete PC.
+- La causa del inventario vacío en Android era un choque entre `$GLOBALS['port']` de WebToApp (18500, puerto del servidor local) y el puerto FTP de la consola. Plugins ahora valida y toma el puerto directamente de la petición actual; además, sus fallbacks FTP usan conexión directa sin heredar el proxy HTTP local de WebToApp.
+- La lectura de plugins remotos ya no confunde un formato LIST no reconocido con una carpeta vacía: prueba `ftp_nlist` y `CURLOPT_DIRLISTONLY`, normaliza los nombres `.prx` y devuelve un error entendible cuando el listado FTP realmente falla.
+- Se reutiliza el inventario remoto en el diagnóstico de `plugins.ini`; el catálogo de idiomas incluye el error de conexión/listado.
+- Prueba de solo lectura desde la API de la APK 4.5.16 en el S23 contra la PS4 `192.168.20.39:2121`: devolvió 16 `.prx` y leyó `[default]`, `[CUSA00133]` y `[CUSA01015]` desde `plugins.ini`. La pantalla Plugins mostró el conteo de 16 y el plugin activo `AJ_ControlALL_reader.prx`. No se modificó `plugins.ini` ni ningún archivo de la consola.
+- La APK 4.5.16 (versionCode 40516) se reconstruyó con la firma original y se actualizó en el S23 sin borrar sus datos. El verificador completo de PHP, JavaScript, flujos de UI, traducciones y sincronización PC terminó sin errores.

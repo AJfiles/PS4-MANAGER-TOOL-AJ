@@ -175,6 +175,7 @@
             <button id="btn-iniciar-transferencia" onclick="iniciarGestorDeCola()" disabled class="flex-1 py-4 rounded-[1.5rem] bg-gray-800 text-gray-500 text-[12px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 pointer-events-none">
                 <i class="fa-solid fa-rocket"></i> Enviar por FTP
             </button>
+            <button id="btn-reintentar-transferencia" type="button" onclick="reintentarTransferenciaFTP()" class="hidden flex-1 py-4 rounded-[1.5rem] border border-cyan-400/30 bg-cyan-500/10 text-cyan-100 text-[11px] font-black uppercase tracking-widest"><i class="fa-solid fa-rotate-right mr-2"></i>Reintentar desde cero</button>
             <button id="btn-abortar-transferencia" onclick="abortarTransferenciaActiva()" class="hidden w-16 h-[56px] rounded-[1.5rem] border border-red-500/30 bg-red-500/10 text-red-500 flex items-center justify-center text-xl active:scale-95 transition-all hover:bg-red-500/20">
                 <i class="fa-solid fa-times"></i>
             </button>

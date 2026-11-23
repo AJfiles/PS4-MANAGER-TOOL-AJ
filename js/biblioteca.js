@@ -121,17 +121,16 @@ async function levantarCacheLocalBiblioteca() {
 }
 
 async function ejecutarSincronizacionFantasmasFondo() {
-    const ahora = Date.now();
-    if (bibliotecaAutoScanEnCurso || ahora - bibliotecaAutoScanCompletado < 5 * 60 * 1000) return;
+    const ip = localStorage.getItem('sebas_ip_final_libre') || '';
+    const port = localStorage.getItem('sebas_port_libre') || '2121';
+    const connectionKey = `${ip}:${port}`;
+    if (!ip || bibliotecaAutoScanEnCurso || (bibliotecaAutoScanCompletado > 0 && localStorage.getItem('ghm_biblioteca_last_connection') === connectionKey)) return;
     bibliotecaAutoScanEnCurso = true;
     const estadoSync = document.getElementById('library-sync-status');
     if (estadoSync) estadoSync.innerText = 'Conectando con PS4…';
     if (bibliotecaAbortController) { bibliotecaAbortController.abort(); }
     bibliotecaAbortController = new AbortController();
     const { signal } = bibliotecaAbortController;
-
-    const ip = localStorage.getItem('sebas_ip_final_libre') || '192.168.1.28';
-    const port = localStorage.getItem('sebas_port_libre') || '2121';
 
     try {
         let formDataScan = new FormData();
@@ -147,6 +146,7 @@ async function ejecutarSincronizacionFantasmasFondo() {
         }
         bibliotecaAutoScanCompletado = Date.now();
         localStorage.setItem('ghm_biblioteca_ultimo_escaneo', String(bibliotecaAutoScanCompletado));
+        localStorage.setItem('ghm_biblioteca_last_connection', connectionKey);
 
         const mapJuegosDetectados = jsonScan.games;
         const idsInstalados = jsonScan.installed_ids || {};
@@ -394,6 +394,7 @@ async function forzarSincronizacionManual() {
         recompilarTodo();
         bibliotecaAutoScanCompletado = Date.now();
         localStorage.setItem('ghm_biblioteca_ultimo_escaneo', String(bibliotecaAutoScanCompletado));
+        localStorage.setItem('ghm_biblioteca_last_connection', `${ip}:${port}`);
     } catch (e) {
         closeSincronizacionModal(); 
         levantarCacheLocalBiblioteca();
@@ -510,7 +511,7 @@ function renderizarGridDOM(visibles) {
             img.alt = `Carátula de ${String(jg.nombre || jg.id || 'juego')}`;
             img.loading = 'lazy';
             img.decoding = 'async';
-            img.className = 'h-full w-full object-cover';
+            img.className = 'h-full w-full object-contain';
             img.addEventListener('error', () => {
                 if (fallbackUrl && img.src !== new URL(fallbackUrl, document.baseURI).href) img.src = fallbackUrl;
                 else {
@@ -701,11 +702,12 @@ function configurarRastreadorSwipe() {
     const newViewPort = document.getElementById('swipe-touch-zone');
 
     newViewPort.addEventListener('pointerdown', (event) => {
+        // Los controles del carrusel deben recibir su click normal, sin capturar el puntero.
+        if (event.target.closest('.library-carousel-nav, button, a, input, select')) return;
         if (event.pointerType === 'mouse' && event.button !== 0) return;
         startX = event.clientX;
         currentX = startX;
         isDragging = true;
-        if (newViewPort.setPointerCapture) newViewPort.setPointerCapture(event.pointerId);
     });
     newViewPort.addEventListener('pointermove', (event) => {
         if (!isDragging) return;
@@ -986,6 +988,12 @@ function abrirOpcionesJuegoDirecto(id) {
         status.textContent = juegoSeleccionadoLocal.installed === true ? 'Instalado en PS4' : juegoSeleccionadoLocal.installed === false ? 'No instalado en PS4' : 'Estado no confirmado por FTP';
         status.className = `text-[9px] font-bold ${juegoSeleccionadoLocal.installed === true ? 'text-emerald-300' : juegoSeleccionadoLocal.installed === false ? 'text-rose-300' : 'text-amber-200'}`;
     }
+    const residualPanel = document.getElementById('library-residual-storage');
+    if (residualPanel) {
+        residualPanel.classList.toggle('hidden', juegoSeleccionadoLocal.installed !== false);
+        const results = document.getElementById('library-residual-storage-results');
+        if (results) results.replaceChildren();
+    }
     const sheet = document.getElementById('sheet-detalles-juego');
     if (sheet) {
         sheet.classList.remove('hidden');
@@ -995,6 +1003,56 @@ function abrirOpcionesJuegoDirecto(id) {
             if (cardContent) cardContent.classList.remove('translate-y-full'); 
         }, 10);
     }
+}
+
+const bibliotecaDatosResidualesCache = new Map();
+window.bibliotecaAnalizarDatosResiduales = async function(force = false) {
+    const game = juegoSeleccionadoLocal;
+    if (!game || game.installed !== false) return;
+    const ip = localStorage.getItem('sebas_ip_final_libre') || '';
+    const port = Number(localStorage.getItem('sebas_port_libre') || 2121);
+    const output = document.getElementById('library-residual-storage-results');
+    if (!output) return;
+    if (!ip) { output.textContent = 'Conecta la PS4 por FTP para analizar estos datos.'; return; }
+    const key = `${ip}:${port}:${game.id}`;
+    if (!force && bibliotecaDatosResidualesCache.has(key)) {
+        renderizarBibliotecaDatosResiduales(bibliotecaDatosResidualesCache.get(key), output);
+        return;
+    }
+    output.textContent = 'Analizando carpetas conocidas y partidas de este CUSA por FTP…';
+    try {
+        const form = new FormData();
+        form.append('action', 'title_storage');
+        form.append('host_ip', ip);
+        form.append('port', String(port));
+        form.append('title_id', game.id);
+        const response = await fetch('api/saves_api.php', { method: 'POST', body: form, cache: 'no-store' });
+        const raw = await response.text();
+        let data;
+        try { data = JSON.parse(raw); }
+        catch (_) { throw new Error(`Respuesta FTP/API inválida (HTTP ${response.status}).`); }
+        if (!response.ok || data.status !== 'success') throw new Error(data.message || `HTTP ${response.status}`);
+        bibliotecaDatosResidualesCache.set(key, data.report);
+        renderizarBibliotecaDatosResiduales(data.report, output);
+    } catch (error) {
+        output.textContent = `No se completó la lectura: ${error.message}`;
+    }
+};
+
+function renderizarBibliotecaDatosResiduales(report, output) {
+    const format = bytes => {
+        const value = Number(bytes) || 0;
+        if (value < 1024) return `${value.toFixed(0)} B`;
+        const units = ['KB', 'MB', 'GB', 'TB'];
+        let size = value / 1024, unit = 0;
+        while (size >= 1024 && unit < units.length - 1) { size /= 1024; unit++; }
+        return `${size.toFixed(2)} ${units[unit]}`;
+    };
+    const rows = (report.items || []).map(item => `<div class="rounded-lg bg-black/25 px-2 py-1.5"><b class="text-amber-100">${bibliotecaEscaparHtml(item.category)}</b><span class="float-right">${format(item.bytes)}</span><small class="block truncate text-gray-500">${bibliotecaEscaparHtml(item.path)} · ${Number(item.files)||0} archivos${item.size_limited ? ' · cálculo limitado' : ''}</small></div>`);
+    (report.saves || []).forEach(save => rows.push(`<div class="rounded-lg bg-black/25 px-2 py-1.5"><b class="text-cyan-100">Partida · ${bibliotecaEscaparHtml(save.profile)}</b><span class="float-right">${format(save.bytes)}</span><small class="block text-gray-500">${Number(save.files)||0} archivos y metadatos</small></div>`));
+    const certainty = report.complete ? 'Lectura completada en las rutas consultadas' : 'Lectura parcial: una o más rutas no respondieron; los tamaños son un mínimo';
+    const empty = rows.length ? '' : '<p class="text-gray-400">No se encontraron datos asociados en las rutas legibles consultadas.</p>';
+    output.innerHTML = `<div class="mb-1 flex justify-between gap-2 text-amber-100"><b>Total encontrado</b><b>${format(report.total_bytes)}</b></div><p class="mb-2 text-[8px] text-gray-500">${certainty}</p>${rows.join('')}${empty}<button type="button" onclick="bibliotecaAnalizarDatosResiduales(true)" class="mt-2 rounded-lg border border-white/10 px-2 py-1 text-[8px] text-gray-300">Actualizar análisis</button>`;
 }
 
 function cerrarBottomSheet(e) {

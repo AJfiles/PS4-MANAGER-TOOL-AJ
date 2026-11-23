@@ -1,6 +1,7 @@
 (() => {
     const API = 'api/saves_api.php';
     let saves = [];
+    let savesCacheKey = '';
     const $ = id => document.getElementById(id);
     const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -76,22 +77,27 @@
         window.ps5Notification ? window.ps5Notification(title, message, error ? 'fa-triangle-exclamation' : 'fa-circle-check') : alert(title + ': ' + message);
     }
 
-    window.savesRecargar = async function () {
+    window.savesRecargar = async function (force = false) {
         const box = $('save-list');
         if (!box) return;
+        const current = conn();
+        const cacheKey = `${current.host_ip}:${current.port}`;
         if (!conn().host_ip) {
             box.innerHTML = '<p class="rounded-xl border border-rose-400/20 p-4 text-xs text-rose-200">Configura IP y puerto FTP para leer las partidas.</p>';
             return;
         }
+        if (!force && savesCacheKey === cacheKey) { render(); await loadArchives(); return; }
         box.innerHTML = loadingMarkup('Analizando partidas', 'Leyendo perfiles, nombres de juegos, iconos y tamaños por FTP. No se modifica ningún dato.');
         if ($('save-summary')) $('save-summary').textContent = 'Lectura en curso…';
         try {
             const result = await req('scan');
             saves = result.saves || [];
             await enrichTitlesFromAppDb(saves);
+            savesCacheKey = cacheKey;
             render();
             await loadArchives();
         } catch (error) {
+            savesCacheKey = '';
             box.innerHTML = `<p class="rounded-xl border border-rose-400/20 p-4 text-xs text-rose-200">${esc(error.message)}</p>`;
             if ($('save-summary')) $('save-summary').textContent = 'No se completó la lectura';
             note('Partidas', error.message, true);
@@ -155,7 +161,7 @@
             if (!confirm(`El ZIP se verificó (${fmt(result.backup.total_bytes)}). ¿Eliminar la partida de la consola?`)) return;
             const deleted = await req('delete', { profile_key: profile, title_id: title, backup_id: result.backup.id });
             note('Partida eliminada', deleted.message);
-            await window.savesRecargar();
+            await window.savesRecargar(true);
         } catch (error) { note('Operación detenida', error.message, true); }
     }
     async function deletePermanent(profile, title, name) {
@@ -164,7 +170,7 @@
         try {
             const result = await req('delete_permanent', { profile_key: profile, title_id: title, permanent: '1' });
             note('Borrado permanente', result.message);
-            await window.savesRecargar();
+            await window.savesRecargar(true);
         } catch (error) { note('No se eliminó la partida', error.message, true); }
     }
     async function listBackups(profile, title) {
@@ -190,7 +196,7 @@
         try {
             const result = await req('restore', { profile_key: profile, title_id: title, backup_id: backupId });
             note('Restauración', result.message);
-            await window.savesRecargar();
+            await window.savesRecargar(true);
         } catch (error) { note('Restauración no confirmada', error.message, true); }
     }
     window.savesInit = () => {};

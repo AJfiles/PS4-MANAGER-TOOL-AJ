@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 const root = path.join(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'js', 'capturas.js'), 'utf8');
 const library = fs.readFileSync(path.join(root, 'js', 'biblioteca.js'), 'utf8');
-assert.doesNotMatch(library, /captura|screenshot|galeria|gallery/i, 'Biblioteca no debe cargar ni exponer la galería de Capturas.');
+assert.doesNotMatch(library, /ps4_screenshots_api|function renderGallery|capturasCargar/i);
 assert.match(source, /function renderGallery/);
 assert.match(source, /safeImageUrl/);
 

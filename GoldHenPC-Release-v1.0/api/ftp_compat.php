@@ -57,7 +57,7 @@ function ghm_ftp_get(string $host, int $port, string $path, int $timeout = 60): 
     }
     if (!function_exists('curl_init')) return false;
     $url = 'ftp://'.$host.':'.$port.'/'.implode('/', array_map('rawurlencode', explode('/', ltrim($path, '/'))));
-    $ch = curl_init($url); curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_CONNECTTIMEOUT=>8, CURLOPT_TIMEOUT=>$timeout, CURLOPT_FTP_RESPONSE_TIMEOUT=>30, CURLOPT_FTP_USE_EPSV=>false]);
+    $ch = curl_init($url); curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_CONNECTTIMEOUT=>8, CURLOPT_TIMEOUT=>$timeout, CURLOPT_FTP_RESPONSE_TIMEOUT=>30, CURLOPT_FTP_USE_EPSV=>false, CURLOPT_PROXY=>'']);
     $data = curl_exec($ch); curl_close($ch); return $data === false ? false : (string)$data;
 }
 
@@ -75,7 +75,7 @@ function ghm_ftp_put(string $host, int $port, string $path, string $local, bool 
     if (!function_exists('curl_init')) return false;
     $url = 'ftp://'.$host.':'.$port.implode('/', array_map('rawurlencode', explode('/', $path)));
     $fp = @fopen($local, 'rb'); if (!$fp) return false;
-    $ch = curl_init($url); $opts = [CURLOPT_UPLOAD=>true, CURLOPT_INFILE=>$fp, CURLOPT_INFILESIZE=>filesize($local), CURLOPT_CONNECTTIMEOUT=>8, CURLOPT_TIMEOUT=>$timeout, CURLOPT_FTP_RESPONSE_TIMEOUT=>60, CURLOPT_FTP_USE_EPSV=>false];
+    $ch = curl_init($url); $opts = [CURLOPT_UPLOAD=>true, CURLOPT_INFILE=>$fp, CURLOPT_INFILESIZE=>filesize($local), CURLOPT_CONNECTTIMEOUT=>8, CURLOPT_TIMEOUT=>$timeout, CURLOPT_FTP_RESPONSE_TIMEOUT=>60, CURLOPT_FTP_USE_EPSV=>false, CURLOPT_PROXY=>''];
     if ($append) $opts[CURLOPT_FTPAPPEND] = true;
     curl_setopt_array($ch, $opts); $ok = curl_exec($ch); curl_close($ch); fclose($fp); return $ok !== false;
 }

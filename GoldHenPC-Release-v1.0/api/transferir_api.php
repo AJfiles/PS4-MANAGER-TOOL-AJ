@@ -1,4 +1,14 @@
 <?php
+ob_start();
+register_shutdown_function(static function (): void {
+    $error = error_get_last();
+    if (!$error || !in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) return;
+    error_log('[transferir_api] Fatal: ' . ($error['message'] ?? 'unknown'));
+    if (ob_get_level() > 0) ob_clean();
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status'=>'error','message'=>'Error interno en la transferencia FTP. Revisa el registro del servidor.'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+});
 require_once __DIR__ . '/request_guard.php';
 require_once __DIR__ . '/ftp_compat.php';
 /**
@@ -7,7 +17,6 @@ require_once __DIR__ . '/ftp_compat.php';
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: api/transferir_api.php
  * ====================================================================
  */
-ob_start();
 error_reporting(0);
 ini_set('display_errors', 0);
 set_time_limit(0); 
@@ -298,7 +307,8 @@ $filename = $_POST['filename'] ?? '';
 $target_dir = $_POST['target_dir'] ?? '/data/';
 $port = 2121;
 
-if (!$host_ip || !isset($_FILES['file_chunk']) || $_FILES['file_chunk']['error'] !== UPLOAD_ERR_OK) {
+if (!filter_var($host_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+    || !isset($_FILES['file_chunk']) || $_FILES['file_chunk']['error'] !== UPLOAD_ERR_OK) {
     $error_msg = 'Límite de memoria superado o archivo corrupto.';
     if (isset($_FILES['file_chunk']['error'])) {
         switch ($_FILES['file_chunk']['error']) {
@@ -327,8 +337,22 @@ if (!$host_ip || !isset($_FILES['file_chunk']) || $_FILES['file_chunk']['error']
     exit;
 }
 
-// 🔥 TRUCO DEL NÚCLEO: Usar rutas absolutas para saltear bloqueos de seguridad de la PS4
-if (strpos($target_dir, '/app_tmp/') === 0 || strpos($target_dir, '/data/') === 0) {
+$filename = (string)$filename;
+$target_dir = (string)$target_dir;
+if ($filename === '' || basename($filename) !== $filename || in_array($filename, ['.', '..'], true)
+    || strlen($filename) > 240 || preg_match('/[\x00-\x1F\\\/]/', $filename)) {
+    ob_end_clean(); http_response_code(400); echo json_encode(['status'=>'error','message'=>'Nombre de archivo no válido.']); exit;
+}
+if ($chunk_index < 0 || strlen($target_dir) > 500 || preg_match('/[\x00-\x1F]/', $target_dir)
+    || str_contains($target_dir, '\\') || preg_match('#(^|/)\.\.(/|$)#', $target_dir)) {
+    ob_end_clean(); http_response_code(400); echo json_encode(['status'=>'error','message'=>'Fragmento o ruta FTP no válidos.']); exit;
+}
+
+// GoldHEN expone /data como ruta propia de destino. No reescribir /data/pkg
+// a /user/data/pkg: esa ruta alternativa puede responder 550/500 en FTP.
+// Conserva la compatibilidad histórica de app_tmp, cuyo almacenamiento reside
+// bajo /user/app_tmp en las consolas compatibles.
+if (strpos($target_dir, '/app_tmp/') === 0) {
     $target_dir = '/user' . $target_dir;
 }
 

@@ -328,7 +328,7 @@ header('X-Author: ' . $firma);
             </h1>
             <div class="flex items-center justify-center gap-3 mt-2.5 opacity-80">
                 <span class="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-500/80"></span>
-                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.13 • AJ</span>
+                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.16 • AJ</span>
                 <span class="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-500/80"></span>
             </div>
         </div>
@@ -505,7 +505,7 @@ header('X-Author: ' . $firma);
                     if (idModulo === 'savegames' && typeof savesRecargar === 'function') savesRecargar();
                     if (idModulo === 'limpieza' && typeof limpiezaCargar === 'function') limpiezaCargar();
                     if (idModulo === 'almacenamiento' && typeof almacenamientoCargar === 'function') almacenamientoCargar();
-                    if (idModulo === 'capturas' && typeof capturasCargar === 'function') capturasCargar(true);
+                    if (idModulo === 'capturas' && typeof capturasCargar === 'function') capturasCargar(false);
         };
 
         window.aceptarAccesoFirmware = function() {
