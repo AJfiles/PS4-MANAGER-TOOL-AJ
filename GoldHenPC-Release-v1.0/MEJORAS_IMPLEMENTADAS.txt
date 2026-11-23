@@ -5,6 +5,12 @@ PS4 Manager Tools AJ 4.5.16 - PC and Android validation (2026-11-23)
 - A DOM regression check covers the Explorer action button, right-click event,
   propagation, and escaping. The API-guard test now disables CLI OPcache when
   starting the portable x86 PHP server; this avoids its ASLR startup failure.
+- Fan/Updates now read `UniversalPayloadsFW_FAN` first and fall back to the
+  packaged `payloads fw` folder per file. All ten payload copies in the source
+  and PC package match their catalog SHA-256 values; only AJ-reported firmware
+  versions are marked confirmed. No payload was sent during this check.
+- Added a regression check for payload paths, binary hashes, and confirmed
+  firmware labels in the source and PC package.
 - Rechecked the Windows verifier: 60 PHP files, 21 JavaScript files and all
   functional/static checks pass. A temporary uniquely named text file uploaded
   through the Android FTP API to /data/pkg/, appeared in the PS4 listing, and

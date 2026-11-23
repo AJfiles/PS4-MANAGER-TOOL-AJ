@@ -57,10 +57,20 @@ $expectedHashes = [
     'enable_updates_full.bin' => '530f60e00357bcaafdbc3f4d3be87e645b85bd3a41bdd01cc35a4c8515a5efe0'
 ];
 
-$base = realpath(__DIR__ . '/../payloads fw');
 $folder = $action === 'coolers' ? 'FAN' : 'UPDATES';
-$file = $base ? realpath($base . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR . $name) : false;
-if (!$base || !$file || !str_starts_with($file, $base . DIRECTORY_SEPARATOR) || !is_file($file)) {
+$base = false;
+$file = false;
+foreach ([__DIR__ . '/../UniversalPayloadsFW_FAN', __DIR__ . '/../payloads fw'] as $payloadRoot) {
+    $candidateRoot = realpath($payloadRoot);
+    if ($candidateRoot === false || !is_dir($candidateRoot)) continue;
+    $candidateFile = realpath($candidateRoot . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR . $name);
+    if ($candidateFile === false || !is_file($candidateFile)) continue;
+    if (!str_starts_with($candidateFile, $candidateRoot . DIRECTORY_SEPARATOR)) continue;
+    $base = $candidateRoot;
+    $file = $candidateFile;
+    break;
+}
+if (!$base || !$file) {
     fw_reply(['status'=>'error','message'=>'No se encontró el payload en el catálogo local.'], 404);
 }
 $hash = @hash_file('sha256', $file);
