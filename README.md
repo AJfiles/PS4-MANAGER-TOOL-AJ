@@ -3,12 +3,12 @@
 </p>
 
 <h1 align="center">🎮 PS4 Manager Tools AJ 4.5.21</h1>
-<p align="center"><strong>Tu PS4, administrada desde tu red local.</strong><br>Consulta y organiza tu consola con GoldHEN desde Termux, la APK Android o Windows.</p>
+<p align="center"><strong>Tu PS4, administrada desde tu red local.</strong><br>Consulta y organiza tu consola con GoldHEN desde la APK Android o Windows.</p>
 
 <p align="center">
   <a href="https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/latest"><img alt="Última versión" src="https://img.shields.io/github/v/release/AJfiles/PS4-MANAGER-TOOL-AJ?label=versi%C3%B3n&color=7c3aed"></a>
   <a href="https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases"><img alt="Descargas" src="https://img.shields.io/github/downloads/AJfiles/PS4-MANAGER-TOOL-AJ/total?color=0891b2"></a>
-  <img alt="Termux, Android y Windows" src="https://img.shields.io/badge/Termux%20%7C%20Android%20%7C%20Windows-disponible-16a34a">
+  <img alt="Android y Windows" src="https://img.shields.io/badge/Android%20%7C%20Windows-disponible-16a34a">
   <img alt="Interfaz en español e inglés" src="https://img.shields.io/badge/idiomas-espa%C3%B1ol%20%7C%20ingl%C3%A9s-f59e0b">
 </p>
 
@@ -20,15 +20,15 @@ La conexión con la consola se realiza por la red local. No necesitas cuenta ni 
 
 | Plataforma | Descarga o instalación | Inicio rápido |
 | --- | --- | --- |
-| **📱 Android · Termux** | [Instalar / actualizar desde GitHub](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Pega el comando de abajo en Termux. |
 | **📦 Android · APK** | [Descargar APK 4.5.21](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.21/PS4_Manager_Tools_AJ_v4.5.21.APK) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
 | **🖥️ Windows · PC** | [Descargar paquete PC 4.5.21](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.21/PS4-Manager-Tools-AJ-PC-v4.5.21.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
+| **📱 Android · Termux (alternativa heredada)** | [Código de instalación](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Disponible para instalaciones existentes; el desarrollo y las descargas recomendadas se centran en APK y PC. |
 
 Consulta [todos los Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases), sus notas de versión y el archivo de hashes SHA-256.
 
-La rama `main`, el APK Android y el paquete PC corresponden a 4.5.21. En Termux, ejecuta de nuevo el comando de instalación para actualizar el código conservando los datos de usuario.
+La rama `main`, el APK Android y el paquete PC corresponden a 4.5.21. Para nuevas instalaciones, usa la APK en Android o el paquete PC en Windows.
 
-### Instalar en Termux
+### Termux para instalaciones existentes
 
 Instala Termux desde una fuente confiable, ábrelo y pega:
 
@@ -46,7 +46,7 @@ En la APK, abre **Ajustes → Carpeta de exportaciones → Elegir carpeta** y se
 
 ### Ejecutar en Windows
 
-Descomprime el paquete completo y ejecuta `Iniciar-PS4-Manager-Tool.bat`. Incluye PHP portable y su configuración; no hace falta instalar PHP ni añadirlo al PATH. Mantén abierta la ventana del servidor mientras usas la app. Para actualizar, descarga el ZIP más reciente, cierra el servidor y extrae el contenido sobre la carpeta existente; conserva `user/`.
+Descomprime el ZIP. Aparecerá una carpeta contenedora con dos elementos: la carpeta interna de la aplicación y `Iniciar-PS4-Manager-Tool.bat`. Ejecuta el BAT desde esa carpeta contenedora. Incluye PHP portable y su configuración; no hace falta instalar PHP ni añadirlo al PATH. Mantén abierta la ventana del servidor mientras usas la app. Para actualizar, cierra el servidor y reemplaza la carpeta interna por la del ZIP nuevo; conserva `user/`.
 
 ## ✅ Requisitos y conexión
 

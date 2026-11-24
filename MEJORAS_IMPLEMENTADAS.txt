@@ -1744,3 +1744,18 @@ PS4 Manager Tools AJ 4.5.18 â€” Control de Apps en primer plano, apertura y
 - También quedan pendientes el ZIP PC actualizado, el push y la publicación GitHub de v4.5.21.
 
 - GitHub actualizado: commit a8a942e en main; release v4.5.21 publicado con exactamente dos activos: APK Android y ZIP PC.
+
+### Continuación de verificación y ajustes locales — 2026-11-24
+- Tras la confirmación del usuario de que BinLoader estaba reactivado, se envió una sola vez `payloads/app_control.elf` (91.792 bytes). El servicio respondió por 9091 como versión 1.2.1. Las lecturas manuales `status` y `users` respondieron correctamente: menú principal sin app en primer plano y un perfil con sesión conocida. No se enviaron órdenes de abrir o cerrar apps.
+- La Biblioteca vuelve a mostrar títulos instalados, no instalados y sin verificar; las acciones normales se ocultan salvo para títulos confirmados instalados. Se añadieron ubicaciones interna/externa al resultado del escaneo y el escaneo automático vuelve a actualizarse tras 60 segundos.
+- El acceso desde Biblioteca a Control de Apps ahora prepara un paso explícito de verificación de servicio, instalación y perfil, seguido de un botón separado para lanzar. Elegir un perfil ya no dispara la apertura automáticamente.
+- Organizar Apps conserva abierta la lista «Sin carpeta» al cambiar la asignación y añade selección múltiple para mover varias apps a una carpeta o devolverlas a «Sin carpeta». El cambio se mantiene pendiente hasta pulsar Guardar cambios en PS4.
+- En el Explorador FTP se quitó el uso de `history.back()` para subir carpetas y se calcula la carpeta padre sin interferir con la navegación de la aplicación. Los navegadores compatibles en PC permiten elegir directamente dónde guardar una descarga mediante el selector de archivos.
+- Verificación local de estos cambios: sintaxis PHP/JavaScript y pruebas de Biblioteca/Control de Apps pasaron. La sincronización con el paquete PC, el APK, la auditoría de las otras mejoras y cualquier lanzamiento siguen pendientes; estas modificaciones todavía no forman parte de un release.
+
+PS4 Manager Tools AJ 4.5.21 — documentación y distribución PC (2026-11-24)
+----------------------------------------------------------------------------
+- El README prioriza la APK Android y el paquete Windows; Termux queda identificado como alternativa para instalaciones existentes.
+- El paquete PC extrae una carpeta contenedora con únicamente el BAT y la carpeta PS4-Manager-Tools-AJ-PC. El BAT apunta al PHP portable interno y muestra la versión 4.5.21.
+- El empaquetador y su verificador exigen la estructura de dos elementos, un solo BAT y un directorio user limpio.
+- Se documentó que el yt_adblock.prx aportado mide 16 bytes y contiene una respuesta de error HTTP. El ELF incluido tiene cabecera válida, pero no se ejecutó ni se declara funcional.
