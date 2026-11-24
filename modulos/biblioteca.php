@@ -367,9 +367,11 @@
                     <span id="panel-game-cusa" class="text-[13px] font-mono font-black text-cyan-400 tracking-widest mt-1.5 uppercase">---</span>
                     <p id="panel-game-version" class="text-[12px] font-medium text-gray-300 uppercase tracking-widest mt-1">---</p>
                     <p id="panel-game-install-status" class="text-[9px] font-bold text-amber-200 mt-1">Estado no confirmado por FTP</p>
+                    <p id="panel-game-storage-location" class="text-[9px] text-cyan-200/80 mt-1">Ubicación sin verificar</p>
                 </div>
             </div>
 
+            <div id="library-installed-tools">
             <div class="w-full flex flex-col gap-2 mt-1">
                 <span class="text-[9px] font-black tracking-widest text-gray-500 uppercase">Ubicado en categoría:</span>
                 <button onclick="abrirSelectorCategoriasCustom()" class="w-full h-12 bg-[#0b121c]/80 border border-white/10 rounded-xl flex items-center justify-between px-4 focus-within:border-cyan-500/30 transition-colors shadow-lg active:scale-[0.98]">
@@ -413,13 +415,14 @@
                     <button onclick="abrirHerramientaJuego('savegames', juegoSeleccionadoLocal)" class="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-2 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-floppy-disk mr-1"></i>Partidas</button>
                     <button onclick="abrirHerramientaJuego('capturas', juegoSeleccionadoLocal)" class="rounded-xl border border-pink-400/20 bg-pink-500/10 p-2 text-[9px] font-bold text-pink-100"><i class="fa-solid fa-images mr-1"></i>Capturas</button>
                 </div>
-                <div id="library-residual-storage" class="hidden mt-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-3">
+                <p class="mt-2 text-[8px] leading-relaxed text-gray-500">Los módulos consultan el contenido de este CUSA por FTP y muestran un estado vacío si no hay coincidencias.</p>
+            </div>
+            </div>
+                <div id="library-residual-storage" class="hidden rounded-2xl border border-amber-400/20 bg-amber-400/5 p-3">
                     <button type="button" onclick="bibliotecaAnalizarDatosResiduales()" class="w-full rounded-xl border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-left text-[10px] font-bold text-amber-100"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Ver datos residuales y espacio</button>
                     <p class="mt-2 text-[8px] leading-relaxed text-gray-400">Consulta carpetas asociadas a este CUSA y partidas por perfil. Es una lectura FTP; no elimina ni modifica archivos.</p>
                     <div id="library-residual-storage-results" class="mt-2 max-h-48 space-y-1 overflow-y-auto text-[9px] text-gray-300" aria-live="polite"></div>
                 </div>
-                <p class="mt-2 text-[8px] leading-relaxed text-gray-500">Cada módulo consulta el contenido de este CUSA por FTP y muestra un estado vacío si no hay coincidencias.</p>
-            </div>
         </div>
     </div>
 </div>

@@ -1759,3 +1759,9 @@ PS4 Manager Tools AJ 4.5.21 — documentación y distribución PC (2026-11-24)
 - El paquete PC extrae una carpeta contenedora con únicamente el BAT y la carpeta PS4-Manager-Tools-AJ-PC. El BAT apunta al PHP portable interno y muestra la versión 4.5.21.
 - El empaquetador y su verificador exigen la estructura de dos elementos, un solo BAT y un directorio user limpio.
 - Se documentó que el yt_adblock.prx aportado mide 16 bytes y contiene una respuesta de error HTTP. El ELF incluido tiene cabecera válida, pero no se ejecutó ni se declara funcional.
+
+### 4.5.22 — Cambio de app con continuación automática (2026-11-24)
+- Tras confirmar el cierre de la app activa, Control de Apps espera los 40 segundos y continúa por sí solo. Durante la espera se puede cancelar.
+- Antes de lanzar, vuelve a comprobar que la consola esté en el menú y que el perfil verificado siga seleccionado. Ante una lectura fallida, un título aún activo o cooldown restante, no lanza y permite reintentar la verificación.
+- No se cambia el daemon: el flujo utiliza el helper 1.2.1 y su cooldown persistente de 40 segundos. No se envía ningún payload para este cambio de interfaz.
+- Prueba en PS4 con el helper 1.2.1 y perfil activo verificado: PS4 Temperature y PS4-Xplorer abrieron, permanecieron cerca de un minuto y cerraron con estado confirmado; finalizó en el menú sin app activa. Itemzflow recibió aceptación pero no llegó a primer plano y no se repitió.

@@ -227,8 +227,13 @@ if ($action === 'scan') {
     // los montajes de almacenamiento externo. Si FTP no deja leer ninguno,
     // el cliente debe mostrar "Sin verificar" en vez de marcar todo como instalado.
     $ids_instalados = [];
+    $ubicaciones_instalacion = [];
     $lectura_app_interna = false;
-    $ids_instalados += lb_read_appmeta_directory($host_ip, $port, '/user/app', $lectura_app_interna);
+    $ids_app_internas = lb_read_appmeta_directory($host_ip, $port, '/user/app', $lectura_app_interna);
+    $ids_instalados += $ids_app_internas;
+    foreach (array_keys($ids_app_internas) as $id_instalado) {
+        $ubicaciones_instalacion[$id_instalado] = ['internal'];
+    }
     $lectura_montajes = false;
     $montajes = lb_read_directory_names($host_ip, $port, '/mnt', $lectura_montajes);
     $lectura_apps_externas = $lectura_montajes;
@@ -240,7 +245,14 @@ if ($action === 'scan') {
         foreach ($montajes_externos_activos as $montaje) {
             $directorio_leido = false;
             $base_path = '/mnt/' . $montaje . '/user/app';
-            $ids_instalados += lb_read_appmeta_directory($host_ip, $port, $base_path, $directorio_leido);
+            $ids_app_externas = lb_read_appmeta_directory($host_ip, $port, $base_path, $directorio_leido);
+            $ids_instalados += $ids_app_externas;
+            foreach (array_keys($ids_app_externas) as $id_instalado) {
+                $ubicaciones_instalacion[$id_instalado] ??= [];
+                if (!in_array('extended', $ubicaciones_instalacion[$id_instalado], true)) {
+                    $ubicaciones_instalacion[$id_instalado][] = 'extended';
+                }
+            }
             if (!$directorio_leido) $lectura_apps_externas = false;
         }
     }
@@ -250,6 +262,7 @@ if ($action === 'scan') {
         'status' => 'success',
         'games' => $cusa_detectados,
         'installed_ids' => array_fill_keys(array_keys($ids_instalados), true),
+        'installed_locations' => $ubicaciones_instalacion,
         'installed_verified' => $lectura_apps_completada
     ]);
     exit;

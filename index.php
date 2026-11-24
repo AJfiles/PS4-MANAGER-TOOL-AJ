@@ -328,7 +328,7 @@ header('X-Author: ' . $firma);
             </h1>
             <div class="flex items-center justify-center gap-3 mt-2.5 opacity-80">
                 <span class="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-500/80"></span>
-                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.21 • AJ</span>
+                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.22 • AJ</span>
                 <span class="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-500/80"></span>
             </div>
         </div>
@@ -365,6 +365,21 @@ header('X-Author: ' . $firma);
                 </div>
             </div>
         </div>
+
+        <section id="launcher-preload" class="mx-auto mb-4 w-full max-w-4xl shrink-0 rounded-2xl border border-cyan-400/15 bg-cyan-500/[.035] p-3" aria-label="Precargar datos de la consola">
+            <div class="flex items-center gap-3">
+                <div class="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-cyan-300/15 bg-cyan-400/10 text-cyan-200"><i class="fa-solid fa-bolt"></i></div>
+                <div class="min-w-0 flex-1">
+                    <b class="block text-[9px] font-black uppercase tracking-[.16em] text-cyan-100">Preparar datos PS4</b>
+                    <span id="launcher-preload-status" class="block truncate text-[8px] text-gray-400" aria-live="polite">Carga manual de Biblioteca, partidas, capturas, parches y almacenamiento.</span>
+                </div>
+                <button id="launcher-preload-button" type="button" onclick="ghmIniciarPrecarga()" class="shrink-0 rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-[8px] font-black uppercase tracking-wide text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-50"><i class="fa-solid fa-cloud-arrow-down mr-1"></i>Precargar</button>
+            </div>
+            <div id="launcher-preload-progress-wrap" class="mt-2 hidden" role="progressbar" aria-label="Progreso de precarga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="h-1.5 overflow-hidden rounded-full bg-white/10"><div id="launcher-preload-progress" class="h-full w-0 rounded-full bg-gradient-to-r from-cyan-300 via-violet-400 to-emerald-300 transition-[width] duration-300"></div></div>
+                <div class="mt-1 flex justify-between text-[7px] font-mono text-gray-500"><span id="launcher-preload-detail">Esperando…</span><span id="launcher-preload-percent">0%</span></div>
+            </div>
+        </section>
 
         <div id="launcher-grid" class="grid grid-cols-2 gap-5 max-w-sm mx-auto w-full my-auto z-10 shrink-0 px-1">
             <p class="launcher-section-label">Biblioteca y datos</p>
@@ -481,6 +496,7 @@ header('X-Author: ' . $firma);
     <script src="<?= app_asset_url('js/capturas.js') ?>"></script>
     <script src="<?= app_asset_url('js/parches_juego.js') ?>"></script>
     <script src="<?= app_asset_url('js/control_apps.js') ?>"></script>
+    <script src="<?= app_asset_url('js/preload.js') ?>"></script>
     <script src="<?= app_asset_url('js/i18n.js') ?>"></script>
 
     <script>

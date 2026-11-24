@@ -117,10 +117,6 @@ async function cargarRutaFtp(rutaDestino, esNavegacionAtras = false) {
             }
             // ======== FIN MEJORA ========
 
-            if (!esNavegacionAtras && exploradorRutaActual !== '/') {
-                history.pushState({ page: 'ftp_folder', ruta: exploradorRutaActual }, "Carpeta FTP", "");
-            }
-
             ftpCurrentFolders = data.data.carpetas || []; ftpCurrentFiles = data.data.archivos || [];
             ftpCurrentItems = [...ftpCurrentFolders, ...ftpCurrentFiles];
             ftpCurrentFolders.forEach(folder => ftpTreeVisited.add(normalizePath(exploradorRutaActual + '/' + folder.name)));
@@ -254,7 +250,9 @@ function entrarCarpeta(nombreCarpeta) { cargarRutaFtp(exploradorRutaActual + '/'
 
 function navegarArribaFtp(esNavegacionAtras = false) {
     if (exploradorRutaActual === '/' || exploradorRutaActual === '') return;
-    history.back();
+    const segments = exploradorRutaActual.split('/').filter(Boolean);
+    segments.pop();
+    cargarRutaFtp(segments.length ? `/${segments.join('/')}/` : '/', true);
 }
 
 function abrirContextMenu(item, isDir, iconCode) {
@@ -469,6 +467,19 @@ function descargarArchivoFtp(path) {
     return new Promise((resolve, reject) => {
         const ip = localStorage.getItem('sebas_ip_final_libre'); if (!ip) { reject(new Error('Sin IP')); return; }
         const downloadUrl = `api/explorador_api.php?action=download_file&host_ip=${encodeURIComponent(ip)}&path=${encodeURIComponent(path)}`;
+        const suggestedName = String(path).split('/').filter(Boolean).pop() || 'archivo';
+        if (typeof window.showSaveFilePicker === 'function'
+            && !(typeof ghmNativeAndroidApk !== 'undefined' && ghmNativeAndroidApk)) {
+            (async () => {
+                const handle = await window.showSaveFilePicker({ suggestedName });
+                const writable = await handle.createWritable();
+                const response = await fetch(downloadUrl, { cache: 'no-store' });
+                if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}: no se pudo leer el archivo FTP.`);
+                await response.body.pipeTo(writable);
+                resolve();
+            })().catch(reject);
+            return;
+        }
         // En la APK, entregar el archivo al manejador de descargas permite que
         // el destino SAF elegido en Ajustes lo guarde sin copiarlo antes a otra
         // carpeta temporal del teléfono. Web/Termux/PC conservan el iframe.
@@ -476,7 +487,7 @@ function descargarArchivoFtp(path) {
             && window.WtaDirectory && window.WtaDirectory.info?.().granted) {
             const frame = document.createElement('a');
             frame.href = downloadUrl;
-            frame.download = String(path).split('/').filter(Boolean).pop() || 'archivo';
+            frame.download = suggestedName;
             frame.style.display = 'none';
             document.body.appendChild(frame);
             frame.click();

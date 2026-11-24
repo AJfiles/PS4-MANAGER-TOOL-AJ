@@ -123,6 +123,16 @@
             </div>
 
             <!-- Barra de búsqueda local -->
+            <div id="ca-library-launch-panel" class="hidden rounded-xl border border-amber-400/20 bg-amber-400/5 p-3">
+                <p class="text-[8px] font-black uppercase tracking-widest text-amber-200">Apertura solicitada desde Biblioteca</p>
+                <p id="ca-library-launch-title" class="mt-1 text-[11px] font-bold text-white">Selecciona un juego desde Biblioteca.</p>
+                <p id="ca-library-launch-status" class="mt-1 text-[8px] text-gray-400">Primero verifica servicio, instalación y perfil. La verificación no lanza ni cierra apps.</p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                    <button id="ca-library-launch-verify" type="button" onclick="controlAppsVerificarLanzamiento()" class="rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-[8px] font-black uppercase tracking-wide text-cyan-100"><i class="fa-solid fa-shield-check mr-1"></i>Verificar lanzamiento</button>
+                    <button id="ca-library-launch-button" type="button" onclick="controlAppsLanzarPendiente()" disabled class="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-[8px] font-black uppercase tracking-wide text-emerald-100 disabled:opacity-40"><i class="fa-solid fa-play mr-1"></i>Lanzar app</button>
+                </div>
+            </div>
+
             <div class="flex flex-wrap items-center gap-2 rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-3 py-2">
                 <label for="ca-launch-user" class="text-[8.5px] font-black uppercase tracking-wider text-cyan-200">Abrir como perfil</label>
                 <select id="ca-launch-user" class="min-w-48 flex-1 rounded-lg border border-white/10 bg-[#080d18] px-3 py-2 text-[10px] font-bold text-white outline-none focus:border-cyan-400/50">

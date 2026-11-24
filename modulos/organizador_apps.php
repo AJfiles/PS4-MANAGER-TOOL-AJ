@@ -21,4 +21,86 @@
   </div>
 </div>
 
+<script>
+(() => {
+    if (window.oaBulkToolsBound) return;
+    window.oaBulkToolsBound = true;
+    window.oaBulkSelectedApps = new Set();
+    const bind = () => {
+        const root = document.getElementById('organizador-folder-list');
+        const loose = document.getElementById('organizador-unfoldered');
+        const host = root?.parentElement;
+        if (!root || !loose || !host) return;
+        let toolbar = document.getElementById('organizador-bulk-toolbar');
+        if (!toolbar) {
+            toolbar = document.createElement('div');
+            toolbar.id = 'organizador-bulk-toolbar';
+            toolbar.className = 'hidden mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-2';
+            toolbar.innerHTML = '<span id="organizador-bulk-count" class="text-[8px] font-bold text-cyan-100">0 seleccionadas</span><select id="organizador-bulk-destination" aria-label="Carpeta de destino para las apps seleccionadas" class="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#070b12] px-2 py-2 text-[8px] text-gray-200"></select><button id="organizador-bulk-apply" type="button" class="rounded-lg bg-cyan-500/15 px-3 py-2 text-[8px] font-bold text-cyan-100">Mover seleccionadas</button>';
+            host.insertBefore(toolbar, root);
+            toolbar.querySelector('#organizador-bulk-apply').addEventListener('click', () => {
+                const ids = [...window.oaBulkSelectedApps];
+                const destination = toolbar.querySelector('#organizador-bulk-destination')?.value || '';
+                if (!ids.length || typeof oaAssignments === 'undefined') return;
+                ids.forEach(id => { oaAssignments[id] = destination; });
+                oaExpandedFolder = destination || '__loose';
+                window.oaBulkSelectedApps.clear();
+                oaRenderFolders();
+                oaUpdateApply();
+            });
+        }
+        const destination = toolbar.querySelector('#organizador-bulk-destination');
+        if (destination && typeof oaProfiles !== 'undefined') {
+            const profile = oaProfiles[oaActiveProfile] || { folders: [] };
+            const current = destination.value;
+            destination.innerHTML = '<option value="">Sin carpeta</option>' + (profile.folders || []).map(folder => `<option value="${String(folder.titleId).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${String(folder.titleName || folder.titleId).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</option>`).join('');
+            if ([...destination.options].some(option => option.value === current)) destination.value = current;
+        }
+        document.querySelectorAll('#organizador-folder-list [data-app-id], #organizador-unfoldered [data-app-id]').forEach(select => {
+            const row = select.closest('div.flex.items-center.gap-2.rounded-xl');
+            const id = String(select.dataset.appId || '');
+            if (!row || !id || row.querySelector('[data-oa-bulk]')) return;
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.oaBulk = id;
+            checkbox.checked = window.oaBulkSelectedApps.has(id);
+            checkbox.className = 'h-4 w-4 shrink-0 accent-cyan-400';
+            checkbox.setAttribute('aria-label', `Seleccionar ${id} para movimiento en grupo`);
+            checkbox.addEventListener('change', () => {
+                checkbox.checked ? window.oaBulkSelectedApps.add(id) : window.oaBulkSelectedApps.delete(id);
+                updateToolbar();
+            });
+            row.insertBefore(checkbox, row.firstChild);
+        });
+        updateToolbar();
+    };
+    const updateToolbar = () => {
+        const toolbar = document.getElementById('organizador-bulk-toolbar');
+        const count = document.getElementById('organizador-bulk-count');
+        const total = window.oaBulkSelectedApps?.size || 0;
+        if (toolbar) toolbar.classList.toggle('hidden', total === 0);
+        if (count) count.textContent = `${total} seleccionada(s)`;
+    };
+    document.addEventListener('change', event => {
+        if (event.target?.matches?.('#organizador-unfoldered [data-app-id]')) oaExpandedFolder = '__loose';
+        if (event.target?.id === 'organizador-profile') {
+            window.oaBulkSelectedApps.clear();
+            updateToolbar();
+        }
+    }, true);
+    document.addEventListener('toggle', event => {
+        if (!event.target?.matches?.('#organizador-unfoldered details')) return;
+        oaExpandedFolder = event.target.open ? '__loose' : '';
+    }, true);
+    const start = () => {
+        bind();
+        const root = document.getElementById('organizador-folder-list');
+        const loose = document.getElementById('organizador-unfoldered');
+        if (root && loose) new MutationObserver(bind).observe(root.parentElement, { childList: true, subtree: true });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+    else start();
+})();
+</script>
+
 

@@ -220,7 +220,7 @@
             </div>
             <div class="flex flex-col items-center py-2">
                 <span class="text-[11px] font-mono font-bold text-gray-100 tracking-widest">PS4 Manager Tools</span>
-                <span class="text-[10px] font-mono text-cyan-100 tracking-wider">Versión 4.5.21 • Mantenido por AJ</span>
+                <span class="text-[10px] font-mono text-cyan-100 tracking-wider">Versión 4.5.22 • Mantenido por AJ</span>
                 <span class="text-[9px] font-mono text-gray-300 mt-1">Basado en el trabajo original de SeBaS</span>
                 <div class="flex gap-3 mt-2">
                     <span class="text-[9px] font-mono text-cyan-200">❤️ Comunidad</span>

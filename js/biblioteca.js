@@ -110,6 +110,16 @@ async function iniciarCargaInmediataYEscaneoSilencioso() {
     ejecutarSincronizacionFantasmasFondo();
 }
 
+window.bibliotecaPrecargar = async function (onProgress) {
+    await levantarCacheLocalBiblioteca();
+    if (typeof onProgress === 'function') window.__ghmPreloadLibraryProgress = onProgress;
+    try {
+        await ejecutarSincronizacionFantasmasFondo();
+    } finally {
+        if (typeof onProgress === 'function') window.__ghmPreloadLibraryProgress = null;
+    }
+};
+
 async function levantarCacheLocalBiblioteca() {
     try {
         let response = await fetch('api/library_biblioteca.php?action=get_cached_games');
@@ -137,7 +147,8 @@ async function ejecutarSincronizacionFantasmasFondo() {
     const ip = localStorage.getItem('sebas_ip_final_libre') || '';
     const port = localStorage.getItem('sebas_port_libre') || '2121';
     const connectionKey = `${ip}:${port}`;
-    if (!ip || bibliotecaAutoScanEnCurso || (bibliotecaAutoScanCompletado > 0 && localStorage.getItem('ghm_biblioteca_last_connection') === connectionKey)) return;
+    const scanAge = Date.now() - bibliotecaAutoScanCompletado;
+    if (!ip || bibliotecaAutoScanEnCurso || (bibliotecaAutoScanCompletado > 0 && scanAge < 60000 && localStorage.getItem('ghm_biblioteca_last_connection') === connectionKey)) return;
     bibliotecaAutoScanEnCurso = true;
     const estadoSync = document.getElementById('library-sync-status');
     if (estadoSync) estadoSync.innerText = 'Conectando con PS4…';
@@ -163,6 +174,7 @@ async function ejecutarSincronizacionFantasmasFondo() {
 
         const mapJuegosDetectados = jsonScan.games;
         const idsInstalados = jsonScan.installed_ids || {};
+        const ubicacionesInstalacion = jsonScan.installed_locations || {};
         const estadoInstalacion = (id) => id === 'APOLO0004' ? true :
             (jsonScan.installed_verified ? idsInstalados[id] === true : null);
         Object.keys(idsInstalados).forEach(id => {
@@ -188,11 +200,13 @@ async function ejecutarSincronizacionFantasmasFondo() {
         if (colaTrabajoCUSAs.length > 0) {
             listadoJuegos.forEach(localG => {
                 localG.installed = estadoInstalacion(localG.id);
+                localG.storage_locations = ubicacionesInstalacion[localG.id] || [];
             });
             colaTrabajoCUSAs.forEach(cusa => {
                 const existente = listadoJuegos.find(game => game.id === cusa);
                 if (existente) {
                     existente.installed = estadoInstalacion(cusa);
+                    existente.storage_locations = ubicacionesInstalacion[cusa] || [];
                     return;
                 }
                 listadoJuegos.push({
@@ -201,6 +215,7 @@ async function ejecutarSincronizacionFantasmasFondo() {
                     tipo: /^(?:LAPY|NPXS)/i.test(cusa) ? 'APPS' : 'JUEGOS',
                     version: '',
                     installed: estadoInstalacion(cusa),
+                    storage_locations: ubicacionesInstalacion[cusa] || [],
                     img: '',
                     cover3d: ''
                 });
@@ -228,12 +243,17 @@ async function ejecutarSincronizacionFantasmasFondo() {
 
             let respuestasLote = await Promise.all(promesasHilos);
             procesadosEscaneo += loteActual.length;
+            if (typeof window.__ghmPreloadLibraryProgress === 'function') {
+                const ratio = totalEscaneo ? Math.min(1, procesadosEscaneo / totalEscaneo) : 1;
+                window.__ghmPreloadLibraryProgress(ratio, `Biblioteca: ${procesadosEscaneo}/${totalEscaneo} títulos`);
+            }
 
             respuestasLote.forEach(res => {
                 if (res && res.status === 'success' && res.game) {
                     const game = res.game;
                     game.cover3d = bibliotecaImagenSegura(game.cover3d);
                     game.installed = estadoInstalacion(game.id);
+                    game.storage_locations = ubicacionesInstalacion[game.id] || [];
                     const idx = listadoJuegos.findIndex(item => item.id === game.id);
                     if (idx === -1) {
                         listadoJuegos.push(game);
@@ -315,6 +335,7 @@ async function forzarSincronizacionManual() {
 
         let mapJuegos = jsonScan.games;
         const idsInstalados = jsonScan.installed_ids || {};
+        const ubicacionesInstalacion = jsonScan.installed_locations || {};
         const estadoInstalacion = (id) => id === 'APOLO0004' ? true :
             (jsonScan.installed_verified ? idsInstalados[id] === true : null);
         Object.keys(idsInstalados).forEach(id => {
@@ -324,7 +345,10 @@ async function forzarSincronizacionManual() {
         const total = colaCUSA.length;
 
         if (total === 0) {
-            listadoJuegos.forEach(game => { game.installed = estadoInstalacion(game.id); });
+            listadoJuegos.forEach(game => {
+                game.installed = estadoInstalacion(game.id);
+                game.storage_locations = ubicacionesInstalacion[game.id] || [];
+            });
             if (bytesLabel) bytesLabel.innerText = 'La consola respondió, pero appmeta no contiene títulos. Se conserva la lista local como no instalada.';
             recompilarTodo();
             setTimeout(closeSincronizacionModal, 1800);
@@ -335,11 +359,13 @@ async function forzarSincronizacionManual() {
         if (colaCUSA.length > 0) {
             listadoJuegos.forEach(lg => {
                 lg.installed = estadoInstalacion(lg.id);
+                lg.storage_locations = ubicacionesInstalacion[lg.id] || [];
             });
             colaCUSA.forEach(cusa => {
                 const existente = listadoJuegos.find(game => game.id === cusa);
                 if (existente) {
                     existente.installed = estadoInstalacion(cusa);
+                    existente.storage_locations = ubicacionesInstalacion[cusa] || [];
                     return;
                 }
                 listadoJuegos.push({
@@ -348,6 +374,7 @@ async function forzarSincronizacionManual() {
                     tipo: /^(?:LAPY|NPXS)/i.test(cusa) ? 'APPS' : 'JUEGOS',
                     version: '',
                     installed: estadoInstalacion(cusa),
+                    storage_locations: ubicacionesInstalacion[cusa] || [],
                     img: '',
                     cover3d: ''
                 });
@@ -388,9 +415,10 @@ async function forzarSincronizacionManual() {
                     const game = res.game;
                     game.cover3d = bibliotecaImagenSegura(game.cover3d);
                     game.installed = estadoInstalacion(game.id);
+                    game.storage_locations = ubicacionesInstalacion[game.id] || [];
                     const idx = listadoJuegos.findIndex(item => item.id === game.id);
                     if (idx === -1) listadoJuegos.push(game);
-                    else Object.assign(listadoJuegos[idx], game, { installed: estadoInstalacion(game.id) });
+                    else Object.assign(listadoJuegos[idx], game, { installed: estadoInstalacion(game.id), storage_locations: ubicacionesInstalacion[game.id] || [] });
                 }
             });
         }
@@ -522,9 +550,9 @@ function aplicarOrdenamientoInterno() {
 function recompilarTodo() {
     aplicarOrdenamientoInterno();
     
-    // The Library view is an installed-title launcher. Cached appmeta may keep
-    // uninstalled titles, so never render those as launchable cards.
-    const visibles = obtenerVisiblesFiltrados().filter(game => game.installed === true);
+    // Mostrar los tres estados: solo los títulos confirmados como instalados
+    // reciben acciones de lanzamiento; los residuales conservan su análisis.
+    const visibles = obtenerVisiblesFiltrados();
     const badgeText = document.getElementById('badge-total-txt');
     if (badgeText) {
         const instalados = visibles.filter(game => game.installed === true).length;
@@ -1089,6 +1117,15 @@ function abrirOpcionesJuegoDirecto(id) {
     const avatarArt = document.getElementById('panel-avatar-art');
     if (avatarArt) avatarArt.style.backgroundImage = cover ? `url("${cover.replace(/["\\]/g, '\\$&')}")` : '';
     const status = document.getElementById('panel-game-install-status');
+    const location = document.getElementById('panel-game-storage-location');
+    const installedTools = document.getElementById('library-installed-tools');
+    if (location) {
+        const places = Array.isArray(juegoSeleccionadoLocal.storage_locations) ? juegoSeleccionadoLocal.storage_locations : [];
+        location.textContent = places.length
+            ? places.map(place => place === 'extended' ? 'Almacenamiento ampliado' : 'Almacenamiento interno').join(' + ')
+            : (juegoSeleccionadoLocal.installed === false ? 'Sin instalación activa' : 'Ubicación sin verificar');
+    }
+    if (installedTools) installedTools.classList.toggle('hidden', juegoSeleccionadoLocal.installed !== true);
     if (status) {
         status.textContent = juegoSeleccionadoLocal.installed === true ? 'Instalado en PS4' : juegoSeleccionadoLocal.installed === false ? 'No instalado en PS4' : 'Estado no confirmado por FTP';
         status.className = `text-[9px] font-bold ${juegoSeleccionadoLocal.installed === true ? 'text-emerald-300' : juegoSeleccionadoLocal.installed === false ? 'text-rose-300' : 'text-amber-200'}`;

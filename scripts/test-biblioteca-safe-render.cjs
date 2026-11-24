@@ -5,6 +5,10 @@ const assert = require('node:assert/strict');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'biblioteca.js'), 'utf8');
 const styles = fs.readFileSync(path.join(__dirname, '..', 'modulos', 'biblioteca.php'), 'utf8');
+assert.match(source, /const visibles = obtenerVisiblesFiltrados\(\);/, 'La Biblioteca debe conservar instalados, no instalados y estados sin verificar para agruparlos en pantalla.');
+assert.doesNotMatch(source, /obtenerVisiblesFiltrados\(\)\.filter\(game => game\.installed === true\)/, 'No se debe filtrar silenciosamente el estado no instalado.');
+assert.match(styles, /id="library-installed-tools"/);
+assert.match(styles, /id="library-residual-storage"/);
 const helperStart = source.indexOf('function bibliotecaEscaparHtml(');
 const helperEnd = source.indexOf('let categoriaAEliminar = null;', helperStart);
 assert(helperStart >= 0 && helperEnd > helperStart, 'No se encontraron los helpers de seguridad de Biblioteca.');

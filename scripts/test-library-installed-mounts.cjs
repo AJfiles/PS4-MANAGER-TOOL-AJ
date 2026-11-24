@@ -8,4 +8,7 @@ assert.match(api, /static fn\(string \$montaje\): bool => preg_match\('\/\^ext\[
 assert.match(api, /foreach\s*\(\$montajes_externos_activos\s+as\s+\$montaje\)/);
 assert.doesNotMatch(api, /foreach\s*\(\$montajes\s+as\s+\$montaje\)/);
 assert.match(api, /'installed_verified'\s*=>\s*\$lectura_apps_completada/);
+assert.match(api, /'installed_locations'\s*=>\s*\$ubicaciones_instalacion/);
+assert.match(api, /\$ubicaciones_instalacion\[\$id_instalado\]\s*=\s*\['internal'\]/);
+assert.match(api, /in_array\('extended',\s*\$ubicaciones_instalacion\[\$id_instalado\],\s*true\)/);
 console.log('LIBRARY_ONLY_ACTIVE_EXTERNAL_MOUNTS_AFFECT_VERIFICATION_OK');

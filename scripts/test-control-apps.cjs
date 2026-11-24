@@ -8,6 +8,12 @@ const assert = require('node:assert/strict');
 
 const root = path.resolve(__dirname, '..');
 const controllerSource = fs.readFileSync(path.join(root, 'js', 'control_apps.js'), 'utf8');
+const libraryFlowStart = controllerSource.indexOf('window.abrirControlAppsParaJuego = function (juego) {');
+const libraryFlow = libraryFlowStart >= 0 ? controllerSource.slice(libraryFlowStart) : '';
+assert.match(controllerSource, /window\.controlAppsVerificarLanzamiento\s*=\s*async function/);
+assert.match(controllerSource, /window\.controlAppsLanzarPendiente\s*=\s*function/);
+assert.doesNotMatch(libraryFlow, /window\.controlAppsAbrirApp\(/, 'Abrir desde Biblioteca no debe lanzar automáticamente al abrir la ficha ni al elegir perfil.');
+assert.match(libraryFlow, /verified:\s*false/);
 
 // Fixture DOM simulado
 const elements = new Map();

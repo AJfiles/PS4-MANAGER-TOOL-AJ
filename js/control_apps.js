@@ -34,6 +34,7 @@ function caShowSwitchPrompt(activeApp, targetApp, userId) {
         },
         userId: String(userId || ''),
         closedConfirmed: false,
+        continuationStarted: false,
         readyAt: 0
     };
     document.getElementById('ca-switch-heading').textContent = 'Cambiar aplicación';
@@ -87,9 +88,15 @@ function caActualizarCuentaCambio() {
         button.disabled = left > 0 || caIsActionRunning;
         button.innerHTML = left
             ? `<i class="fa-solid fa-hourglass-half mr-1"></i> Esperar ${left} s`
-            : '<i class="fa-solid fa-play mr-1"></i> Continuar y abrir';
+            : '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Comprobando y abriendo';
     }
     if (!left && caSwitchCountdownTimer) { clearInterval(caSwitchCountdownTimer); caSwitchCountdownTimer = 0; }
+    if (!left && !caIsActionRunning && caPendingSwitch?.closedConfirmed && !caPendingSwitch.continuationStarted) {
+        // The user explicitly confirmed the close. Resume only after the full
+        // 40-second gate; continuation re-reads foreground state and profile.
+        caPendingSwitch.continuationStarted = true;
+        window.controlAppsContinuarCambioApp();
+    }
 }
 
 function caSetCooldown(seconds) {
@@ -105,6 +112,8 @@ function caSetCooldown(seconds) {
         }
         const profileId = document.getElementById('ca-launch-user')?.value || '';
         document.querySelectorAll('[data-ca-launch-id]').forEach(button => { button.disabled = left > 0 || caHelperRequiresUpdate || caIsActionRunning || !caVerifiedLaunchUsers.has(profileId); });
+        const libraryLaunch = document.getElementById('ca-library-launch-button');
+        if (libraryLaunch) libraryLaunch.disabled = left > 0 || caIsActionRunning || !caPendingLibraryLaunch?.verified || !caVerifiedLaunchUsers.has(profileId);
         const close = document.getElementById('ca-btn-cerrar-app');
         if (close) close.disabled = left > 0 || caHelperRequiresUpdate || caIsActionRunning || !caActiveApp?.title_id;
         if (!left && caCooldownTimer) { clearInterval(caCooldownTimer); caCooldownTimer = 0; }
@@ -292,17 +301,13 @@ function controlAppsActualizarDisponibilidadLanzamiento() {
     document.querySelectorAll('[data-ca-launch-id]').forEach(button => { button.disabled = !enabled; });
     const closeButton = document.getElementById('ca-btn-cerrar-app');
     if (closeButton) closeButton.disabled = caHelperRequiresUpdate || caIsActionRunning || Date.now() < caCooldownUntil || !caActiveApp?.title_id;
+    const libraryLaunch = document.getElementById('ca-library-launch-button');
+    if (libraryLaunch) libraryLaunch.disabled = caHelperRequiresUpdate || caIsActionRunning || Date.now() < caCooldownUntil || !caPendingLibraryLaunch?.verified || !caVerifiedLaunchUsers.has(selected);
 }
 
 document.addEventListener('change', event => {
     if (event.target?.id === 'ca-launch-user') {
         controlAppsActualizarDisponibilidadLanzamiento();
-        const selected = String(event.target.value || '');
-        if (caPendingLibraryLaunch && caVerifiedLaunchUsers.has(selected)) {
-            const target = caPendingLibraryLaunch;
-            caPendingLibraryLaunch = null;
-            window.controlAppsAbrirApp(target.title_id, target.name);
-        }
     }
 });
 
@@ -793,6 +798,12 @@ window.controlAppsContinuarCambioApp = async function () {
         if (caActiveApp?.title_id) {
             throw new Error(`La PS4 aún muestra ${caActiveApp.name} (${caActiveApp.title_id}) en primer plano. No se abrirá otra app; comprueba la consola y vuelve a actualizar el estado.`);
         }
+        if (Date.now() < caCooldownUntil) {
+            caPendingSwitch.readyAt = Math.max(caPendingSwitch.readyAt, caCooldownUntil);
+            caPendingSwitch.continuationStarted = false;
+            if (!caSwitchCountdownTimer) caSwitchCountdownTimer = setInterval(caActualizarCuentaCambio, 1000);
+            return;
+        }
         const target = { ...caPendingSwitch.target };
         caPendingSwitch = null;
         const modal = document.getElementById('modal-cambio-app-protegido');
@@ -804,6 +815,8 @@ window.controlAppsContinuarCambioApp = async function () {
         window.ps5Notification?.('Control de Apps', message, 'fa-triangle-exclamation');
         const wait = document.getElementById('ca-switch-wait');
         if (wait) { wait.classList.remove('hidden'); wait.textContent = message; }
+        const retry = document.getElementById('ca-switch-confirm-button');
+        if (retry) { retry.disabled = false; retry.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Reintentar verificacion'; }
     } finally {
         caIsActionRunning = false;
         controlAppsActualizarDisponibilidadLanzamiento();
@@ -1180,21 +1193,92 @@ window.controlAppsLimpiarRegistro = function () {
 // ====================================================================
 // 6. INTEGRACIÓN CON BIBLIOTECA
 // ====================================================================
+window.controlAppsVerificarLanzamiento = async function () {
+    const target = caPendingLibraryLaunch;
+    const { ip, port } = caGetConnection();
+    const status = document.getElementById('ca-library-launch-status');
+    const verify = document.getElementById('ca-library-launch-verify');
+    const launch = document.getElementById('ca-library-launch-button');
+    if (!target || !ip || caIsActionRunning) return;
+    target.verified = false;
+    if (launch) launch.disabled = true;
+    if (verify) verify.disabled = true;
+    if (status) status.textContent = 'Comprobando servicio 9091 e instalación por FTP...';
+    try {
+        const post = async (action, extra = {}) => {
+            const form = new FormData();
+            form.append('action', action);
+            form.append('host_ip', ip);
+            form.append('port', String(port));
+            form.append('request_id', `ca_preflight_${Date.now()}`);
+            Object.entries(extra).forEach(([key, value]) => form.append(key, String(value)));
+            const response = await fetch('api/app_control_api.php', { method: 'POST', body: form, cache: 'no-store' });
+            const raw = await response.text();
+            let data;
+            try { data = JSON.parse(raw); } catch (_) { throw new Error(caInvalidResponseMessage(response, raw)); }
+            if (!response.ok || data.status !== 'success') throw new Error(data.message || `HTTP ${response.status}`);
+            return data;
+        };
+        const service = await post('service_status');
+        if (!service.service_active) throw new Error('El servicio 9091 no responde. Pulsa Iniciar Servicio y vuelve a verificar.');
+        if (service.requires_helper_update) throw new Error(`El helper ${service.service_version || 'desconocido'} es antiguo. Reinicia la PS4 y activa la versión 1.2.1.`);
+        const inventory = await post('installed_titles', { force: 1 });
+        const installed = inventory.installed_verified === true && Array.isArray(inventory.titles)
+            && inventory.titles.some(item => String(item.id).toUpperCase() === target.title_id);
+        if (!installed) throw new Error('La consola no confirmó este título como instalado. No se habilitó el lanzamiento.');
+        await controlAppsCargarPerfiles();
+        if (!caPendingLibraryLaunch || caPendingLibraryLaunch.title_id !== target.title_id) return;
+        target.verified = true;
+        const selected = document.getElementById('ca-launch-user')?.value || '';
+        if (status) status.textContent = caVerifiedLaunchUsers.has(selected)
+            ? `Verificado: servicio activo, título instalado y perfil con sesión confirmada (${selected}).`
+            : 'Servicio y título verificados. Selecciona un perfil con sesión confirmada y luego pulsa Lanzar app.';
+        if (launch) launch.disabled = !caVerifiedLaunchUsers.has(selected) || Date.now() < caCooldownUntil;
+        caLogAction('verificación de lanzamiento', `${target.name} (${target.title_id})`, 'ok', 'Servicio, título instalado y perfiles consultados; no se lanzó ninguna app.');
+    } catch (error) {
+        if (status) status.textContent = error?.message || 'No se pudo verificar el lanzamiento.';
+        caLogAction('verificación de lanzamiento', `${target.name} (${target.title_id})`, 'error', error?.message || 'Verificación fallida.');
+    } finally {
+        if (verify) verify.disabled = false;
+        controlAppsActualizarDisponibilidadLanzamiento();
+    }
+};
+
+window.controlAppsLanzarPendiente = function () {
+    const target = caPendingLibraryLaunch;
+    const selected = document.getElementById('ca-launch-user')?.value || '';
+    if (!target?.verified || !caVerifiedLaunchUsers.has(selected)) {
+        window.ps5Notification?.('Control de Apps', 'Verifica el título y selecciona un perfil con sesión confirmada antes de lanzar.', 'fa-user-shield');
+        return;
+    }
+    caPendingLibraryLaunch = null;
+    window.controlAppsAbrirApp(target.title_id, target.name);
+};
+
 window.abrirControlAppsParaJuego = function (juego) {
     if (!juego || !juego.id) return;
-    caPendingLibraryLaunch = { title_id: String(juego.id), name: String(juego.nombre || juego.name || juego.id) };
+    caPendingLibraryLaunch = { title_id: String(juego.id).toUpperCase(), name: String(juego.nombre || juego.name || juego.id), verified: false };
     window.cerrarFichaJuego?.();
     window.abrirModuloNativo?.('control-apps');
+    const panel = document.getElementById('ca-library-launch-panel');
+    const targetTitle = document.getElementById('ca-library-launch-title');
+    const targetStatus = document.getElementById('ca-library-launch-status');
+    const launchButton = document.getElementById('ca-library-launch-button');
+    if (panel) panel.classList.remove('hidden');
+    if (targetTitle) targetTitle.textContent = `${caPendingLibraryLaunch.name} (${caPendingLibraryLaunch.title_id})`;
+    if (targetStatus) targetStatus.textContent = 'Pulsa Verificar lanzamiento. La verificación no abre ni cierra apps.';
+    if (launchButton) launchButton.disabled = true;
 
     // Carga perfiles antes de solicitar una apertura desde Biblioteca.
     setTimeout(async () => {
         await controlAppsCargarPerfiles();
+        // La apertura requiere verificación explícita y un segundo botón.
+        if (caPendingLibraryLaunch) return;
         if (!caPendingLibraryLaunch) return;
         const selected = document.getElementById('ca-launch-user')?.value || '';
         if (selected && caVerifiedLaunchUsers.has(selected)) {
-            const target = caPendingLibraryLaunch;
-            caPendingLibraryLaunch = null;
-            window.controlAppsAbrirApp(target.title_id, target.name);
+            const status = document.getElementById('ca-library-launch-status');
+            if (status) status.textContent = 'Perfil leído. Pulsa Verificar lanzamiento y después Lanzar app.';
         } else {
             window.ps5Notification?.('Control de Apps', 'Elige un perfil con sesión verificada; la app seleccionada se abrirá después de elegirlo.', 'fa-user-shield');
         }
