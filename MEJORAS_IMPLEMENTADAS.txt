@@ -1743,4 +1743,4 @@ PS4 Manager Tools AJ 4.5.18 â€” Control de Apps en primer plano, apertura y
 - Diagnóstico de BinLoader: una comprobación TCP vacía hecha durante esta sesión consumió el listener de una sola conexión y dejó 9090 inactivo; no se transfirió el ELF. El usuario reactivó Enable BinLoader Server. Se evitarán pruebas de puerto vacías; queda pendiente un solo envío real del ELF 1.2.1 y la lectura de 9091 tras recibir autorización de la consola.
 - También quedan pendientes el ZIP PC actualizado, el push y la publicación GitHub de v4.5.21.
 
-- GitHub actualizado: commit f4d2cf3 en main; release v4.5.21 publicado con exactamente dos activos: APK Android y ZIP PC. SHA-256 del ZIP PC: fd1a2842cb77889abbeedb07fe3748c87982faa97599aada589ef5ea723d4cec.
+- GitHub actualizado: commit a8a942e en main; release v4.5.21 publicado con exactamente dos activos: APK Android y ZIP PC.
