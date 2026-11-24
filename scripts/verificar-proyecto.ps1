@@ -1,9 +1,10 @@
-# Verificador local de solo lectura; requiere el PHP portable del release y Node.js.
+﻿# Verificador local de solo lectura; requiere el PHP portable del release y Node.js.
 # Ejecutar desde PowerShell: .\scripts\verificar-proyecto.ps1
 param([switch]$TestCaptureApi)
 
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+Set-Location $root
 $captureControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\capturas.js') -Raw
 $libraryControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\biblioteca.js') -Raw
 $libraryPage = Get-Content -LiteralPath (Join-Path $root 'modulos\biblioteca.php') -Raw
@@ -71,6 +72,14 @@ $pluginsWriteScopeTest = Join-Path $PSScriptRoot 'test-plugins-api-write-scope.p
 $pluginsWriteScopeOutput = & $php $pluginsWriteScopeTest 2>&1
 $pluginsWriteScopePassed = $LASTEXITCODE -eq 0 -and ($pluginsWriteScopeOutput -join ' ') -match 'PLUGINS_API_WRITE_PATH_SCOPE_OK'
 Report-Check 'Plugins pasa explícitamente la ruta de plugins.ini en escritura, lectura y rollback' $pluginsWriteScopePassed ($pluginsWriteScopeOutput -join ' ')
+$controlAppsApiTest = Join-Path $PSScriptRoot 'test-control-apps-api.php'
+$controlAppsApiOutput = & $php $controlAppsApiTest 2>&1
+$controlAppsApiPassed = $LASTEXITCODE -eq 0 -and ($controlAppsApiOutput -join ' ') -match 'CONTROL_APPS_API_TEST_OK'
+Report-Check 'Control de Apps API valida inventario, bloqueo de concurrencia y protección de cierre' $controlAppsApiPassed ($controlAppsApiOutput -join ' ')
+$controlAppsJsTest = Join-Path $PSScriptRoot 'test-control-apps.cjs'
+$controlAppsJsOutput = & $nodeCommand.Source $controlAppsJsTest 2>&1
+$controlAppsJsPassed = $LASTEXITCODE -eq 0 -and ($controlAppsJsOutput -join ' ') -match 'CONTROL_APPS_CONTROLLER_TEST_OK'
+Report-Check 'Control de Apps controlador y flujo de cierre con DOM simulado' $controlAppsJsPassed ($controlAppsJsOutput -join ' ')
 
 $jsFiles = @(Get-ChildItem (Join-Path $root 'js') -Recurse -File -Filter '*.js')
 $jsErrors = [System.Collections.Generic.List[string]]::new()
@@ -139,12 +148,12 @@ $storageRenderPassed = $LASTEXITCODE -eq 0 -and ($storageRenderOutput -join ' ')
 Report-Check 'Almacenamiento renderiza solo las tres categorías solicitadas' $storageRenderPassed ($storageRenderOutput -join ' ')
 Report-Check 'Parches tiene capa y apertura nativa directa' ($page -match "abrirModuloNativo\('parches-juego'\)" -and $moduleMarkup -match 'id="layer-parches-juego"')
 Report-Check 'Parches inicia lectura después de activar la capa y la página invalida scripts cacheados' ($page -match "(?s)target\.classList\.remove\('hidden'\).*?target\.classList\.add\('active', 'flex'\).*?idModulo === 'parches-juego'.*?parchesRecargar\(\)" -and $page -match 'app_asset_url\(''js/parches_juego\.js''\)' -and $page -match 'Cache-Control: no-store')
-$patchModule = Get-Content -LiteralPath (Join-Path $root 'modulos\parches_juego.php') -Raw
-$patchController = Get-Content -LiteralPath (Join-Path $root 'js\parches_juego.js') -Raw
-Report-Check 'Parches muestra conexión FTP, diagnóstico de estado y error con reintento' ($patchModule -match 'id="patch-connection"' -and $patchController -match 'FTP \$\{current\.host_ip\}:\$\{current\.port\}' -and $patchController -match 'Reintentar' -and $patchController -match 'respuesta inválida del servidor')
+$patchModule = Get-Content -LiteralPath (Join-Path $root 'modulos\parches_juego.php') -Encoding UTF8 -Raw
+$patchController = Get-Content -LiteralPath (Join-Path $root 'js\parches_juego.js') -Encoding UTF8 -Raw
+Report-Check 'Parches muestra conexión FTP, diagnóstico de estado y error con reintento' ($patchModule -match 'id="patch-connection"' -and $patchController -match 'FTP \$\{current\.host_ip\}:\$\{current\.port\}' -and $patchController -match 'Reintentar' -and $patchController -match 'respuesta inv.*del servidor')
 $serviceWorker = Get-Content -LiteralPath (Join-Path $root 'sw.js') -Raw
 Report-Check 'Service Worker no conserva HTML, scripts o APIs obsoletos' ($serviceWorker -match 'e\.respondWith\(fetch\(e\.request\)\)' -and $serviceWorker -notmatch 'goldhen-v[0-9]+-cache|caches\.(open|match|add)')
-$apiFilesForGuard = @(Get-ChildItem -LiteralPath (Join-Path $root 'api') -File -Filter '*.php' | Where-Object { $_.Name -notin @('request_guard.php', 'cache_helpers.php', 'binloader_client.php', 'save_paths.php', 'patches_ini_helpers.php', 'patches_version_helpers.php', 'storage_helpers.php', 'library_listing_helpers.php', 'ftp_compat.php') })
+$apiFilesForGuard = @(Get-ChildItem -LiteralPath (Join-Path $root 'api') -File -Filter '*.php' | Where-Object { $_.Name -notin @('request_guard.php', 'cache_helpers.php', 'binloader_client.php', 'save_paths.php', 'patches_ini_helpers.php', 'patches_version_helpers.php', 'storage_helpers.php', 'library_listing_helpers.php', 'ftp_compat.php', 'control_apps_ini.php') })
 $unguardedApiFiles = @($apiFilesForGuard | Where-Object { (Get-Content -LiteralPath $_.FullName -Raw) -notmatch "require_once __DIR__ \. '/request_guard\.php';" } | ForEach-Object Name)
 $guardSource = Get-Content -LiteralPath (Join-Path $root 'api\request_guard.php') -Raw
 $routerSource = Get-Content -LiteralPath (Join-Path $root 'server-router.php') -Raw
@@ -152,7 +161,7 @@ Report-Check 'Todos los endpoints API y el router aplican guard de origen local'
 $projectVersion = Get-Content -LiteralPath (Join-Path $root 'project-version.json') -Raw | ConvertFrom-Json
 $androidReleaseApi = Get-Content -LiteralPath (Join-Path $root 'api\android_release_api.php') -Raw
 $androidReleaseScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw
-Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.17' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
+Report-Check 'Actualizador Android usa versionado del proyecto, APK de Releases oficiales y enlace HTTPS validado' ($projectVersion.version -eq '4.5.18' -and $projectVersion.repository -eq 'AJfiles/PS4-MANAGER-TOOL-AJ' -and $androidReleaseApi -match "require_once __DIR__ \. '/request_guard\.php'" -and $androidReleaseApi -match 'browser_download_url' -and $androidReleaseApi -match 'github\.com' -and $androidReleaseApi -match 'version_compare' -and $androidReleaseApi -match 'sha256' -and $androidReleaseScript -match 'android_release_api\.php' -and $androidReleaseScript -match 'Descargar APK' -and $androidReleaseScript -match "url\.protocol !== 'https:'" -and $androidReleaseScript -match 'AJfiles/PS4-MANAGER-TOOL-AJ/releases/download')
 $fwPayloadTest = Join-Path $PSScriptRoot 'test-fw-payload-catalogue.cjs'
 $fwPayloadOutput = & $nodeCommand.Source $fwPayloadTest $root 2>&1
 $fwPayloadPassed = $LASTEXITCODE -eq 0 -and ($fwPayloadOutput -join ' ') -match 'FW_PAYLOAD_CATALOGUE_OK'
@@ -174,8 +183,8 @@ $captureControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\captura
 $libraryControllerSource = Get-Content -LiteralPath (Join-Path $root 'js\biblioteca.js') -Raw
 Report-Check 'Galería, descarga y borrado de capturas viven en módulo propio; Biblioteca solo enlaza al filtro por CUSA' ($captureControllerSource -match 'function renderGallery' -and $captureControllerSource -match 'download_selected' -and $captureControllerSource -match 'delete_capture' -and $libraryControllerSource -notmatch '(?i)capturasCargar|ps4_screenshots_api|function renderGallery' -and $libraryPage -match "abrirHerramientaJuego\('capturas'")
 Report-Check 'Limpieza evita clasificar guardados como inútiles' ($page -notmatch 'Datos huérfanos' -and (Get-Content -LiteralPath (Join-Path $root 'js\limpieza.js') -Raw) -match 'partidas de juegos no instalados')
-$saveWarning = Get-Content -LiteralPath (Join-Path $root 'modulos\saves.php') -Raw
-Report-Check 'SaveGames distingue su ZIP de respaldo del formato de importación Apollo' ($saveWarning -match 'no es una exportación directa para Apollo' -and $saveWarning -match 'HDD Saves' -and $saveWarning -match 'Copy save game' -and $saveWarning -match 'PS4/APOLLO')
+$saveWarning = Get-Content -LiteralPath (Join-Path $root 'modulos\saves.php') -Encoding UTF8 -Raw
+Report-Check 'SaveGames distingue su ZIP de respaldo del formato de importación Apollo' ($saveWarning -match 'no es una exportaci.*directa para Apollo' -and $saveWarning -match 'HDD Saves' -and $saveWarning -match 'Copy save game' -and $saveWarning -match 'PS4/APOLLO')
 Report-Check 'Título visible del proyecto usa PS4 Manager Tools' ($page -match '<title>PS4 Manager Tools \| Consola PS4')
 $settingsMarkup = Get-Content -LiteralPath (Join-Path $root 'modulos\ajustes.php') -Raw
 $appScript = Get-Content -LiteralPath (Join-Path $root 'js\app.js') -Raw

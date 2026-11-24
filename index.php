@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * ====================================================================
  * PS4 Manager Tools 🚀 (PS4) - EDICIÓN MODULAR TERMUX
@@ -306,7 +306,7 @@ header('X-Author: ' . $firma);
         .ghm-loader-constellation .ghm-loader-ring-c { left:45%;bottom:12%;animation-delay:.7s; }
         .ghm-loader-constellation .ghm-loader-symbol { text-shadow:0 0 15px #a78bfa; }
         @keyframes ghm-loader-reactor-core { to { transform:scale(1.16) rotate(10deg);filter:drop-shadow(0 0 14px var(--loader-color)); } }
-        @media (prefers-reduced-motion: reduce) { .ghm-loading *, .ghm-loader-track i { animation:none !important; } .ghm-loader-track i { width:35%; transform:none !important; } }
+        @media (prefers-reduced-motion: reduce) { .ghm-loading * { animation-duration: 2.5s !important; } .ghm-loader-track i { animation:ghm-loader-progress 3.2s ease-in-out infinite !important; width:35%; } }
     </style>
 </head>
 <body class="text-white select-none hide-scrollbar bg-radial-glow" data-ghm-runtime="<?= htmlspecialchars($ghm_runtime, ENT_QUOTES, 'UTF-8') ?>">
@@ -328,7 +328,7 @@ header('X-Author: ' . $firma);
             </h1>
             <div class="flex items-center justify-center gap-3 mt-2.5 opacity-80">
                 <span class="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-500/80"></span>
-                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.17 • AJ</span>
+                <span class="text-[9px] font-mono tracking-[0.4em] font-bold text-cyan-400">VERSION 4.5.18 • AJ</span>
                 <span class="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-500/80"></span>
             </div>
         </div>
@@ -374,6 +374,7 @@ header('X-Author: ' . $firma);
             <div onclick="abrirModuloNativo('almacenamiento')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-emerald-900/30 text-emerald-300 flex items-center justify-center mb-3 border border-emerald-500/10"><i class="fa-solid fa-chart-pie text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Almacenamiento</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Uso por categoría</span></div>
             <div onclick="abrirModuloNativo('capturas')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-pink-900/30 text-pink-300 flex items-center justify-center mb-3 border border-pink-500/10"><i class="fa-solid fa-images text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Capturas</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Ver, guardar y eliminar</span></div>
             <p class="launcher-section-label">Juegos y organización</p>
+            <div onclick="abrirModuloNativo('control-apps')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-emerald-900/30 text-emerald-300 flex items-center justify-center mb-3 border border-emerald-500/10"><i class="fa-solid fa-gamepad text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Control de Apps</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Estado, abrir y cerrar</span></div>
             <div onclick="abrirModuloNativo('parches-juego')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-violet-900/30 text-violet-300 flex items-center justify-center mb-3 border border-violet-500/10"><i class="fa-solid fa-wand-magic-sparkles text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Parches de juego</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Estados GoldHEN</span></div>
             <div onclick="abrirModulo('organizador-apps')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-fuchsia-900/30 text-fuchsia-300 flex items-center justify-center mb-3 border border-fuchsia-500/10"><i class="fa-solid fa-layer-group text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Organizar Apps</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Sistema y carpetas</span></div>
             <div onclick="abrirModulo('explorador')" class="launcher-card p-5 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer aspect-square"><div class="w-12 h-12 rounded-[1rem] bg-emerald-900/30 text-emerald-400 flex items-center justify-center mb-3 border border-emerald-500/10"><i class="fa-solid fa-folder-open text-xl"></i></div><span class="text-xs font-black tracking-wider uppercase text-white">Explorador FTP</span><span class="text-[8px] font-bold tracking-widest text-gray-500 uppercase mt-1">Raíz Consola</span></div>
@@ -457,6 +458,7 @@ header('X-Author: ' . $firma);
     <?php include 'modulos/almacenamiento.php'; ?>
     <?php include 'modulos/capturas.php'; ?>
     <?php include 'modulos/parches_juego.php'; ?>
+    <?php include 'modulos/control_apps.php'; ?>
 
     <script src="<?= app_asset_url('js/app.js') ?>"></script>
     <script src="<?= app_asset_url('js/android_storage.js') ?>"></script>
@@ -478,6 +480,7 @@ header('X-Author: ' . $firma);
     <script src="<?= app_asset_url('js/almacenamiento.js') ?>"></script>
     <script src="<?= app_asset_url('js/capturas.js') ?>"></script>
     <script src="<?= app_asset_url('js/parches_juego.js') ?>"></script>
+    <script src="<?= app_asset_url('js/control_apps.js') ?>"></script>
     <script src="<?= app_asset_url('js/i18n.js') ?>"></script>
 
     <script>
@@ -506,6 +509,7 @@ header('X-Author: ' . $firma);
                     if (idModulo === 'limpieza' && typeof limpiezaCargar === 'function') limpiezaCargar();
                     if (idModulo === 'almacenamiento' && typeof almacenamientoCargar === 'function') almacenamientoCargar();
                     if (idModulo === 'capturas' && typeof capturasCargar === 'function') capturasCargar(false);
+                    if (idModulo === 'control-apps' && typeof controlAppsInit === 'function') controlAppsInit();
         };
 
         window.aceptarAccesoFirmware = function() {

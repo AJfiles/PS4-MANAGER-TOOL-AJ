@@ -1269,6 +1269,7 @@ const modulosBusquedaGlobal = [
     ['Limpieza', 'Partidas de juegos que no aparecen instalados', 'limpieza'],
     ['Almacenamiento', 'Espacio usado por juegos, capturas y partidas', 'almacenamiento'],
     ['Capturas', 'Ver, descargar o eliminar capturas', 'capturas'],
+    ['Control de Apps', 'Estado en primer plano, abrir y cerrar aplicaciones', 'control-apps'],
     ['Parches de Juego', 'Estados y versiones de parches instalados', 'parches-juego'],
     ['Store', 'Catálogo autorizado', 'store']
 ];

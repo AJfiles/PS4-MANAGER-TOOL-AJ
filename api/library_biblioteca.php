@@ -133,14 +133,25 @@ if ($action === 'get_cached_games') {
     }
     foreach ($metadata_cache as $id => $cached_game) {
         if (!is_array($cached_game) || !preg_match('/^[A-Z0-9]{8,16}$/i', (string)$id)) continue;
-        $cached_game['id'] = strtoupper((string)$id);
+        $cusa_upper = strtoupper((string)$id);
+        $cached_game['id'] = $cusa_upper;
+        $title_name = $cached_game['nombre'] ?? $cached_game['name'] ?? $cusa_upper;
+        $cat_raw = (string)($cached_game['tipo'] ?? $cached_game['category'] ?? 'g');
+        $tipo_defecto = (stripos($cat_raw, 'app') !== false || in_array($cusa_upper, ['TOOL00001', 'NPXS29005', 'NPXS30017', 'APOLO0004']) || strpos($cusa_upper, 'LAPY') === 0 || strpos($cusa_upper, 'NPXS') === 0 || strpos($cat_raw, 'g') === false) ? 'APPS' : 'JUEGOS';
+        $tipo_final = $custom_cats[$cusa_upper] ?? $tipo_defecto;
+
+        $cached_game['nombre'] = $title_name;
+        $cached_game['name'] = $title_name;
+        $cached_game['tipo'] = $tipo_final;
+        $cached_game['category'] = $tipo_final;
+        $cached_game['version'] = $cached_game['version'] ?? '01.00';
         $cached_game['installed'] = null;
-        $cached_icon = $cache_dir . '/' . $cached_game['id'] . '.png';
+        $cached_icon = $cache_dir . '/' . $cusa_upper . '.png';
         $cached_game['img'] = is_file($cached_icon) && @filesize($cached_icon) > 0
-            ? 'user/cache/biblioteca/' . $cached_game['id'] . '.png?v=' . @filemtime($cached_icon)
+            ? 'user/cache/biblioteca/' . $cusa_upper . '.png?v=' . @filemtime($cached_icon)
             : '';
-        $cached_game['cover3d'] = library_custom_cover_url($cached_game['id']);
-        $games[$cached_game['id']] = $cached_game;
+        $cached_game['cover3d'] = library_custom_cover_url($cusa_upper);
+        $games[$cusa_upper] = $cached_game;
     }
     $sfos_locales = glob($cache_dir . '/*.sfo');
     
@@ -182,7 +193,7 @@ if ($action === 'get_cached_games') {
         }
     }
     $games = array_values($games);
-    usort($games, function($a, $b) { return strcasecmp($a['nombre'], $b['nombre']); });
+    usort($games, function($a, $b) { return strcasecmp((string)($a['nombre'] ?? $a['name'] ?? $a['id'] ?? ''), (string)($b['nombre'] ?? $b['name'] ?? $b['id'] ?? '')); });
     echo json_encode(['status' => 'success', 'data' => $games]);
     exit;
 }

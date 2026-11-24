@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ====================================================================
  * PS4 Manager Tools V2.1 🚀 - CONTROLADOR MAESTRO DE BIBLIOTECA
  * Mantenido por AJ · Basado en proyecto original de SeBaS · RUTA: js/biblioteca.js
@@ -288,6 +288,7 @@ async function forzarSincronizacionManual() {
     if (bar) bar.style.width = "0%";
     if (pctLabel) pctLabel.innerText = "0%";
     if (bytesLabel) bytesLabel.innerText = "Conectando con la consola...";
+    bibliotecaActualizarPillProgreso('Sincronizando', 'Conectando...', '0%');
 
     if (bibliotecaAbortController) { bibliotecaAbortController.abort(); }
     bibliotecaAbortController = new AbortController();
@@ -380,6 +381,7 @@ async function forzarSincronizacionManual() {
             let calcPct = (procesados / total) * 100;
             if (bar) bar.style.width = calcPct + '%';
             if (pctLabel) pctLabel.innerText = Math.round(calcPct) + '%';
+            bibliotecaActualizarPillProgreso(`LEYENDO (${procesados}/${total})`, lote[lote.length - 1], Math.round(calcPct) + '%');
             let respuestasLote = await Promise.all(promesas);
             respuestasLote.forEach(res => {
                 if (res && res.status === 'success' && res.game) {
@@ -395,6 +397,7 @@ async function forzarSincronizacionManual() {
 
         if (title) title.innerText = "FINALIZANDO";
         if (text) text.innerText = "Actualizando la biblioteca local...";
+        bibliotecaActualizarPillProgreso('FINALIZANDO', 'Actualizando...', '100%');
         if (bytesLabel) bytesLabel.innerText = jsonScan.installed_verified
             ? `Sincronización completada · ${Object.keys(idsInstalados).length} instalados · ${listadoJuegos.length} títulos registrados.`
             : 'Metadatos actualizados; estado de instalación sin verificar.';
@@ -415,8 +418,68 @@ async function forzarSincronizacionManual() {
     }
 }
 
+let bibliotecaSyncMinimizada = false;
+
+function bibliotecaActualizarPillProgreso(titulo, texto, pct) {
+    const pillTitle = document.getElementById('sync-pill-title');
+    const pillText = document.getElementById('sync-pill-text');
+    const pillPct = document.getElementById('sync-pill-percentage');
+    if (pillTitle && titulo !== undefined) pillTitle.textContent = titulo;
+    if (pillText && texto !== undefined) pillText.textContent = texto;
+    if (pillPct && pct !== undefined) pillPct.textContent = pct;
+}
+
+window.minimizarSincronizacionModal = function() {
+    bibliotecaSyncMinimizada = true;
+    const modal = document.getElementById('modal-sincronizacion-progreso');
+    const pill = document.getElementById('biblioteca-sync-floating-pill');
+    if (modal) {
+        modal.classList.remove('opacity-100');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+    if (pill) {
+        pill.classList.remove('hidden');
+        pill.classList.add('flex');
+    }
+};
+
+window.restaurarSincronizacionModal = function() {
+    bibliotecaSyncMinimizada = false;
+    const modal = document.getElementById('modal-sincronizacion-progreso');
+    const pill = document.getElementById('biblioteca-sync-floating-pill');
+    if (pill) {
+        pill.classList.add('hidden');
+        pill.classList.remove('flex');
+    }
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('opacity-100'), 10);
+    }
+};
+
 function aborpZELkorMwhkkpShF5PvT8YnqRCupnLTNG() { if (bibliotecaAbortController) { bibliotecaAbortController.abort(); } closeSincronizacionModal(); }
-function closeSincronizacionModal() { const modal = document.getElementById('modal-sincronizacion-progreso'); if (modal) { modal.classList.remove('opacity-100'); setTimeout(()=>modal.classList.add('hidden'), 300); } }
+function closeSincronizacionModal() {
+    bibliotecaSyncMinimizada = false;
+    const modal = document.getElementById('modal-sincronizacion-progreso');
+    const pill = document.getElementById('biblioteca-sync-floating-pill');
+    if (modal) {
+        modal.classList.remove('opacity-100');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+    if (pill) {
+        const pillTitle = document.getElementById('sync-pill-title');
+        const pillText = document.getElementById('sync-pill-text');
+        const pillIcon = pill.querySelector('i');
+        if (pillTitle) pillTitle.textContent = 'Completado';
+        if (pillText) pillText.textContent = 'Biblioteca actualizada';
+        if (pillIcon) pillIcon.className = 'fa-solid fa-check text-emerald-400';
+        setTimeout(() => {
+            pill.classList.add('hidden');
+            pill.classList.remove('flex');
+            if (pillIcon) pillIcon.className = 'fa-solid fa-arrows-rotate fa-spin';
+        }, 2200);
+    }
+}
 
 window.cerrarFichaJuego = function() {
     const modal = document.getElementById('sheet-detalles-juego');
@@ -645,7 +708,6 @@ function actualizarCoverflow3DStyles() {
         const cover = card.querySelector('img.ps4-img-art');
         if (cover) {
             // Keep the active card and its two neighbors on either side ready.
-            // This avoids blank covers and repeat downloads as the carousel moves.
             const shouldLoad = absOffset <= 2;
             const nextSrc = shouldLoad ? (cover.dataset.src || '') : '';
             if (nextSrc && cover.dataset.loadedSrc !== nextSrc) {
@@ -662,8 +724,6 @@ function actualizarCoverflow3DStyles() {
         card.classList.remove('active');
         card.tabIndex = -1;
         card.setAttribute('aria-current', 'false');
-
-        if (absOffset > 2) return;
 
         if (absOffset === 0) {
             card.classList.add('active');
@@ -706,14 +766,22 @@ function actualizarCoverflow3DStyles() {
             }
             if (glowBg) glowBg.style.background = `radial-gradient(circle, rgba(0, 162, 255, 0.5) 0%, rgba(0, 114, 230, 0.15) 45%, rgba(0,0,0,0) 70%)`;
         } else if (offset > 0) {
-                card.style.transform = `translateX(${pasoCarrusel + (offset - 1) * pasoLateral}px) translateZ(${-30 - (offset - 1) * 30}px) rotateY(-30deg) scale(0.88)`;
-            card.style.opacity = absOffset > 2 ? '0' : '0.55';
-            card.style.zIndex = `${50 - absOffset}`;
+            const shiftX = pasoCarrusel + (absOffset - 1) * pasoLateral;
+            const shiftZ = -35 - (absOffset - 1) * 35;
+            const rotY = Math.max(-55, -28 - (absOffset - 1) * 9);
+            const scale = Math.max(0.65, 0.88 - (absOffset - 1) * 0.10);
+            card.style.transform = `translateX(${shiftX}px) translateZ(${shiftZ}px) rotateY(${rotY}deg) scale(${scale})`;
+            card.style.opacity = absOffset === 1 ? '0.68' : absOffset === 2 ? '0.36' : absOffset === 3 ? '0.14' : '0';
+            card.style.zIndex = `${Math.max(1, 70 - absOffset * 15)}`;
             card.style.pointerEvents = absOffset === 1 ? 'auto' : 'none';
         } else {
-            card.style.transform = `translateX(${-pasoCarrusel + (offset + 1) * pasoLateral}px) translateZ(${-30 - (absOffset - 1) * 30}px) rotateY(30deg) scale(0.88)`;
-            card.style.opacity = absOffset > 2 ? '0' : '0.55';
-            card.style.zIndex = `${50 - absOffset}`;
+            const shiftX = -pasoCarrusel - (absOffset - 1) * pasoLateral;
+            const shiftZ = -35 - (absOffset - 1) * 35;
+            const rotY = Math.min(55, 28 + (absOffset - 1) * 9);
+            const scale = Math.max(0.65, 0.88 - (absOffset - 1) * 0.10);
+            card.style.transform = `translateX(${shiftX}px) translateZ(${shiftZ}px) rotateY(${rotY}deg) scale(${scale})`;
+            card.style.opacity = absOffset === 1 ? '0.68' : absOffset === 2 ? '0.36' : absOffset === 3 ? '0.14' : '0';
+            card.style.zIndex = `${Math.max(1, 70 - absOffset * 15)}`;
             card.style.pointerEvents = absOffset === 1 ? 'auto' : 'none';
         }
     });

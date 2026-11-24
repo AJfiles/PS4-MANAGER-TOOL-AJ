@@ -2,8 +2,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const source = fs.readFileSync('js/app.js', 'utf8');
-const settings = fs.readFileSync('modulos/ajustes.php', 'utf8');
+const path = require('node:path');
+
+const repoRoot = path.resolve(__dirname, '..');
+const source = fs.readFileSync(path.join(repoRoot, 'js', 'app.js'), 'utf8');
+const settings = fs.readFileSync(path.join(repoRoot, 'modulos', 'ajustes.php'), 'utf8');
 const start = source.indexOf('function inicializarContextoAudio()');
 const end = source.indexOf('function cambiarVolumenSFX', start);
 assert.ok(start >= 0 && end > start, 'audio engine functions must exist');

@@ -1,6 +1,7 @@
 <?php
 /** Cliente común y serializado para el BinLoader TCP de GoldHEN.
- * No realiza conexiones de sondeo: 9090 espera el flujo binario del payload.
+ * No realiza conexiones de sondeo: 9090 espera el flujo binario del payload
+ * (incluido ELF en versiones compatibles), no comandos de texto/JSON.
  */
 function ghm_binloader_send(string $host, string $bytes, bool $verifyAfter = false): array {
     $project = realpath(__DIR__ . '/..') ?: __DIR__;
@@ -28,7 +29,7 @@ function ghm_binloader_send(string $host, string $bytes, bool $verifyAfter = fal
         $error = '';
         $socket = @fsockopen($host, 9090, $errno, $error, 2);
         if (!$socket) {
-            return ['ok' => false, 'message' => "No se envió ningún byte: {$host}:9090 rechazó la conexión. Comprueba Enable BinLoader Server en GoldHEN → Settings → Servers. Si aparece activo, recarga GoldHEN y comprueba su versión (2.4b18 incluye una corrección de configuración de servidores); después vuelve a intentar. " . ($error ?: '')];
+            return ['ok' => false, 'message' => "No se envió ningún byte: no se pudo conectar a {$host}:9090. Que Enable BinLoader Server aparezca activo o figure como Enabled = 1 en config.ini no garantiza que el listener responda. Comprueba GoldHEN → Settings → Servers; no se reintentó automáticamente. " . ($error ?: '')];
         }
         stream_set_timeout($socket, 30);
         $written = 0;

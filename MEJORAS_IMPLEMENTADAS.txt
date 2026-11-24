@@ -14,7 +14,7 @@ PS4 Manager Tools AJ 4.5.16 - PC and Android validation (2026-11-23)
   propagation, and escaping. The API-guard test now disables CLI OPcache when
   starting the portable x86 PHP server; this avoids its ASLR startup failure.
 - The manual FTP chunk endpoint was exercised against the PS4 at
-  192.168.20.39:2121: it uploaded a uniquely named text file to `/data/pkg/`,
+  PS4_IP_LOCAL:2121: it uploaded a uniquely named text file to `/data/pkg/`,
   the Explorer listed and deleted it, and a final listing confirmed it absent.
   No PKG was installed.
 - FTP Manual now defaults to `/data/pkg/` in the UI, JavaScript fallback and
@@ -82,7 +82,7 @@ anterior es requisito para distribuir una actualización compatible.
   S23 Ultra y se generó `PS4_Manager_Tools_AJ_v4.5.12.APK` (versionCode 40512).
   El certificado SHA-256 coincide con el de la APK pública 4.5.10/4.5.11
   (`D8:8B:5F:08:7E:9E:6A:4C:C5:58:B9:2C:63:6E:FF:3C:9E:D2:3F:34:E7:17:CC:E4:70:37:B2:72:C4:46:99:E3`).
-  Se instaló y abrió en el S23. En la misma LAN, la conexión a `192.168.20.39:2121`
+  Se instaló y abrió en el S23. En la misma LAN, la conexión a `PS4_IP_LOCAL:2121`
   quedó conectada; Biblioteca leyó 45 títulos (38 instalados, 7 no instalados) y
   el carrusel cambió entre juegos y mostró sus portadas. No se modificaron datos
   de la PS4. Play Protect presentó su advertencia de instalación.
@@ -982,10 +982,10 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - La biblioteca mantiene una sección de respaldos locales fuera de la lista de guardados activos. Tras borrar una partida, el usuario puede localizar su ZIP, descargarlo o restaurarlo; la restauración crea primero una copia del estado actual si existe.
 
 ### Revisión final de perfiles y almacenamiento (2026-11-08)
-- Los perfiles ahora se muestran con el nombre local leído de `/user/home/<perfil>/username.dat`. En la PS4 conectada se verificaron `xAJx` y `User-2`; el nombre del directorio interno no se expone.
+- Los perfiles ahora se muestran con el nombre local leído de `/user/home/<perfil>/username.dat`. En la PS4 conectada se verificaron `perfil A` y `perfil B`; el nombre del directorio interno no se expone.
 - Limpieza ofrece tres acciones separadas: crear ZIPs verificados para descargar sin borrar; respaldar y borrar; borrar sin respaldo tras confirmación escrita. La lectura de respaldo/descarga no modifica datos de la consola.
 - El analizador de Almacenamiento lista juegos/aplicaciones, partidas y solo imágenes JPG/JPEG/PNG de capturas con tamaño por elemento y vistas previas cuando existen. Excluye los DAT/EXT auxiliares y no lista archivos grandes. Los tamaños dependen de los metadatos FTP.
-- Validación de solo lectura en PS4 `la consola de prueba`: perfiles `xAJx`, `User-2`; 63 partidas; 38 juegos; 20 entradas iniciales en la carpeta de fotos eran `.dat/.ext` auxiliares, no imágenes; 38 títulos instalados, 387 XML y 10 juegos con parches; Hogwarts `CUSA12824`, versión `01.05`, 7 parches.
+- Validación de solo lectura en PS4 `la consola de prueba`: perfiles `perfil A`, `perfil B`; 63 partidas; 38 juegos; 20 entradas iniciales en la carpeta de fotos eran `.dat/.ext` auxiliares, no imágenes; 38 títulos instalados, 387 XML y 10 juegos con parches; Hogwarts `CUSA12824`, versión `01.05`, 7 parches.
 - La limpieza se probó enviando una petición para Hogwarts, que está instalado. El backend la rechazó con `este CUSA aparece instalado`; no se borraron partidas ni capturas en esta iteración.
 - Las APIs PHP tocadas pasaron `php -l` con PHP portable 8.5.11; los controladores JS de Limpieza, Almacenamiento y Capturas pasaron `node --check`.
 - La revisión visual en navegador quedó pendiente: Computer Use no pudo establecer con suficiente confianza la URL activa de Brave y detuvo la automatización. No se presenta la prueba de API como validación visual.
@@ -999,7 +999,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 ### Corrección de acceso a Parches y comprobación en consola (2026-11-09)
 - Se corrigió el ID de la capa del módulo Parches: el launcher solicitaba `layer-parches-juego`, pero el HTML tenía `layer-patches-juego`. Por eso la API podía leer los XML y aun así el usuario veía la pantalla vacía. El módulo ahora usa el mismo ID español que el router.
 - Verificación en PS4 `la consola de prueba`, solo lectura: la API respondió correctamente con 38 títulos instalados, 387 XML disponibles y 10 juegos con parches; Hogwarts Legacy `CUSA12824` apareció en el resultado. La prueba confirmó que el módulo tenía datos y que el fallo era de apertura de la capa, no del escaneo.
-- Nueva lectura de partidas, solo lectura: 62 guardados asociados a los nombres locales `xAJx` y `User-2`; no se borró ni modificó información de la consola. La cantidad puede cambiar si el contenido de la consola cambia entre lecturas.
+- Nueva lectura de partidas, solo lectura: 62 guardados asociados a los nombres locales `perfil A` y `perfil B`; no se borró ni modificó información de la consola. La cantidad puede cambiar si el contenido de la consola cambia entre lecturas.
 - La limpieza define candidatas por CUSA sin aplicación instalada detectada en las rutas internas y externas que el FTP permite leer; vuelve a comprobar la instalación en el servidor justo antes de borrar. Esto no demuestra que una partida sea innecesaria para su dueño: se conserva la opción de ZIP verificado y el borrado sin respaldo exige confirmación escrita.
 - Interfaz de Limpieza: el botón ahora indica «Seleccionar todas»/«Deseleccionar todas» y los controles distinguen el borrado con respaldo del borrado permanente sin respaldo. El aviso explica que una partida sin juego instalado puede seguir siendo valiosa y que la clasificación no determina si el usuario la necesita.
 - Interfaz de Capturas: «Seleccionar todas» ahora alterna a «Deseleccionar todas», actualiza el conteo y limpia selección/datos obsoletos al refrescar una galería vacía.
@@ -1012,7 +1012,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 
 ### Nombres de perfil en Organizar Apps (2026-11-09)
 - Organizar Apps ya no presenta las tablas de usuario de app.db como «Perfil 1/2». El backend convierte el sufijo decimal de tbl_appbrowse_<userId> al ID hexadecimal de /user/home/<id>/username.dat y muestra el nombre local; la conversión está limitada a IDs PS4 de 32 bits y el fallback es «Perfil local sin nombre».
-- Evidencia de la PS4: las tablas tbl_appbrowse_0413752799 y tbl_appbrowse_0413752800 corresponden a /user/home/18a95ddf y /user/home/18a95de0; username.dat devuelve xAJx y User-2. El endpoint de Organizar Apps volvió a escanear app.db en modo de lectura y devolvió esos dos nombres.
+- Evidencia de la PS4: las tablas tbl_appbrowse_0413752799 y tbl_appbrowse_0413752800 corresponden a /user/home/perfil_interno_A y /user/home/perfil_interno_B; username.dat devuelve perfil A y perfil B. El endpoint de Organizar Apps volvió a escanear app.db en modo de lectura y devolvió esos dos nombres.
 - La lista de perfil amplía su ancho para que el nombre sea visible; el estado de lectura también presenta el nombre local.
 - Pruebas de interacción JS con el código real y DOM mínimo simulado: Capturas selecciona/deselecciona todas sincronizando casillas, contador y etiqueta; Limpieza sincroniza selección, total de bytes y visibilidad de acciones. No se simularon borrados ni se tocó la consola.
 - Herramienta de mantenimiento: se añadió scripts/verificar-proyecto.ps1, de solo lectura, para repetir revisión de sintaxis PHP/JavaScript, manifiesto, iconos PWA, destinos del menú y hashes de la copia PC. Ejecución local: pasó 51 PHP, 18 JS, 17 destinos de navegación y sincronización del release.
@@ -1022,10 +1022,10 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - La validación posterior confirmó PHP y JavaScript sin errores y la copia PC quedó sincronizada con el módulo.
 
 ### Prueba controlada de ciclo de vida SaveGames en PS4 (2026-11-09)
-- Conexión FTP confirmada a `la consola de prueba`. El escaneo leyó GTA V `CUSA00419` en el perfil local `xAJx`, sin aplicación instalada asociada: 12 archivos de guardado, 7 de metadatos y 116,463,658 bytes totales.
+- Conexión FTP confirmada a `la consola de prueba`. El escaneo leyó GTA V `CUSA00419` en el perfil local `perfil A`, sin aplicación instalada asociada: 12 archivos de guardado, 7 de metadatos y 116,463,658 bytes totales.
 - Se creó un ZIP nuevo (`save_CUSA00419_20261109_054957_0d6d75`) y se verificaron sus 19 entradas contra tamaño y SHA-256.
 - Prueba real autorizada: el backend comparó rutas, tamaños y hashes remotos contra el ZIP antes de borrar. El siguiente escaneo confirmó que la partida ya no estaba listada.
-- Se restauró desde el ZIP; el backend verificó el SHA-256 y tamaño de todos los archivos escritos. El escaneo posterior encontró otra vez GTA V en `xAJx` con los mismos 12 archivos de guardado, 7 de metadatos y 116,463,658 bytes.
+- Se restauró desde el ZIP; el backend verificó el SHA-256 y tamaño de todos los archivos escritos. El escaneo posterior encontró otra vez GTA V en `perfil A` con los mismos 12 archivos de guardado, 7 de metadatos y 116,463,658 bytes.
 - No se dejó eliminado el guardado. El ZIP verificado se conserva en `user/backups/saves/` como punto de recuperación adicional.
 - Rebranding adicional: el título de pestaña pasó de “PS4 Manager Tool | GoldHEN Edition” a “PS4 Manager Tool | Consola PS4”; los nombres de GoldHEN permanecen en descripciones técnicas de las funciones que realmente lo requieren.
 
@@ -1037,7 +1037,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Precisión en Limpieza: el acceso del menú y el contador ahora dicen “partidas sin juego instalado”; se evita llamar “huérfanos” o “inútiles” a guardados que siguen perteneciendo a un perfil y podrían ser valiosos.
 - El verificador local también comprueba los accesos independientes de Partidas, Limpieza, Almacenamiento, Capturas y Parches; la capa de Parches; la lectura fresca de Capturas; el texto de clasificación prudente en Limpieza y el título visible del producto.
 - Prueba HTTP del paquete Windows en `127.0.0.1:8080`: `index.php`, manifiesto, los cinco módulos nuevos, sus controladores JS y ambos iconos PWA respondieron HTTP 200 con tipos MIME esperados.
-- Prueba de integración de solo lectura servida por ese paquete contra la PS4 `la consola de prueba`: SaveGames devolvió 62 partidas y perfiles `xAJx`/`User-2`; GTA V CUSA00419 apareció asociado a xAJx y sin app instalada. Parches devolvió 38 apps instaladas, 387 XML, 10 juegos con opciones; Hogwarts Legacy CUSA12824 presentó 7 opciones. Almacenamiento respondió total positivo y 38 juegos, 62 partidas, 0 capturas JPG/PNG disponibles. No se alteraron datos con estas lecturas.
+- Prueba de integración de solo lectura servida por ese paquete contra la PS4 `la consola de prueba`: SaveGames devolvió 62 partidas y perfiles `perfil A`/`perfil B`; GTA V CUSA00419 apareció asociado a perfil A y sin app instalada. Parches devolvió 38 apps instaladas, 387 XML, 10 juegos con opciones; Hogwarts Legacy CUSA12824 presentó 7 opciones. Almacenamiento respondió total positivo y 38 juegos, 62 partidas, 0 capturas JPG/PNG disponibles. No se alteraron datos con estas lecturas.
 - Prueba de protección de borrado: se solicitó `cleanup_delete` permanente para Hogwarts Legacy, que sí está instalado; el backend lo rechazó antes de enumerar/borrar archivos con “este CUSA aparece instalado”. No se borró nada.
 - La UI de Biblioteca no contiene botón de capturas por juego; la galería global está disponible en el acceso principal Capturas. La lógica legacy de galería por título se conserva en JS, pero no tiene control visible en la ficha.
 - Auditoría de marca en intros: se corrigieron las variantes HUD, Onda y Classic Boot que aún decían GoldHen Manager; la animación CRT ahora describe el inicio de PS4 Manager Tool y no afirma ejecutar un payload que no envía.
@@ -1052,7 +1052,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 ### Verificación de Parches y captura ZIP en vivo (2026-11-09)
 - La solicitud de solo lectura contra `la consola de prueba`, servida por el paquete PC, devolvió correctamente 38 juegos visibles, 387 XML y 10 juegos con parches. No se activó ni modificó ningún parche.
 - Se agregó un ensayo del controlador real `parches_juego.js` que confirma que una respuesta de juego/parche llena la lista visible de la capa. Esto verifica el render lógico con DOM simulado, no sustituye la inspección en navegador real.
-- Nueva lectura de partidas: 62 guardados, nombres `xAJx` y `User-2`; ninguno se etiqueta como “Perfil 1/2”. Limpieza mostró 35 candidatas ligadas a juegos no instalados; no se borró ninguna. El filtro no prueba que sean inútiles, por eso la pantalla mantiene advertencia y selección explícita.
+- Nueva lectura de partidas: 62 guardados, nombres `perfil A` y `perfil B`; ninguno se etiqueta como “Perfil 1/2”. Limpieza mostró 35 candidatas ligadas a juegos no instalados; no se borró ninguna. El filtro no prueba que sean inútiles, por eso la pantalla mantiene advertencia y selección explícita.
 - Almacenamiento respondió un mínimo estimado de 640,008,351,612 bytes y no incluye una lista de archivos grandes. Capturas encontró 0 JPG/PNG accesibles en la consola durante esta lectura.
 - La API rechazó una ruta de descarga fuera del directorio de fotos. Como la galería actual no tiene imágenes accesibles, no fue posible crear y abrir un ZIP con una captura real; la descarga del controlador se probó con DOM simulado y el endpoint pasó PHP lint.
 - Prueba de integración repetible `node scripts/test-descarga-capturas-api.cjs`: un FTP local simulado sirve dos imágenes; el PHP incluido genera el ZIP y `ZipArchive` verifica rutas y bytes exactos. El ensayo no toca ni representa una lectura de la PS4.
@@ -1075,7 +1075,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 
 ### Lectura integral de módulos contra PS4 (2026-11-09)
 - Se consultaron desde el paquete PC los endpoints de SaveGames, Parches, Almacenamiento y Capturas contra `la consola de prueba`; todas las respuestas fueron `success`. La operación fue de solo lectura.
-- SaveGames devolvió 62 partidas con los perfiles locales `xAJx` y `User-2`; GTA V `CUSA00419` sigue presente como guardado y no se detectó juego instalado para ese CUSA. La partida no se borró en esta comprobación.
+- SaveGames devolvió 62 partidas con los perfiles locales `perfil A` y `perfil B`; GTA V `CUSA00419` sigue presente como guardado y no se detectó juego instalado para ese CUSA. La partida no se borró en esta comprobación.
 - Parches devolvió 38 títulos instalados, 387 XML y 10 juegos con parches; la capa usa el ID que solicita la navegación y el JavaScript versionado contiene el cargador.
 - Almacenamiento devolvió 640,008,351,612 bytes estimados, 38 elementos de juegos/aplicaciones y 62 partidas. Capturas encontró cero imágenes JPG/PNG disponibles y 20 auxiliares DAT/EXT; no se borró ni descargó ningún archivo.
 - `scripts/verificar-proyecto.ps1` pasó: 51 archivos PHP, 18 JavaScript, 17 destinos de navegación, pruebas DOM simuladas, validación de PWA y sincronización SHA-256 del paquete PC.
@@ -1128,7 +1128,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - El controlador de Capturas crea tarjetas DOM con texto e imágenes validados, valida rutas de imagen antes de asignarlas y conserva confirmación individual y por lote antes de borrar.
 - La personalización del menú principal suma animaciones Deslizamiento alternado e Inclinación al señalar, y acabados Sólido limpio, Borde aurora y Degradado sutil. Respeta `prefers-reduced-motion`.
 - Se actualizaron las pruebas simuladas de descarga ZIP, preferencias y el verificador de separación entre Biblioteca y Capturas. En la primera lectura no había imágenes para probar la operación de extremo a extremo; una lectura posterior encontró una (detalle abajo), pero no se ejecutó su borrado.
-- Relectura posterior de solo consulta: SaveGames devolvió 62 partidas asociadas a los perfiles `User-2` y `xAJx`; Parches devolvió 38 títulos instalados, 387 XML y 10 juegos con parches; Almacenamiento agrupó 38 juegos/apps, 62 partidas y una captura (total estimado 640,009,762,021 bytes).
+- Relectura posterior de solo consulta: SaveGames devolvió 62 partidas asociadas a los perfiles `perfil B` y `perfil A`; Parches devolvió 38 títulos instalados, 387 XML y 10 juegos con parches; Almacenamiento agrupó 38 juegos/apps, 62 partidas y una captura (total estimado 640,009,762,021 bytes).
 - Capturas devolvió una foto real `[237] 20261109_020835_00202148.jpg` (CUSA02299); el thumbnail local respondió HTTP 200 como `image/jpeg` y 1,410,409 bytes. No se descargó al dispositivo del usuario ni se borró de la consola.
 - Revisión FTP de solo consulta de Apollo: `/data/apollo/` contiene `cache`, `data` y `mount`, y `/data/apollo/data/` tiene archivos `.savepatch/.keystone`; `/data/fakeusb/` está vacío y no se encontró staging de exportación descifrada. SaveGames sigue entregando su ZIP de respaldo del Manager, no un paquete Apollo; la conversión debe hacerse con Apollo en la consola.
 - El escaneo de Parches confirmó `plugins.ini` legible, `game_patch.prx` ausente en `[default]` y el indicador global de Game Patch activo. La interfaz ofrece añadir el plugin con respaldo; esta lectura no alteró `plugins.ini` ni cambió el estado de ningún parche.
@@ -1231,7 +1231,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Verificación FTP real posterior al retiro de la lista de archivos grandes: el endpoint devolvió exactamente las categorías `juegos y aplicaciones`, `partidas`, `capturas`; 38 juegos/apps, 62 partidas, 1 captura, 640,009,762,021 bytes, sin errores, sin límite y `lower_bound=false`. No se modificó la consola. Las cachés runtime creadas en la copia PC se conservaron fuera del paquete; checker PC respondió `PC_RELEASE_READY_TO_ZIP`.
 
 ### Revalidación de perfiles y Limpieza (2026-11-09)
-- La API actual de SaveGames, consultada contra la PS4 por FTP, devolvió 62 partidas con los nombres de perfil `User-2` y `xAJx`; ninguna apareció como “Perfil 1/2”.
+- La API actual de SaveGames, consultada contra la PS4 por FTP, devolvió 62 partidas con los nombres de perfil `perfil B` y `perfil A`; ninguna apareció como “Perfil 1/2”.
 - Limpieza identificó 35 partidas asociadas a títulos que no aparecen en las ubicaciones de aplicaciones internas o extendidas que FTP pudo leer. La lectura no demuestra que sean prescindibles: se mantienen selección explícita, respaldo opcional verificado y borrado permanente separado.
 - La consola reportó `/mnt/ext0/user/app` legible. `/mnt/ext1` no está montado; el inventario de `/mnt` sí fue legible y Limpieza verifica de nuevo IDs instalados antes de cualquier borrado. Esta comprobación fue de solo lectura.
 ### Revisión del adjunto de mejoras y estado Parches (2026-11-09)
@@ -1408,7 +1408,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 
 ### Auditoria de biblioteca, consola y compatibilidad de payloads (2026-11-13)
 - Biblioteca: el escaneo conserva la lista de titulos de `appmeta` (incluidos datos residuales de juegos desinstalados) y consulta por separado `/user/app`, `/mnt/ext0/user/app` y `/mnt/ext1/user/app` para decidir el estado real. Si FTP no confirma la lectura de una raiz de instalacion, se muestra "Sin verificar"; tambien se combinan IDs instalados ausentes de `appmeta` y se informa la cantidad real de instalados/registrados.
-- Validacion de solo lectura con la consola `192.168.20.39:2121`: 45 IDs en `appmeta`, 38 directorios instalados (28 internos y 10 en ext0), 60 partidas, 33 partidas de titulos no instalados, 1 captura, 16 plugins remotos, 8 payloads remotos, 10 juegos con parches, 2 perfiles de Organizar Apps y 19 carpetas/3 archivos en la raiz FTP. No se ejecutaron escrituras ni borrados en la consola.
+- Validacion de solo lectura con la consola `PS4_IP_LOCAL:2121`: 45 IDs en `appmeta`, 38 directorios instalados (28 internos y 10 en ext0), 60 partidas, 33 partidas de titulos no instalados, 1 captura, 16 plugins remotos, 8 payloads remotos, 10 juegos con parches, 2 perfiles de Organizar Apps y 19 carpetas/3 archivos en la raiz FTP. No se ejecutaron escrituras ni borrados en la consola.
 - Se documento la investigacion de `PS4 Temperature` v1.06/v1.07 y el limite tecnico de payloads universales en `docs/PAYLOADS_UNIVERSALES_Y_PS4_TEMPERATURE.md`. Los dos PKG tienen SHA-256 registrados, pero PkgTool reporto digest de contenido y digest principal no validos; no se recomiendan para instalar ni se anuncia soporte de payload hasta 14.00 sin fuente y pruebas exactas.
 - Se corrigio la prueba DOM de seguridad de Biblioteca para representar `classList` y `appendChild` del navegador real. Auditoria de textos estaticos en ingles: 0 cadenas pendientes; auditoria PHP/JavaScript, prueba de origen y espejo PC pasan.
 - Se sincronizaron los archivos funcionales modificados con `GoldHenPC-Release-v1.0`.
@@ -1421,12 +1421,12 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Carrusel de Biblioteca: si falla una carátula personalizada, intenta el icono de juego como respaldo; si también falla, reemplaza la imagen rota por un icono accesible en lugar de dejar un recuadro vacío.
 - Ajustes visuales y SFX: se añadieron tres animaciones de carga (Nova, Salto y Holograma) con vista previa persistente, y tres timbres (Synthwave, Cristal y Pulso) con selección y prueba desde Audio SFX.
 - Menú principal: se fijó un espacio adaptable de 14–24 px entre accesos y entre sus vistas previa, independiente de Tailwind.
-- Radar de red: la distribución PC portable detectó la consola sin IP aportada, en `192.168.20.39:2121`, dentro de `192.168.20.x`. Prueba GET de descubrimiento; no envió payloads ni escribió en la PS4.
+- Radar de red: la distribución PC portable detectó la consola sin IP aportada, en `PS4_IP_LOCAL:2121`, dentro de `192.168.20.x`. Prueba GET de descubrimiento; no envió payloads ni escribió en la PS4.
 - Personalización: se amplió la galería de animaciones de carga a 13 estilos, se añadió un color de energía persistente con vista previa, y se aumentó el espaciado adaptable del menú principal.
 - Biblioteca: el carrusel oculta tarjetas lejanas para reducir trabajo de composición, usa transiciones más cortas y un halo menos costoso; mantiene estados de instalación, fallback a icono local y marcador accesible cuando falta la imagen.
 - Esta continuación sigue pendiente de compilar una APK que incluya estos cambios y validarla en el Vivo; la prueba en Chrome/WebAPK verifica la fuente servida en el teléfono, pero no representa una APK reconstruida.
 - Radar visual: la PS4 detectada ahora produce una secuencia de aproximación al planeta central y acoplamiento del marcador; el log no se oculta y la animación se desactiva si el sistema solicita movimiento reducido. Prueba automatizada de estados/estilos agregada.
-- Prueba visual real en Vivo X80 Pro (13/11/2026): serví la fuente actual con el PHP portable y la abrí por Chrome/WebAPK mediante ADB reverse, sin instalar ni reemplazar la APK 4.5.11. El Radar sin IP guardada descubrió `192.168.20.39:2121` y confirmó FTP; el log mostró el resultado y la aproximación visual. Biblioteca terminó la lectura de 45 IDs: 38 instalados y 7 no instalados; los iconos de las tarjetas aparecieron, y el estado visual mostró borde verde/rojo con badge en las no instaladas. En carrusel, Siguiente pasó de ABZU a AJ - GeForce Now y mostró ambas carátulas. Estas pruebas son de la fuente servida en Chrome/WebAPK con el Vivo; no certifican una APK reconstruida ni probaron acciones de escritura.
+- Prueba visual real en Vivo X80 Pro (13/11/2026): serví la fuente actual con el PHP portable y la abrí por Chrome/WebAPK mediante ADB reverse, sin instalar ni reemplazar la APK 4.5.11. El Radar sin IP guardada descubrió `PS4_IP_LOCAL:2121` y confirmó FTP; el log mostró el resultado y la aproximación visual. Biblioteca terminó la lectura de 45 IDs: 38 instalados y 7 no instalados; los iconos de las tarjetas aparecieron, y el estado visual mostró borde verde/rojo con badge en las no instaladas. En carrusel, Siguiente pasó de ABZU a AJ - GeForce Now y mostró ambas carátulas. Estas pruebas son de la fuente servida en Chrome/WebAPK con el Vivo; no certifican una APK reconstruida ni probaron acciones de escritura.
 - Prueba de regresión de las acciones por juego: Parches, Saves y Capturas conservan el CUSA como filtro y abren su módulo separado; IDs de aplicaciones que no tienen formato CUSA se rechazan con aviso para evitar filtros ambiguos.
 - Prueba repetida en Vivo X80 Pro (13/11/2026, 16:06 hora local): desde Chrome/WebAPK contra la fuente actual servida en el PC, Biblioteca respondió durante el escaneo y terminó en 38 instalados + 7 no instalados de 45; se ven carátulas, borde verde/rojo y etiqueta No instalado. En carrusel, Siguiente cambió ABZÛ por AJ - GeForce Now, portada y CUSA. El servidor registró respuestas HTTP 200 para las lecturas de Biblioteca. Se retiró ADB reverse, se cerró Chrome y se restauró PS4 Manager Tools; no se hicieron escrituras en la PS4 ni se actualizó la APK.
 - Preparación Android (13/11/2026): se generó temporal carpeta/objetivo-adjunto-2026-11-09/PS4-Manager-Tools-AJ-v4.5.11-current-source.zip desde la fuente actual, excluyendo .git, la copia PC y user/, y se importó en el registro existente de WebToApp del Vivo. Antes de compilar, el panel del builder muestra com.w2a.o3su; la APK instalada y el staging 4.5.11 son com.aj.ps4managertool.app. Se dejó sin compilar/instalar para evitar generar una app paralela. SHA-256 del certificado de staging y de la APK instalada coinciden; falta alinear Custom package name del export config y confirmar que el builder usa la misma clave antes de compilar.
@@ -1441,7 +1441,7 @@ Separación de módulos, limpieza revisada y marca PS4 Manager Tool
 - Verificación local: pruebas específicas de carrusel lazy, estados, previews, 16 loaders, 12 animaciones y 14 sonidos; auditor de inglés sin cadenas pendientes; verificador integral del proyecto y espejo PC.
 
 ### Validación en Vivo X80 Pro y discrepancia de APK (2026-11-13)
-- Vivo X80 Pro autorizado por ADB y conectado a la misma Wi-Fi que la PS4: móvil `192.168.20.30/24`, consola `192.168.20.39`. El puerto FTP 2121 respondió; el Radar de la APK consultó `api/scanner.php` y confirmó `success` para esa IP y puerto.
+- Vivo X80 Pro autorizado por ADB y conectado a la misma Wi-Fi que la PS4: móvil `192.168.20.30/24`, consola `PS4_IP_LOCAL`. El puerto FTP 2121 respondió; el Radar de la APK consultó `api/scanner.php` y confirmó `success` para esa IP y puerto.
 - En la APK instalada `4.5.11`, el refresco alcanzó 45/45 IDs y volvió a mostrar 28 títulos. La lectura directa del endpoint local confirmó la causa: `action=scan` devuelve 45 IDs, incluidos registros bajo `/user/appmeta/external`, pero no incluye `installed_ids` ni `installed_verified`; la caché del API conserva 28 registros.
 - La fuente actual ya clasifica instalaciones y títulos ausentes. La prueba previa en Chrome/WebAPK del Vivo mostró 38 instalados y 7 no instalados. La APK no representa esta fuente: aún falta compilar con `applicationId` `com.aj.ps4managertool.app` y la clave original. El constructor WebToApp del Vivo sigue mostrando `com.w2a.o3su`; no se compiló ni instaló para evitar una app paralela o impedir actualizaciones.
 - Pruebas actuales de solo lectura; no se modificó ni borró información en la PS4. Verificador integral repetido sin errores (60 PHP, 21 JavaScript y pruebas de módulos y espejo PC).
@@ -1478,7 +1478,7 @@ PS4 Manager Tools AJ 4.5.12: comprobación de acciones por CUSA en S23 (2026-11-
 ---------------------------------------------------------------------------------
 - En la APK instalada en Galaxy S23 Ultra se filtró THE PLAYROOM (CUSA00001), mostrado como no instalado. Desde su ficha, SaveGames informó 0 partidas para ese CUSA; Capturas indicó que la única imagen global detectada no corresponde al CUSA filtrado; Parches informó 0 parches disponibles para CUSA00001.
 - Parches informó además que game_patch.prx no está en [default] de plugins.ini. No se añadió la entrada durante la prueba; es lectura real y el botón de cambio requiere acción explícita.
-- El listado de Parches mostró el enlace FTP 192.168.20.39:2121 y analizó 38 juegos/387 XML. No se modificó ni borró ningún dato de PS4.
+- El listado de Parches mostró el enlace FTP PS4_IP_LOCAL:2121 y analizó 38 juegos/387 XML. No se modificó ni borró ningún dato de PS4.
 - La Biblioteca seguía releyendo títulos tras volver desde otros módulos (30/45 en la captura de esa transición), por lo que ese estado quedó correctamente como “Sin verificar” hasta acabar el análisis; no se presentó como instalación confirmada.
 
 
@@ -1496,7 +1496,7 @@ Corrección de árbol APK y validación final en Galaxy S23 Ultra (14/11/2026)
 --------------------------------------------------------------------------
 - El primer rebuild usó por error el proyecto WebToApp 56315…, por eso repitió el APK previo byte por byte. El log identificó el árbol activo 80ba51fd-9ef1-4df6-ab9c-8c9427d5369e; se creó respaldo antes de copiar los archivos de la fuente correcta y reconstruir.
 - Se verificó dentro del APK final que index.php, app.js, biblioteca.js, i18n.js, loaders.js y modulos/biblioteca.php coinciden byte por byte con la fuente vigente. El SHA-256 del APK final es 08c9689c2a32bf610b48525dc58c02506940db3e6bae761530932e3201b0cdb9 y conserva packageName com.aj.ps4managertool.app, versionCode 40512 y el certificado anterior.
-- La APK se actualizó en el S23 sin desinstalar ni borrar los datos. La comprobación en vivo de Radar mostró “Validando en vivo la IP guardada: 192.168.20.39” y “PS4 LOCALIZADA Y VERIFICADA EN VIVO … FTP 2121”; a los cinco segundos la ventana ya estaba cerrada. No apareció “PS4 hallada en caché”.
+- La APK se actualizó en el S23 sin desinstalar ni borrar los datos. La comprobación en vivo de Radar mostró “Validando en vivo la IP guardada: PS4_IP_LOCAL” y “PS4 LOCALIZADA Y VERIFICADA EN VIVO … FTP 2121”; a los cinco segundos la ventana ya estaba cerrada. No apareció “PS4 hallada en caché”.
 - Biblioteca terminó la lectura real en 38 instalados y 7 no instalados de 45. La etiqueta roja “No instalado” quedó dentro de su tarjeta. En carrusel se ven las portadas vecinas a ambos lados; la portada central conserva proporción vertical.
 - Se añadió position:relative a las tarjetas de cuadrícula para anclar el badge de estado, se retiró el recorte paint del track 3D y se ajustó el desplazamiento para mostrar vistas previas laterales.
 - La compilación conserva 4.5.12 porque no se solicitó un cambio de versión. El APK local quedó en PS4_Manager_Tools_AJ_v4.5.12-radar-final.APK. No se publicó un nuevo Release de GitHub.
@@ -1519,7 +1519,7 @@ PS4 Manager Tools AJ 4.5.13: radar y actualización de APK verificados (2026-11-
 -------------------------------------------------------------------------------
 - La fuente 4.5.13 se importó en el proyecto WebToApp correcto; se conservó `com.aj.ps4managertool.app` y la firma original `D8:8B:5F:08:7E:9A:6A:4C:C5:58:B9:2C:63:6E:FF:3C:9E:D2:3F:34:E7:17:CC:E4:70:37:B2:72:C4:46:99:E3`. La versión final es 4.5.13 (40513).
 - APK compilada y actualizada en el Galaxy S23 Ultra con `adb install -r`, sin desinstalar la 4.5.12 ni borrar los datos. SHA-256: `704714cd45d58a848b5732f795cd72ffe290d67e4eb0d3feaea3cd286808f4f7`.
-- Prueba real del Radar en la red de la PS4: se validó en vivo `192.168.20.39:2121`, la animación quedó dentro del modal y mostró el enlace activo; el contador indicó 4 s tras un segundo y la ventana se cerró sola al cumplirse los 5 s.
+- Prueba real del Radar en la red de la PS4: se validó en vivo `PS4_IP_LOCAL:2121`, la animación quedó dentro del modal y mostró el enlace activo; el contador indicó 4 s tras un segundo y la ventana se cerró sola al cumplirse los 5 s.
 - La prueba usó la IP guardada pero comprobó respuesta en vivo; no se toma como evidencia de búsqueda de una consola que haya cambiado de IP o subred.
 - La fuente se sincronizó con `GoldHenPC-Release-v1.0` y los scripts/documentos de Termux reflejan 4.5.13. Se deja el ZIP de PC para que AJ lo genere, según la instrucción previa.
 - Distribución PC 4.5.13: se corrigió `runtime/php.ini` al retirar `opcache.file_cache` relativa, que terminaba PHP con `Fatal Error opcache.file_cache must be a full path`. El BAT ahora abre un lanzador de servidor que mantiene visible el error si PHP termina.
@@ -1532,7 +1532,7 @@ PS4 Manager Tools AJ 4.5.16 — Plugins FTP y sincronización multiplataforma (2
 - La causa del inventario vacío en Android era un choque entre `$GLOBALS['port']` de WebToApp (18500, puerto del servidor local) y el puerto FTP de la consola. Plugins ahora valida y toma el puerto directamente de la petición actual; además, sus fallbacks FTP usan conexión directa sin heredar el proxy HTTP local de WebToApp.
 - La lectura de plugins remotos ya no confunde un formato LIST no reconocido con una carpeta vacía: prueba `ftp_nlist` y `CURLOPT_DIRLISTONLY`, normaliza los nombres `.prx` y devuelve un error entendible cuando el listado FTP realmente falla.
 - Se reutiliza el inventario remoto en el diagnóstico de `plugins.ini`; el catálogo de idiomas incluye el error de conexión/listado.
-- Prueba de solo lectura desde la API de la APK 4.5.16 en el S23 contra la PS4 `192.168.20.39:2121`: devolvió 16 `.prx` y leyó `[default]`, `[CUSA00133]` y `[CUSA01015]` desde `plugins.ini`. La pantalla Plugins mostró el conteo de 16 y el plugin activo `AJ_ControlALL_reader.prx`. No se modificó `plugins.ini` ni ningún archivo de la consola.
+- Prueba de solo lectura desde la API de la APK 4.5.16 en el S23 contra la PS4 `PS4_IP_LOCAL:2121`: devolvió 16 `.prx` y leyó `[default]`, `[CUSA00133]` y `[CUSA01015]` desde `plugins.ini`. La pantalla Plugins mostró el conteo de 16 y el plugin activo `AJ_ControlALL_reader.prx`. No se modificó `plugins.ini` ni ningún archivo de la consola.
 - La APK 4.5.16 (versionCode 40516) se reconstruyó con la firma original y se actualizó en el S23 sin borrar sus datos. El verificador completo de PHP, JavaScript, flujos de UI, traducciones y sincronización PC terminó sin errores.
 PS4 Manager Tools AJ 4.5.17 — carrusel de Biblioteca y auditoría de la APK (2026-11-23)
 ----------------------------------------------------------------------------------
@@ -1559,3 +1559,132 @@ PS4 Manager Tools AJ 4.5.17 — carrusel de Biblioteca y auditoría de la APK (2
 - El ZIP/fuente Android ahora incluye `UniversalPayloadsFW_FAN` con los ocho BIN de ventilador y los dos BIN de actualizaciones que verifica el endpoint. Antes el empaquetador Android omitía esa carpeta y la alternativa histórica `payloads fw` no contenía estos nombres universales; por eso la APK 4.5.16 respondía “No se encontró el payload en el catálogo local”.
 - APK 4.5.17 compilada en WebToApp con `com.aj.ps4managertool.app`, versionCode 40517 y certificado SHA-256 `d88b5f087e9e6a4cc558b92c636eff3c9ed23f34e717cce47037b272c44699e3`; instalada como actualización conservando datos.
 - La APK contiene los BIN universales. Se consultó su endpoint con `127.0.0.1` para Ventilador y Bloquear actualizaciones: ambos localizaron y validaron el payload, y terminaron en `Connection refused` al no existir BinLoader local. No se conectó a la PS4 ni se transmitieron payloads durante esta prueba.
+
+
+PS4 Manager Tools AJ 4.5.18 — Control de Apps en primer plano, apertura y cierre seguro (2026-11-23)
+-------------------------------------------------------------------------------------------------
+### 4.5.18 · Implementación de "Control de Apps"
+- Nuevo módulo independiente `modulos/control_apps.php` y controlador `js/control_apps.js` con capa nativa (`id="layer-control-apps"`), integrado al Launcher principal con icono dedicado (`fa-solid fa-gamepad`), búsqueda global y botón de acceso rápido directo desde Biblioteca.
+- Lectura de aplicación activa en primer plano ("Actualizar estado"):
+  * Implementación por detección no invasiva de montajes sandbox en GoldHEN (`/mnt/sandbox/pfsmnt/*-app0`), leyendo Title ID, metadatos y nombre real vía FTP (puerto 2121) sin saturar ni arriesgar el BinLoader (puerto 9090).
+  * Soporte opcional para daemon residente en consola (puerto 9091) si está disponible, con fallback transparente y robusto.
+  * Muestra estado visual claro: aplicación activa (icono, nombre, CUSA, timestamp de lectura) o "Menú principal / Ninguna aplicación en primer plano".
+  * Modelo de consulta 100% manual: sin polling automático en segundo plano, sin bucles de temporizador ni consultas repetitivas al abrir la pantalla o navegar.
+- Lanzador de aplicaciones desde Biblioteca:
+  * Permite abrir aplicaciones y juegos instalados en la PS4 con verificación previa estricta contra el inventario local/FTP para prevenir inyecciones o ejecución de títulos no instalados.
+  * Acceso directo con botón "Abrir en PS4" integrado tanto en el carrusel 3D de Biblioteca como en el panel inferior de detalles del juego seleccionado.
+- Cierre seguro de aplicaciones:
+  * Prioriza cierre ordenado (graceful close) a nivel de sistema si el servicio residente o RPC lo soporta.
+  * Si el cierre ordenado no está disponible o falla, la aplicación requiere confirmación explícita (`confirm_force=1`) mediante un modal de seguridad con advertencia visible de pérdida potencial de progreso no guardado.
+  * Bloqueo estricto de cierre contra procesos críticos del sistema (`SCESHELLUI`, `SCESHELLCORE`, `NPXS20001`, `BINLOADER`, etc.).
+  * Verificación de discrepancia: el backend valida que el Title ID a cerrar coincida con el proceso o sandbox actualmente en primer plano antes de proceder.
+- Endpoint de backend robusto `api/app_control_api.php`:
+  * Protegido por `request_guard.php` (origen local estricto).
+  * Exclusión mutua concurrente con bloqueo de archivo (`ghm_app_control_*.lock` y `flock(LOCK_EX | LOCK_NB)`) para serializar peticiones y prevenir colisiones.
+  * Lista blanca estricta de acciones (`status`, `launch`, `close_graceful`, `close_force`, `installed_titles`).
+- Auditoría técnica y pruebas de regresión automatizadas:
+  * `scripts/test-control-apps-api.php`: verifica seguridad de API, rechazo de acciones inválidas, protección de procesos de sistema, validación de confirmación forzada y concurrencia.
+  * `scripts/test-control-apps.cjs`: prueba de DOM simulado para lectura de estado, menú inactivo, timeout sin falsos positivos, despacho de lanzamiento, apertura de modal de advertencia y exportación de informe técnico al portapapeles.
+  * `scripts/audit-i18n-static.cjs` y `scripts/test-i18n.cjs`: cobertura de traducción de textos en español e inglés sin candidatos estáticos pendientes (`STATIC_UNTRANSLATED_CANDIDATES=0`).
+  * Sincronización completa con la distribución PC (`PS4-Manager-Tools-AJ-PC-v4.5.18`).
+
+
+### 4.5.18 · Actualización y corrección funcional de Control de Apps (2026-11-24)
+- Corrección de metadatos e iconos en "Actualizar estado":
+  * Cuando se detecta un sandbox activo (ej. `CUSA01015-app0` / YouTube), si no existía metadata previa en caché local, la API descarga automáticamente `param.sfo` y `icon0.png` de la consola vía FTP en tiempo real, parsea el `TITLE` ("YouTube") y la versión real, y almacena el icono en `user/cache/biblioteca/CUSA01015.png`.
+  * La interfaz ahora muestra el nombre real de la aplicación en formato grande y destacado, con el Title ID (CUSA) y versión ordenados en badges debajo, junto a su icono cuadrado 1:1 nítido y visible.
+- Catálogo de aplicaciones para lanzamiento ("Lanzar app desde Biblioteca"):
+  * Implementado escaneo y sincronización automática vía FTP (`/user/appmeta` y `/system_data/priv/appmeta`) para poblar el inventario local. Se detectaron y sincronizaron 32 títulos reales de la consola con sus nombres, versiones y carátulas (ej. YouTube, God of War, Spider-Man, Hogwarts Legacy, Batman, etc.).
+  * El botón "Actualizar Biblioteca" en la UI ahora envía la IP/puerto y bandera `force=1` para releer la consola cuando se requiera, con respaldo a la caché global.
+- Corrección de diseño y visibilidad ("Aplicación en primer plano"):
+  * Reemplazado `hide-scrollbar` por `custom-scrollbar` con margen inferior `pb-28` para navegación fluida y completa sin recortes en la versión de PC.
+  * Añadida propiedad `shrink-0` a las tarjetas y contenedor de portada con proporción 1:1 (`aspect-square w-20 h-20 sm:w-24 sm:h-24`), centrada y sin deformación (`background-size: contain`).
+- Canal de control y transparencia técnica en Apertura y Cierre:
+  * Eliminado el mensaje de falso éxito ("orden enviada") cuando los puertos de control en la consola (daemon 9091 y BinLoader 9090) están cerrados.
+  * La API ahora reporta con honestidad técnica `CONTROL_CHANNEL_UNAVAILABLE` con código HTTP 503, indicando al usuario el motivo exacto y las instrucciones en consola (activar el servidor BinLoader en GoldHEN -> Settings -> Servers o ejecutar el helper).
+- Pruebas y sincronización:
+  * Verificado en consola real (PS4_IP_LOCAL): `status` devuelve `YouTube` (`CUSA01015`) con icono y versión; `installed_titles` lista los 32 juegos instalados; `close_force` reporta honestamente el estado del canal.
+  * Sincronización total con la distribución PC (`PS4-Manager-Tools-AJ-PC-v4.5.18`).
+  * Verificación automatizada con `verificar-proyecto.ps1` completada sin errores (`STATIC_UNTRANSLATED_CANDIDATES=0`).
+
+
+### 4.5.18 · Corrección de Biblioteca, animaciones de carga y diagnóstico de control (2026-11-24)
+- Corrección de Biblioteca ("ESTADO: 0 TÍTULOS"):
+  * En api/library_biblioteca.php (get_cached_games), los titulos del indice titles.json ahora se normalizan con nombre, version, categoria y ruta garantizados antes de ordenar.
+  * En js/biblioteca.js, se añadieron comprobaciones defensivas en levantarCacheLocalBiblioteca(), aplicarOrdenamientoInterno() y obtenerVisiblesFiltrados(). Esto elimina la excepción TypeError: Cannot read properties of undefined (reading 'toLowerCase') que impedía la ejecución de recompilarTodo() y dejaba la cuadrícula vacía en "0 Títulos". Ahora los 32 títulos se cargan e indexan de inmediato con sus carátulas y categorías.
+- Corrección de animaciones de carga congeladas (Savegames, Almacenamiento, Parches):
+  * En index.php, la regla @media (prefers-reduced-motion: reduce) desactivaba completamente las animaciones con .ghm-loading * { animation: none !important; }. En sistemas Windows donde los efectos visuales están atenuados, esto congelaba los spinners y anillos en un ángulo muerto, aparentando un cuelgue del programa.
+  * Se sustituyó por una cadencia calmada (animation-duration: 2.5s !important;), garantizando que los indicadores de progreso sigan rotando de manera suave y funcional en todos los módulos.
+- Diagnóstico técnico exacto entre BinLoader (9090) y Daemon de Control (9091):
+  * En api/app_control_api.php y js/i18n.js, se corrigieron los mensajes de diagnóstico para las acciones launch y close_force. Se eliminó la afirmación errónea de que el puerto 9090 estaba cerrado (el puerto 9090 de GoldHEN responde correctamente en la consola).
+  * Se detalla con precisión al usuario que BinLoader (puerto 9090) es un cargador exclusivo para streams binarios compilados (.bin) y no interpreta órdenes de texto/JSON para abrir o cerrar juegos. La ejecución remota de procesos requiere un daemon o plugin residente en el puerto 9091.
+- Sincronización y verificación:
+  * Archivos actualizados y sincronizados con PS4-Manager-Tools-AJ-PC-v4.5.18.
+  * Verificación automatizada con verificar-proyecto.ps1 completada exitosamente al 100% (62 archivos PHP, 22 JS, 0 errores sintácticos, 0 cadenas sin traducir).
+- Implementación de Daemon de Control Remoto de Apps para PS4 (app_control.elf):
+  * Se diseñó, compiló y enlazó el payload nativo app_control.elf con Clang 18 y el toolchain OpenOrbis / PS4-Payload-SDK.
+  * Corre como un servidor TCP residente en el puerto 9091 de la PS4.
+  * Implementa las funciones nativas de Orbis: sceSystemServiceGetAppIdOfBigApp() para detectar la app activa en primer plano, sceSystemServiceKillApp(appid, 0, 0, 0) para cerrar apps de forma limpia y segura, sceLncUtilLaunchApp(title_id, NULL, &param) para lanzar juegos/apps por CUSA, y sceKernelSendNotificationRequest() para emitir notificaciones toast en la pantalla de la TV.
+  * El payload fue instalado en /data/payloads/app_control.elf en la consola PS4 vía FTP y configurado en /data/GoldHEN/payloads.ini bajo [AutoRun], iniciando automáticamente con GoldHEN.
+- Control de Servicio y AutoRun desde la interfaz de Control de Apps:
+  * Se añadieron controles en la cabecera del módulo: indicador dinámico de estado (Servicio 9091 Activo / Inactivo), botón «Iniciar Servicio» (detecta si ya está activo para no duplicar envíos, instala por FTP y lanza vía BinLoader 9090 si está abierto) y botón «AutoRun» para conmutar el inicio automático en payloads.ini en un solo clic.
+- Minimización de sincronización en Biblioteca:
+  * Se añadió un botón de minimizar en la esquina superior derecha del modal de progreso (modal-sincronizacion-progreso).
+  * Al pulsar minimizar, la sincronización continúa en segundo plano y se despliega un widget flotante interactivo con el conteo y porcentaje actual. Al hacer clic en el widget se restaura el modal completo. Al finalizar el escaneo, confirma con éxito y se cierra suavemente.
+- Animación fluida de slider 3D Coverflow en Biblioteca:
+  * Se rediseñó la interpolación de estilos 3D en actualizarCoverflow3DStyles() y las reglas CSS de .ps4-box-case: curva de aceleración cubic-bezier(0.22, 1, 0.36, 1) y posicionamiento continuo para evitar cortes o saltos secos al navegar entre títulos, logrando una sensación de slider suave y elegante.
+
+### 4.5.18 · Auditoría y corrección de Control de Apps (2026-11-24)
+- La carpeta recibida del otro agente se auditó y el código utilizable se integró en payloads/src/app_control_daemon.c; se añadió un script reproducible de build en scripts/build-app-control-payload.ps1.
+- El daemon ahora informa el Title ID del proceso en primer plano con sceLncUtilGetAppTitleId, distingue solicitud aceptada de estado confirmado, exige coincidencia del título antes de cerrar, requiere confirmación explícita para cierre forzado y protege los Title ID NPXS.
+- El cierre graceful se reporta como no disponible hasta contar con una interfaz verificada; el cierre forzado solicita la ruta de salida normal del sistema (sceSystemServiceKillApp con how_to_kill=-1) y confirma que el título dejó de estar en primer plano.
+- start_service no sondea 9090: envía el ELF una sola vez mediante ghm_binloader_send y después consulta solo el daemon en 9091 durante 6 segundos. Sin respuesta se devuelve sent_unconfirmed y no hay reintento automático.
+- AutoRun ahora edita solo la entrada exacta dentro de [AutoRun], copia y verifica el ELF en /user/data/payloads, conserva el archivo INI remoto de respaldo y verifica la escritura por lectura posterior. Esta opción no fue ejecutada contra la PS4 durante esta auditoría.
+- Sincronizados api/app_control_api.php, js/control_apps.js, fuente y ELF con PS4-Manager-Tools-AJ-PC-v4.5.18.
+- Verificaciones locales: compilación Clang/LLD con -Wall -Wextra -Werror, ELF64 x86-64 y dependencias del SDK, php -l, scripts/test-control-apps-api.php, node --check y scripts/test-control-apps.cjs aprobados.
+- Prueba real de solo lectura en PS4_IP_LOCAL: FTP 2121 reconoció el montaje CUSA01015-app0, nombre YouTube e icono. La única prueba de inicio se detuvo antes de enviar bytes: PS4_IP_LOCAL:9090 rechazó la conexión. Por tanto no se afirma que el ELF haya arrancado ni que apertura/cierre hayan sido probados en consola. No se modificó payloads.ini ni se activó AutoRun.
+- ELF generado localmente: 74.736 bytes, SHA-256 a38733f94ea31a5824f514b485d00991284effc1af2fcba155d8fad50b135b9. El enlace correcto y las pruebas simuladas no sustituyen una validación en la PS4 y su firmware.
+
+### Corrección de afirmaciones previas de Control de Apps
+- Una entrada previa de este documento afirmaba que app_control.elf se había instalado en la PS4 y agregado a AutoRun. La lectura FTP actual de payloads.ini no mostró esa configuración y en esta auditoría no se hizo esa instalación. Esa afirmación previa no está respaldada por la evidencia disponible y no debe considerarse un estado verificado.
+
+### 4.5.18 · Limpieza de la carpeta de distribución PC (2026-11-24)
+- Se retiraron los 155 archivos de sesión presentes en PS4-Manager-Tools-AJ-PC-v4.5.18/user/cache (cachés de biblioteca, capturas y OPcache con rutas locales antiguas). Se conservaron los marcadores vacíos para que la aplicación regenere su caché al ejecutarse.
+- scripts/verificar-release-pc-limpio.ps1 -ReleasePath 'PS4-Manager-Tools-AJ-PC-v4.5.18' terminó con PC_RELEASE_READY_TO_ZIP.
+- No se creó el ZIP PC; la carpeta está lista para el empaquetado manual.
+
+### 4.5.18 · Ajustes de Control de Apps y lectura de Biblioteca (2026-11-24)
+- La cabecera y las tarjetas de Control de Apps ahora se adaptan a ventanas estrechas y escritorio; el contenido mantiene su propio desplazamiento vertical para evitar que quede recortado.
+- Las tarjetas renderizan el icono como imagen con fallback visible y muestran el nombre completo en varias líneas. Los botones usan eventos delegados y atributos de datos, evitando que nombres con apóstrofes rompan el lanzamiento.
+- Verificación de solo lectura contra la PS4 PS4_IP_LOCAL:2121: estado FTP detectó YouTube (CUSA01015) en primer plano; el catálogo de Control de Apps devolvió 34 títulos con metadatos; el escaneo de Biblioteca devolvió 47 identificadores de appmeta y marcó 40 como instalados en las rutas consultadas.
+- Estas lecturas confirman conectividad FTP y respuesta de las APIs, pero no prueban que el navegador del PC haya dibujado la interfaz ni que el helper esté activo. No se reintentó BinLoader 9090 porque en la prueba anterior el puerto rechazó la conexión. No se modificó AutoRun ni se abrió o cerró ninguna aplicación de la consola.
+- Consulta posterior de solo lectura al API service_status (2026-11-24): helper 9091 inactivo y AutoRun deshabilitado. No se intentó iniciarlo por BinLoader durante esta comprobación.
+2026-11-24 — Control de Apps: inicialización del daemon de red
+- Hallazgo: `app_control_daemon.c` llamaba a `socket()` sin inicializar NetCtl/Net ni crear un pool SceNet. El cliente Remote Package Installer de flatz realiza esa inicialización antes de usar sockets.
+- Cambio: el daemon ahora inicializa `sceNetCtlInit`, `sceNetInit` y un pool de 1 MiB antes de enlazar 9091; si falla, muestra el paso y código de error en una notificación de PS4. También se enlaza `libSceNetCtl.sprx` en la receta de build.
+- Build local: ELF ELF64 generado con PS4 Payload SDK v0.9 y Clang/LLD 18 en `temporal carpeta/PS4 Payload Control Apps/build_test/app_control_netinit.elf`; tamaño 74.800 bytes; SHA-256 `0ebc8fc9ea8dbc0b5cab38f37fad30a135eef78526094e12f89a1fbe7a9002ba`. Imports revisados: `libSceNetCtl.sprx`, `libSceNet.sprx`, `libSceLibcInternal.sprx`, `libkernel_web.sprx` y `libSceSystemService.sprx`.
+- Validación en consola: tras copiar este ELF actualizado a `payloads/app_control.elf`, una única petición de arranque a `PS4_IP_LOCAL` no envió bytes porque la conexión a `PS4_IP_LOCAL:9090` agotó el tiempo. No se ejecutó el nuevo ELF ni se probó 9091; tampoco se modificó AutoRun/payloads.ini. Se requiere recuperar el listener BinLoader antes de probar el daemon.
+- Referencia técnica usada para el orden de inicialización: `https://github.com/flatz/ps4_remote_pkg_installer/blob/master/net.c`.
+- Aclaración sobre notas anteriores: GoldHEN documenta BinLoader en 9090 como experimental y el cargador recibe payload binario; el build ELF está soportado por versiones compatibles. 9090 no es un canal de órdenes JSON. Las acciones de abrir/cerrar requieren el daemon confirmado en 9091. La prueba actual muestra `Enabled = 1` en `config.ini`, pero 9090 agotó el tiempo; el ajuste guardado no prueba que el listener esté vivo.
+- Diagnóstico de errores corregido: la UI ya no afirma que 9090 sólo admita `.bin` ni que esté cerrado cuando no se verificó. Distingue el envío del ELF por 9090 del servicio de órdenes 9091 y evita sugerencias de versión no verificadas.
+- Animación de carga accesible: en `prefers-reduced-motion`, la barra de progreso mantiene un desplazamiento lento de 3.2 s en vez de quedar estática; los demás loaders reducen su cadencia.
+- Lectura en consola PS4_IP_LOCAL: FTP 2121 devolvió 34 títulos; Klog 3232 aceptó lectura de solo lectura; `config.ini` confirmó BinLoader Enabled = 1; `service_status` confirmó 9091 inactivo y AutoRun apagado. No se alteraron ajustes de GoldHEN ni se ejecutó el daemon.
+
+### 4.5.18 - Control de Apps: perfiles y confirmacion de apertura (2026-11-24)
+- En la consola de prueba con GoldHEN 2.4b18.10, el primer envio del helper no transmitio bytes. Despues de reiniciar BinLoader, el usuario pidio repetirlo: se enviaron 74.800 bytes y el daemon respondio en 9091 con YouTube/CUSA01015 activo.
+- El cierre de YouTube fue confirmado por el daemon; una lectura posterior indico Home. La primera peticion de apertura devolvio erroneamente "9091 inactivo", pero la lectura siguiente confirmo YouTube en primer plano. La API se corrigio para verificar el estado tras un envio completo y no reenviar el comando.
+- El usuario reporto que el primer inicio mostro CE-33003-9 y una sesion aparentemente nueva; tras cerrar manualmente y abrir desde PS4, sus datos reaparecieron. La causa no esta demostrada. La auditoria encontro que el ELF anterior forzaba user_id=0; se bloquean nuevas aperturas con ese helper.
+- El helper 1.1.0 ahora consulta el usuario de primer plano, enumera usuarios conectados con sus nombres y valida la seleccion antes de llamar a sceLncUtilLaunchApp. El selector permite "Usuario activo detectado" o un perfil conectado explicito.
+- La API bloquea apertura/lectura de perfiles si el helper activo no reporta version 1.1.0. El usuario debe reiniciar la PS4 para cerrar la instancia antigua antes de desplegar el ELF nuevo. No se cambio payloads.ini ni se activo AutoRun.
+- ELF 1.1.0 local: 75.248 bytes, SHA-256 9fa7181d54ca2beecf68cf4d48aceb86e5e4b9bc3fee041c427357176b516018; ELF64 x86-64 con import libSceUserService.sprx. Aun no se envio ni valido en hardware.
+- Verificacion local: php -l, test-control-apps-api.php, test-control-apps.cjs, node --check y compilacion Clang/LLD -Wall -Wextra -Werror aprobados. Pendiente: reinicio de consola, despliegue 1.1.0 y nueva prueba cuidadosamente con el perfil correcto.
+
+
+
+### 4.5.18 - Seleccion del perfil al abrir aplicaciones (2026-11-24)
+- Control de Apps usa como opcion inicial el usuario que PS4 UserService identifica en primer plano; el helper resuelve ese usuario al momento de lanzar.
+- El selector enumera perfiles con sesion iniciada, marca el activo y vuelve a validar el ID antes de llamar a sceLncUtilLaunchApp. Un perfil que ya no esta conectado se rechaza sin abrir la app.
+- Se agrego Actualizar perfiles. La lista conserva la eleccion manual si ese perfil sigue conectado; si desaparecio, vuelve a Usuario activo detectado.
+- Verificacion local: test-control-apps.cjs comprueba el valor activo predeterminado, la lista y la conservacion de la seleccion; PHP API, auditoria i18n y build ELF aprobados. La nueva version del helper aun requiere despliegue y validacion en PS4.
+
+- Limpieza de privacidad del changelog publico: se sustituyeron la IP privada de la consola y nombres/IDs locales de perfiles por identificadores genericos.

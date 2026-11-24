@@ -86,10 +86,13 @@
         border: 1px solid rgba(255, 255, 255, 0.05);
         transform-style: preserve-3d;
         -webkit-transform-style: preserve-3d;
-        will-change: auto;
+        will-change: transform, opacity;
         contain: layout paint style;
         backface-visibility:hidden;
         -webkit-backface-visibility:hidden;
+    }
+    .carousel-track-master .ps4-box-case {
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
     }
     .ps4-img-art { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
     .ps4-img-art.library-image-failed { visibility: hidden; }
@@ -107,7 +110,7 @@
     .ps4-box-case.library-not-installed.active { border-color:rgba(248,113,113,1); box-shadow:0 0 24px rgba(248,113,113,.3),0 15px 40px rgba(0,0,0,.7); }
     .ps4-box-case.library-unverified.active { border-color:rgba(251,191,36,.95); box-shadow:0 0 24px rgba(251,191,36,.24),0 15px 40px rgba(0,0,0,.7); }
     .ps4-box-case.carousel-near { visibility:visible; transition-delay:0s; will-change:transform,opacity; }
-    .ps4-box-case.carousel-far { visibility:hidden; opacity:0 !important; pointer-events:none !important; transition:none !important; }
+    .ps4-box-case.carousel-far { opacity:0 !important; pointer-events:none !important; }
 
     .ps4-top-ribbon {
         background: linear-gradient(180deg, #0056c6 0%, #003780 100%);
@@ -175,7 +178,10 @@
                 <button id="btn-toggle-library-view" type="button" aria-label="Cambiar entre cuadrícula y carrusel" aria-pressed="false" onclick="conmutarModoVista()" class="h-9 px-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center gap-2 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest text-cyan-300">
                     <i class="fa-solid fa-cube text-cyan-400" id="icono-vista"></i> Cambiar vista
                 </button>
-                <span class="text-[8px] text-gray-500">Verde: instalado · rojo: no instalado</span>
+                <button type="button" onclick="abrirModuloNativo('control-apps')" aria-label="Abrir Control de Apps" class="h-9 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest text-emerald-300">
+                    <i class="fa-solid fa-gamepad text-emerald-400"></i> Control Apps
+                </button>
+                <span class="text-[8px] text-gray-500 hidden sm:inline">Verde: instalado · rojo: no instalado</span>
             </div>
         </div>
 
@@ -241,6 +247,12 @@
 
                 <div class="w-[80%] h-px bg-white/5 my-4"></div>
 
+                <div class="w-full max-w-md px-2 mb-2">
+                    <button type="button" onclick="abrirControlAppsParaJuego(juegoSeleccionadoLocal)" class="w-full py-2.5 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center gap-2 text-emerald-300 font-black text-[9px] uppercase tracking-widest hover:bg-emerald-500/20 active:scale-95 transition-all shadow-lg">
+                        <i class="fa-solid fa-play text-emerald-400"></i> Abrir en PS4
+                    </button>
+                </div>
+
                 <div class="grid grid-cols-3 gap-2 w-full max-w-md px-2">
                     <button onclick="abrirHerramientaJuego('parches-juego', juegoSeleccionadoLocal)" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0a0e14] border border-white/5 active:scale-95 transition-all shadow-lg hover:border-violet-500/30">
                         <i class="fa-solid fa-wand-magic-sparkles text-violet-400 text-lg mb-1.5"></i>
@@ -273,13 +285,33 @@
 </div>
 
 <div id="modal-sincronizacion-progreso" class="fixed inset-0 z-[500] sinc-overlay hidden flex items-center justify-center p-6 opacity-0 transition-opacity duration-300">
-    <div class="glass-premium w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl flex flex-col items-center border border-white/10 bg-[#070b14]/90 modal-pop">
+    <div class="glass-premium w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl flex flex-col items-center border border-white/10 bg-[#070b14]/90 modal-pop relative">
+        <button onclick="minimizarSincronizacionModal()" title="Minimizar sincronización" aria-label="Minimizar sincronización" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all cursor-pointer z-10">
+            <i class="fa-solid fa-window-minimize -translate-y-1 text-xs"></i>
+        </button>
         <div class="w-12 h-12 rounded-full border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-center text-cyan-400 text-lg mb-3"><i class="fa-brands fa-playstation animate-pulse"></i></div>
         <h3 id="sinc-modal-title" class="text-xs font-black tracking-widest text-cyan-400 uppercase">Sincronizando</h3>
         <p id="sinc-modal-text" class="text-[9px] font-mono text-gray-400 uppercase tracking-wider text-center mt-1 truncate max-w-xs">Estableciendo Socket...</p>
         <div class="w-full bg-white/5 border border-white/5 h-2 rounded-full overflow-hidden mt-4 relative"><div id="sinc-modal-bar" class="absolute left-0 top-0 h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full transition-all duration-200" style="width: 0%;"></div></div>
         <div class="flex justify-between items-center w-full mt-2 text-[8px] font-black uppercase tracking-widest text-gray-500"><span id="sinc-modal-percentage">0%</span><span id="sinc-modal-bytes">0 / 0 Analizados</span></div>
         <button onclick="abortarSincronizacionDesdeBoton()" class="w-full py-2 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 font-black tracking-widest text-[9px] uppercase mt-4 active:scale-95 transition-all">Cancelar</button>
+    </div>
+</div>
+
+<!-- Widget flotante minimizado de sincronización de biblioteca -->
+<div id="biblioteca-sync-floating-pill" onclick="restaurarSincronizacionModal()" title="Clic para restaurar progreso" class="hidden fixed bottom-6 right-6 z-[450] bg-[#0c1222]/95 border border-cyan-500/40 rounded-2xl px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer hover:scale-105 active:scale-95 transition-all items-center gap-3">
+    <div class="w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-sm shrink-0">
+        <i class="fa-solid fa-arrows-rotate fa-spin"></i>
+    </div>
+    <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-2">
+            <span class="text-[9px] font-black uppercase tracking-wider text-cyan-300 truncate" id="sync-pill-title">Sincronizando</span>
+            <span class="text-[8px] font-mono text-gray-400 font-bold" id="sync-pill-percentage">0%</span>
+        </div>
+        <span class="text-[8px] font-mono text-gray-400 truncate max-w-[150px]" id="sync-pill-text">Analizando...</span>
+    </div>
+    <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 text-[10px] ml-1 shrink-0">
+        <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
     </div>
 </div>
 
@@ -375,10 +407,11 @@
             <div class="rounded-2xl border border-white/10 bg-black/20 p-3">
                 <p class="mb-2 text-[8px] font-black uppercase tracking-[.18em] text-gray-400">Herramientas de este juego</p>
                 <div class="grid grid-cols-3 gap-2">
+                    <button onclick="abrirControlAppsParaJuego(juegoSeleccionadoLocal)" class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 p-2 text-[9px] font-bold text-emerald-100 col-span-2"><i class="fa-solid fa-play mr-1 text-emerald-400"></i>Abrir en PS4</button>
+                    <button onclick="abrirPluginsParaJuego(juegoSeleccionadoLocal.id)" class="rounded-xl border border-violet-400/20 bg-violet-500/10 p-2 text-[9px] font-bold text-violet-100"><i class="fa-solid fa-plug mr-1"></i>Plugins</button>
                     <button onclick="abrirHerramientaJuego('parches-juego', juegoSeleccionadoLocal)" class="rounded-xl border border-violet-400/20 bg-violet-500/10 p-2 text-[9px] font-bold text-violet-100"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Parches</button>
                     <button onclick="abrirHerramientaJuego('savegames', juegoSeleccionadoLocal)" class="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-2 text-[9px] font-bold text-cyan-100"><i class="fa-solid fa-floppy-disk mr-1"></i>Partidas</button>
                     <button onclick="abrirHerramientaJuego('capturas', juegoSeleccionadoLocal)" class="rounded-xl border border-pink-400/20 bg-pink-500/10 p-2 text-[9px] font-bold text-pink-100"><i class="fa-solid fa-images mr-1"></i>Capturas</button>
-                    <button onclick="abrirPluginsParaJuego(juegoSeleccionadoLocal.id)" class="rounded-xl border border-violet-400/20 bg-violet-500/10 p-2 text-[9px] font-bold text-violet-100"><i class="fa-solid fa-plug mr-1"></i>Plugins</button>
                 </div>
                 <div id="library-residual-storage" class="hidden mt-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-3">
                     <button type="button" onclick="bibliotecaAnalizarDatosResiduales()" class="w-full rounded-xl border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-left text-[10px] font-bold text-amber-100"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Ver datos residuales y espacio</button>

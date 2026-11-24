@@ -1,5 +1,5 @@
 param(
-    [string]$OutputDirectory = 'C:\Users\Administrator\Desktop\GoldHenManagerAJ-main\temporal carpeta\objetivo-adjunto-2026-11-09\android-source-4.5.17'
+    [string]$OutputDirectory = 'C:\Users\Administrator\Desktop\GoldHenManagerAJ-main\temporal carpeta\objetivo-adjunto-2026-11-09\android-source-4.5.18'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,7 +27,7 @@ foreach ($name in $files) {
 if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive -Force }
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive -CompressionLevel Optimal
 $version = Get-Content -LiteralPath (Join-Path $stage 'project-version.json') -Raw | ConvertFrom-Json
-if ($version.version -ne '4.5.17') { throw "Fuente preparada con version inesperada: $($version.version)" }
+if ($version.version -ne '4.5.18') { throw "Fuente preparada con version inesperada: $($version.version)" }
 $sha = [System.Security.Cryptography.SHA256]::Create()
 $stream = [System.IO.File]::OpenRead($archive)
 try { $hash = ([System.BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
