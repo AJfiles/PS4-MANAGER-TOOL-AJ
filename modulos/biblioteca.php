@@ -10,7 +10,7 @@
     .pill-modern { border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(255, 255, 255, 0.02); color: #9ca3af; transition: all 0.25s ease; }
     .pill-modern.active { border-color: #22d3ee; background: linear-gradient(135deg, rgba(34,211,238,0.1) 0%, rgba(147,51,234,0.1) 100%); color: #22d3ee; box-shadow: 0 0 15px rgba(34,211,238,0.15); }
 
-    .grid-card-modern { position:relative; border: 1px solid rgba(255, 255, 255, 0.03); background: #0b0f19; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); aspect-ratio: 1 / 1.15; }
+    .grid-card-modern { position:relative; border: 1px solid rgba(255, 255, 255, 0.03); background: #0b0f19; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); aspect-ratio: .82; }
     .grid-card-modern.library-installed, .ps4-box-case.library-installed { border: 2px solid rgba(52, 211, 153, .85); box-shadow:0 0 12px rgba(52,211,153,.12); }
     .grid-card-modern.library-not-installed, .ps4-box-case.library-not-installed { border: 2px solid rgba(248, 113, 113, .95); box-shadow: 0 0 14px rgba(248, 113, 113, .14); }
     .grid-card-modern.library-unverified, .ps4-box-case.library-unverified { border: 2px solid rgba(251, 191, 36, .65); }
@@ -144,7 +144,7 @@
     body.layout-desktop #library-header #label-orden-actual { font-size: 11px; }
     body.layout-desktop #library-content { margin-top: 14px; }
     body.layout-desktop #container-view-grid { padding: 4px 8px 112px; }
-    body.layout-desktop #dom-grid-target { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 18px; }
+    body.layout-desktop #dom-grid-target { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
     body.layout-desktop .grid-card-modern { aspect-ratio: .82; border-radius: 20px; padding: 8px; }
     body.layout-desktop .grid-card-modern p { font-size: 12px; padding-top: 9px; }
     body.layout-desktop #container-view-3d { padding-top: 12px; }
@@ -159,7 +159,7 @@
     body.layout-desktop #container-view-3d > div:last-child button span { font-size: 10px; }
     body.layout-desktop .library-carousel-nav { width: 48px; height: 48px; font-size: 15px; }
     @media (max-width: 1150px) {
-        body.layout-desktop #dom-grid-target { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; }
+        body.layout-desktop #dom-grid-target { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
         body.layout-desktop #library-header h2 { font-size: 1.6rem; }
     }
 </style>
@@ -220,7 +220,7 @@
     <div id="library-content" class="flex-grow w-full relative overflow-hidden mt-1 flex flex-col">
         
         <div id="container-view-grid" class="absolute inset-0 overflow-y-auto hide-scrollbar w-full h-full pb-28 hidden">
-            <div id="dom-grid-target" class="grid grid-cols-3 gap-3 w-full"></div>
+            <div id="dom-grid-target" class="grid grid-cols-2 gap-3 w-full"></div>
         </div>
 
         <div id="container-view-3d" class="absolute inset-0 w-full h-full flex flex-col justify-start pt-6 overflow-y-auto overscroll-contain touch-pan-y" style="-webkit-overflow-scrolling:touch">

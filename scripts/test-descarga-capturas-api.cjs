@@ -150,7 +150,16 @@ const controlServer = net.createServer(socket => {
         fs.writeFileSync(archivePath, Buffer.from(await response.arrayBuffer()));
         assert.ok(fs.statSync(archivePath).size > [...fixtureFiles.values()].reduce((sum, file) => sum + file.length, 0));
 
-        const php = path.join(__dirname, '..', 'GoldHenPC-Release-v1.0', 'runtime', 'php.exe');
+        const projectRoot = path.join(__dirname, '..');
+        const projectVersion = JSON.parse(fs.readFileSync(path.join(projectRoot, 'project-version.json'), 'utf8')).version;
+        const phpCandidates = [
+            process.env.PHP_BINARY,
+            path.join(projectRoot, `PS4-Manager-Tools-AJ-PC-v${projectVersion}`, 'runtime', 'php.exe'),
+            path.join(projectRoot, 'GoldHenPC-Release-v1.0', 'runtime', 'php.exe'),
+            'php'
+        ].filter(Boolean);
+        const php = phpCandidates.find(candidate => candidate === 'php' || fs.existsSync(candidate));
+        assert.ok(php, 'No se encontró PHP para validar el ZIP de capturas. Define PHP_BINARY o incluye PHP portable.');
         const phpCheck = '$z=new ZipArchive();if($z->open($argv[1])!==true)exit(1);$a=$z->getFromName("CUSA00001/a.jpg");$b=$z->getFromName("CUSA00002/b.png");$n=$z->numFiles;$z->close();if($a!=="capture-fixture-ps4-manager-tool"||$b!=="second-capture-fixture"||$n!==2)exit(2);echo "ZIP_FIXTURE_OK";';
         const checked = childProcess.execFileSync(php, ['-r', phpCheck, '--', archivePath], { encoding: 'utf8' });
         assert.match(checked, /ZIP_FIXTURE_OK/);

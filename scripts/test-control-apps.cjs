@@ -11,6 +11,7 @@ const controllerSource = fs.readFileSync(path.join(root, 'js', 'control_apps.js'
 
 // Fixture DOM simulado
 const elements = new Map();
+const launchButtons = [{ disabled: false }];
 function createElement(id, initialText = '') {
     const el = {
         id,
@@ -40,13 +41,18 @@ const requiredIds = [
     'ca-foreground-detail', 'ca-foreground-time', 'ca-foreground-cover', 'ca-btn-cerrar-app',
     'ca-installed-list', 'ca-installed-count-badge', 'ca-installed-search', 'ca-log-container',
     'ca-launch-user', 'ca-launch-user-status',
-    'modal-confirmar-cierre-forzado', 'ca-modal-target-name', 'ca-modal-target-cusa', 'ca-modal-target-icon'
+    'modal-confirmar-cierre-forzado', 'ca-modal-target-name', 'ca-modal-target-cusa', 'ca-modal-target-icon',
+    'modal-cambio-app-protegido', 'ca-switch-heading', 'ca-switch-current-name', 'ca-switch-current-id',
+    'ca-switch-next-name', 'ca-switch-next-id', 'ca-switch-risk-row', 'ca-switch-risk-confirm',
+    'ca-switch-wait', 'ca-switch-confirm-button'
 ];
 
 requiredIds.forEach(id => createElement(id));
 
 const documentMock = {
     getElementById: id => elements.get(id) || null,
+    querySelectorAll: selector => selector === '[data-ca-launch-id]' ? launchButtons : [],
+    addEventListener() {},
     body: {
         appendChild() {},
         removeChild() {}
@@ -63,7 +69,7 @@ const documentMock = {
 };
 
 class OptionMock {
-    constructor(text, value) { this.text = text; this.value = value; }
+    constructor(text, value) { this.text = text; this.value = value; this.disabled = false; this.dataset = {}; }
 }
 
 const localStorageStore = new Map([
@@ -93,6 +99,8 @@ const context = {
         }
     },
     setTimeout: (fn) => fn(),
+    setInterval: () => 0,
+    clearInterval() {},
     FormData,
     Option: OptionMock,
     Date,
@@ -108,28 +116,56 @@ const context = {
 vm.runInNewContext(controllerSource, context, { filename: 'js/control_apps.js' });
 
 async function runTests() {
-    // 0. La lista de perfiles muestra los usuarios con sesión iniciada y deja
-    // por defecto la opción dinámica del usuario que esté activo al lanzar.
+    vm.runInContext('caHelperRequiresUpdate = false', context);
+    // 0. No se inventa un perfil activo; solo perfiles confirmados como conectados se habilitan.
     fetchHandler = async () => ({
         ok: true,
         status: 200,
         json: async () => ({
             status: 'success',
             active_user_id: 18,
+            login_state_known: true,
             users: [
-                { id: 18, name: 'Perfil principal' },
-                { id: 22, name: 'Segundo perfil' }
+                { id: 18, name: 'Perfil principal', logged_in: true, active: true },
+                { id: 22, name: 'Segundo perfil', logged_in: true, active: false },
+                { id: 5, name: 'Perfil de prueba', logged_in: true, active: false },
+                { id: 24, name: 'Perfil cerrado', logged_in: false, active: false }
             ]
         })
     });
     await context.window.controlAppsCargarPerfiles();
-    assert.equal(elements.get('ca-launch-user').value, 'active', 'El usuario activo actual debe ser la opción inicial.');
-    assert.deepEqual(elements.get('ca-launch-user').options.map(o => o.value), ['active', '18', '22'], 'Debe mostrar cada perfil con sesión iniciada para elegirlo.');
-    assert.match(elements.get('ca-launch-user').options[1].text, /activo/, 'Debe marcar el perfil principal activo.');
-    assert.match(elements.get('ca-launch-user-status').textContent, /2 perfiles/, 'Debe indicar cuántos perfiles están disponibles.');
+    assert.equal(elements.get('ca-launch-user').value, '', 'No se debe seleccionar un perfil sin acción explícita.');
+    assert.deepEqual(elements.get('ca-launch-user').options.map(o => o.value), ['', '18', '22', '5', ''], 'Debe listar perfiles reales y solo permitir los confirmados conectados.');
+    assert.match(elements.get('ca-launch-user').options[1].text, /sesión activa/, 'Debe indicar qué perfil está activo.');
+    assert.equal(elements.get('ca-launch-user').options[4].disabled, true, 'Un perfil sin sesión no debe ser seleccionable.');
     elements.get('ca-launch-user').value = '22';
+    vm.runInContext('caHelperRequiresUpdate = true; caSetCooldown(0); controlAppsActualizarDisponibilidadLanzamiento()', context);
+    assert.equal(launchButtons[0].disabled, true, 'Un helper antiguo debe bloquear la apertura aunque el perfil esté conectado.');
+    assert.equal(elements.get('ca-btn-cerrar-app').disabled, true, 'Un helper antiguo debe bloquear las acciones de mutación.');
+    vm.runInContext('caHelperRequiresUpdate = false; controlAppsActualizarDisponibilidadLanzamiento()', context);
     await context.window.controlAppsCargarPerfiles();
     assert.equal(elements.get('ca-launch-user').value, '22', 'Actualizar perfiles debe conservar el perfil elegido mientras siga conectado.');
+
+    // Un cambio de app debe exigir confirmación explícita antes del cierre y describir el destino.
+    elements.get('ca-launch-user').value = '22';
+    fetchHandler = async () => ({
+        ok: false,
+        status: 409,
+        text: async () => JSON.stringify({
+            status: 'error',
+            code: 'ACTIVE_APP_CLOSE_REQUIRED',
+            active_app: { title_id: 'CUSA00419', name: 'Juego activo', icon: '' }
+        })
+    });
+    await context.window.controlAppsAbrirApp('CUSA00133', 'Juego nuevo');
+    assert(elements.get('modal-cambio-app-protegido').classList.contains('flex'), 'Debe abrirse la confirmación de cambio si otra app está activa.');
+    assert.equal(elements.get('ca-switch-current-id').textContent, '(CUSA00419)');
+    assert.equal(elements.get('ca-switch-next-name').textContent, 'Juego nuevo');
+    assert.equal(elements.get('ca-switch-confirm-button').disabled, true, 'El cierre debe permanecer bloqueado sin marcar el riesgo.');
+    elements.get('ca-switch-risk-confirm').checked = true;
+    context.window.controlAppsActualizarConfirmacionCambio();
+    assert.equal(elements.get('ca-switch-confirm-button').disabled, false, 'La confirmación explícita habilita el cierre para cambiar.');
+    context.window.controlAppsCancelarCambioApp();
 
     // 1. Prueba: Consulta de estado con app activa (ej. Grand Theft Auto V)
     fetchHandler = async () => ({
@@ -152,6 +188,9 @@ async function runTests() {
     assert.equal(elements.get('ca-foreground-title').textContent, 'Grand Theft Auto V', 'Debe mostrar el nombre de la app activa.');
     assert.equal(elements.get('ca-foreground-cusa').textContent, 'CUSA00419', 'Debe mostrar el CUSA activo.');
     assert.equal(elements.get('ca-btn-cerrar-app').disabled, false, 'El botón cerrar debe estar habilitado.');
+    vm.runInContext('caHelperRequiresUpdate = true; caSetCooldown(0)', context);
+    assert.equal(elements.get('ca-btn-cerrar-app').disabled, true, 'Un helper desactualizado también debe bloquear el cierre forzado.');
+    vm.runInContext('caHelperRequiresUpdate = false; caSetCooldown(0)', context);
 
     // 2. Prueba: Consulta de estado en Menú Principal (sin app activa)
     fetchHandler = async () => ({
@@ -197,9 +236,25 @@ async function runTests() {
 
     await context.window.controlAppsActualizarEstado(true);
     assert.equal(elements.get('ca-status-badge').textContent, 'ERROR DE CONEXIÓN', 'Respuesta corrupta debe marcar error.');
+    assert(elements.get('ca-foreground-detail').textContent.includes('502 Bad Gateway'), 'Una respuesta HTML/HTTP no JSON debe incluir un fragmento útil para diagnosticar HTTP 500 en Termux.');
+
+    fetchHandler = async () => ({ ok: true, status: 200, json: async () => ({
+        status: 'success', login_state_known: false, users: [{ id: 5, name: 'Perfil local', logged_in: null, active: false }]
+    }) });
+    await context.window.controlAppsCargarPerfiles();
+    assert.equal(elements.get('ca-launch-user').value, '', 'Un perfil sin estado UserService verificado no debe seleccionarse.');
+    assert.equal(elements.get('ca-launch-user').options[1].disabled, true, 'UserService no confirmado debe bloquear perfiles.');
 
     // 5. Prueba: Lanzamiento de aplicación válida
     let launchPayload = null;
+    fetchHandler = async () => ({ ok: true, status: 200, json: async () => ({
+        status: 'success', active_user_id: 18, login_state_known: true, users: [
+            { id: 18, name: 'Perfil principal', logged_in: true, active: true },
+            { id: 22, name: 'Segundo perfil', logged_in: true, active: false },
+            { id: 5, name: 'Perfil de prueba', logged_in: true, active: false }
+        ]
+    }) });
+    await context.window.controlAppsCargarPerfiles();
     elements.get('ca-launch-user').value = '5';
     fetchHandler = async (url, opts) => {
         launchPayload = opts.body;
@@ -242,6 +297,7 @@ async function runTests() {
         })
     });
     await context.window.controlAppsActualizarEstado(false);
+    vm.runInContext('caSetCooldown(0)', context);
 
     // Intentar cierre: debe pasar por close_graceful o modal
     fetchHandler = async (url, opts) => {

@@ -106,7 +106,7 @@
         'Nombre no disponible': 'Name unavailable', 'Juego instalado': 'Installed game', 'Juego no instalado': 'Game not installed',
         'Respaldo de la base de datos XMB': 'XMB database backup', 'Se guarda una copia local de app.db. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': 'A local copy of app.db is saved. Each change creates another backup automatically. Close games and do not turn off the console during the operation.'
         , 'Centro de conexión PS4': 'PS4 connection center', 'Desconectado': 'Disconnected', 'SaveGames': 'Save Games', 'Limpieza': 'Cleanup',
-        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.18 • AJ': 'VERSION 4.5.18 • AJ',
+        'Parches de juego': 'Game patches', 'Modding': 'Modding', 'Game Mods': 'Game mods', 'Respaldo': 'Backup', 'VERSION 4.5.21 • AJ': 'VERSION 4.5.21 • AJ',
         'BUSCANDO PS4 EN LA RED': 'SEARCHING FOR PS4 ON THE NETWORK', 'Conecta la PS4 y pulsa Actualizar para leer partidas.': 'Connect the PS4 and tap Refresh to read save data.',
         'Biblioteca de partidas': 'Save Data Library', 'DATOS DE CONSOLA': 'CONSOLE DATA', 'Respaldos locales': 'Local backups',
         'Los ZIP se conservan aunque elimines la partida de la consola.': 'ZIP backups are kept even if you delete the console save.',
@@ -172,7 +172,7 @@
         'Transfiriendo datos en la memoria de la consola. Dependiendo del peso, esto puede demorar varios segundos.': 'Transferring data to console memory. Depending on the file size, this may take several seconds.', 'Trucos y Parches': 'Cheats and patches', 'Ubicación (Grupo):': 'Location (group):', 'Ubicación Estructural:': 'Structural location:', 'Ubicado en categoría:': 'In category:',
         'Update plugin archive': 'Update plugin archive', 'Uso por categoría': 'Usage by category', 'Ver, guardar y eliminar': 'View, save and delete',
         'Verifica el firmware exacto antes de enviar cualquier payload. La aceptación se guardará en este navegador para no repetir el aviso en cada visita.': 'Verify the exact firmware before sending any payload. Your acknowledgement is saved in this browser so the warning is not repeated on every visit.',
-        'VERSION 4.5.18 • AJ': 'VERSION 4.5.18 • AJ', 'Versión 4.5.18 • Mantenido por AJ': 'Version 4.5.18 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
+        'VERSION 4.5.21 • AJ': 'VERSION 4.5.21 • AJ', 'Versión 4.5.21 • Mantenido por AJ': 'Version 4.5.21 • Maintained by AJ', 'Vista del menú principal': 'Main menu layout',
         'ya existe en la consola. ¿Qué deseas hacer con él?': 'already exists on the console. What would you like to do with it?',
         '; Apollo genera la estructura `PS4/APOLLO/...` con `sce_sys`. Verifica la importación antes de borrar la partida original.': '; Apollo creates the `PS4/APOLLO/...` structure with `sce_sys`. Verify the import before deleting the original save.',
         '. Cada guardado de cambios crea otra copia automáticamente. Cierra juegos y evita apagar la consola durante la operación.': '. Each save creates another backup automatically. Close games and do not turn off the console during the operation.',
@@ -182,7 +182,7 @@
         '. Solo se muestran payloads para FW 5.05 y 9.00; confirma el firmware antes de enviarlos.': '. Only payloads for FW 5.05 and 9.00 are listed; verify the firmware before sending.',
         '. Usa solo payloads compatibles con tu firmware.': '. Use only payloads compatible with your firmware.',
         '⚠️ NO CIERRES LA APP NI REINICIES EL JUEGO AÚN': '⚠️ DO NOT CLOSE THE APP OR RESTART THE GAME YET',
-        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.18': 'VERSION 4.5.18'
+        '🔓 Código Abierto': '🔓 Open source', 'Último original: 007': 'Last original: 007', 'VERSIÓN 4.5.21': 'VERSION 4.5.21'
     };
     Object.assign(translations, {
         'Aparición gradual': 'Fade in',
@@ -436,6 +436,9 @@
         'Servicio 9091': 'Service 9091',
         'Servicio 9091 Activo': 'Service 9091 Active',
         'Servicio 9091 Inactivo': 'Service 9091 Inactive',
+        'PayLoader 9090 recibe el ELF al pulsar «Iniciar Servicio».': 'PayLoader 9090 receives the ELF when you select “Start Service”.',
+        'El estado «Inactivo» indica que el helper aún no confirmó inicio.': '“Inactive” means the helper has not confirmed startup yet.',
+        'procesa las órdenes después de arrancar.': 'handles commands after it starts.',
         'Reinicio para actualizar': 'Restart to update',
         'Abrir como perfil': 'Launch as profile',
         'Usuario activo detectado': 'Detected active user',
@@ -468,8 +471,9 @@
         'Error al comunicarse con la consola.': 'Error communicating with the console.',
         'Error al iniciar servicio.': 'Error starting service.',
         'No se pudo actualizar payloads.ini en la consola mediante FTP.': 'Could not update payloads.ini on the console via FTP.',
-        'Payload instalado en /data/payloads/app_control.elf. Para activarlo de inmediato, activa "Enable BinLoader Server" (puerto 9090) en GoldHEN → Settings → Servers, o activa "Iniciar con la consola (AutoRun)".': 'Payload installed in /data/payloads/app_control.elf. To activate it immediately, enable "Enable BinLoader Server" (port 9090) in GoldHEN → Settings → Servers, or enable "Start on boot (AutoRun)".',
-        'Payload instalado en la consola.': 'Payload installed on the console.',
+        'app_control.elf guardado en /user/data/payloads. El guardado no confirma que esté ejecutándose: el servicio solo aparece activo cuando responde en el puerto 9091.': 'app_control.elf was stored in /user/data/payloads. Storage does not confirm that it is running; the service is active only after it responds on port 9091.',
+        'ELF transmitido por BinLoader 9090, pero el servicio 9091 no confirmó el inicio. No se reenvió automáticamente.': 'ELF was sent through BinLoader 9090, but the service did not confirm startup on port 9091. It was not resent automatically.',
+        'Se bloqueó el lanzamiento porque el helper activo no valida perfiles o conserva un intervalo anterior (versión requerida 1.2.1). Reinicia la PS4 para cerrar la instancia anterior y luego inicia el payload actualizado. No se envió ninguna orden de apertura.': 'The launch was blocked because the active helper does not validate profiles or uses an older cooldown (version 1.2.1 is required). Restart the PS4 to stop the old instance, then start the updated payload. No launch command was sent.',
         'Servicio iniciado con éxito en la consola (puerto 9091).': 'Service successfully started on the console (port 9091).',
         'Minimizar sincronización': 'Minimize sync',
         'Minimizar búsqueda': 'Minimize search',
@@ -492,6 +496,11 @@
         [/^La orden para abrir (.+) \((.+)\) se envió a la PS4, pero no se pudo confirmar que quedara en primer plano\. Actualiza el estado para comprobarlo; no se reenvió\.$/, (_, name, id) => `The request to open ${name} (${id}) was sent to the PS4, but foreground status could not be confirmed. Refresh the status to check; the request was not resent.`],
         [/^No se pudo abrir (.+) \((.+)\): el servicio de Control de Apps no está activo en 9091\. BinLoader 9090 se usa para cargar el ELF del servicio; no procesa órdenes JSON de lanzamiento\. Pulsa Iniciar Servicio y espera la confirmación en 9091\.$/, (_, name, id) => `Could not open ${name} (${id}): the App Control service is not active on port 9091. BinLoader 9090 loads the service ELF; it does not process JSON launch commands. Press Start Service and wait for confirmation on 9091.`],
         [/^No se pudo cerrar (.+): el servicio de Control de Apps no está activo en 9091\. BinLoader 9090 se usa para cargar el ELF del servicio; no procesa órdenes JSON de cierre\. Pulsa Iniciar Servicio y espera la confirmación en 9091\.$/, (_, id) => `Could not close ${id}: the App Control service is not active on port 9091. BinLoader 9090 loads the service ELF; it does not process JSON close commands. Press Start Service and wait for confirmation on 9091.`],
+        [/^(.+) \((.+)\) ya está en primer plano\. No se envió otra orden\.$/, (_, name, id) => `${name} (${id}) is already in the foreground. No additional command was sent.`],
+        [/^Cierre confirmado\. La pausa de seguridad termina en (\d+) s; la app nueva no se abrirá antes\.$/, (_, seconds) => `Close confirmed. The safety cooldown ends in ${seconds} s; the new app will not open before then.`],
+        [/^Pausa completada\. Se volverá a consultar el estado antes de abrir la app nueva\.$/, () => 'Cooldown complete. App status will be checked again before opening the new app.'],
+        [/^Cierre confirmado\. (.+) quedará disponible después de la pausa de 40 segundos\.$/, (_, name) => `Close confirmed. ${name} can open after the 40-second cooldown.`],
+        [/^Verificando y cerrando (.+)\.\.\.$/, (_, name) => `Verifying and closing ${name}...`],
         [/^Hora de lectura: (.+) \(Error\)$/, (_, time) => `Read time: ${time} (Error)`],
         [/^Hora de lectura: (.+) \(Fallida\)$/, (_, time) => `Read time: ${time} (Failed)`],
         [/^Hora de lectura: (.+) \(Manual\)$/, (_, time) => `Read time: ${time} (Manual)`],
@@ -743,6 +752,37 @@
         const selector = document.getElementById('cfg-language');
         if (selector) selector.value = english ? 'en' : 'es';
     }
+    Object.assign(translations, {
+        'Espera a que termine la pausa de seguridad antes de otra acción.': 'Wait for the safety cooldown to finish before another action.',
+        'Actualiza la biblioteca para consultar el estado actual de la PS4.': 'Refresh the library to check the PS4 current installation state.',
+        'La API de Control de Apps encontró un error de PHP. Revisa el registro local del servidor.': 'The App Control API encountered a PHP error. Check the local server log.',
+        'No hay juegos instalados verificados': 'No verified installed games',
+        'No hay perfil verificado': 'No verified profile',
+        'No se pudieron leer las carpetas de perfiles de /user/home por FTP.': 'Could not read profile folders from /user/home over FTP.',
+        'No se pudo listar /mnt/sandbox/pfsmnt por cURL FTP. Verifica la IP, el puerto y el FTP de GoldHEN.': 'Could not list /mnt/sandbox/pfsmnt with FTP cURL. Check the IP address, port and GoldHEN FTP server.',
+        'Se bloqueó el lanzamiento porque el helper activo no valida perfiles (versión requerida 1.2.0). Reinicia la PS4 para cerrar la instancia anterior y luego inicia el payload actualizado. No se envió ninguna orden de apertura.': 'Launch was blocked because the active helper does not validate profiles (version 1.2.0 required). Restart the PS4 to stop the old instance, then start the updated payload. No launch command was sent.',
+        'Selecciona un perfil con sesión verificada antes de abrir la aplicación. No se usará automáticamente el perfil activo.': 'Select a profile with a verified session before launching the app. The active profile will not be selected automatically.',
+        'Selecciona un perfil cuya sesión haya sido verificada por la consola. No se enviará la orden.': 'Select a profile whose session was verified by the console. The command will not be sent.'
+    });
+    Object.assign(translations, {
+        'Indica la IP de la consola para verificar las aplicaciones instaladas.': 'Enter the console IP to verify installed apps.',
+        'No se pudo verificar por FTP qu\u00e9 aplicaciones siguen instaladas. Actualiza la biblioteca e int\u00e9ntalo de nuevo.': 'Could not verify over FTP which apps are still installed. Refresh the library and try again.',
+        'No se envi\u00f3 el cierre: Control de Apps requiere el helper 1.2.1 o posterior, que aplica el intervalo de seguridad de 40 segundos. Reinicia la PS4 para detener el helper anterior y luego inicia la versi\u00f3n actualizada.': 'The close command was not sent: App Control requires helper 1.2.1 or later, which enforces the 40-second safety interval. Restart the PS4 to stop the old helper, then start the updated version.',
+        'Cambiar aplicación': 'Switch app',
+        'Cierre confirmado': 'Close confirmed',
+        'Cerrar y cambiar': 'Close and switch',
+        'Continuar y abrir': 'Continue and open',
+        'Confirmo que la aplicación activa se cerrará. Todo progreso que no se haya guardado podría perderse. Si el cierre se confirma, la nueva app se abrirá tras la pausa obligatoria de 40 segundos.': 'I confirm the active app will be closed. Any unsaved progress could be lost. If closing is confirmed, the new app will open after the required 40-second cooldown.',
+        'El perfil verificado cambió o ya no está disponible. No se cerró la app.': 'The verified profile changed or is no longer available. The app was not closed.',
+        'El perfil verificado cambió. Actualiza los perfiles y confirma otra vez la apertura.': 'The verified profile changed. Refresh profiles and confirm the launch again.',
+        'Elige un perfil con sesión verificada; la app seleccionada se abrirá después de elegirlo.': 'Choose a profile with a verified session; the selected app will open after you choose one.',
+        'Hay otra aplicación en primer plano. Confirma el cierre y espera el intervalo de seguridad antes de abrir la nueva app.': 'Another app is in the foreground. Confirm closing it and wait for the safety cooldown before opening the new app.',
+        'La app anterior ya se cerró; cancelé la apertura de la nueva.': 'The previous app was closed; opening the new app was cancelled.',
+        'La PS4 informa una app activa, pero no se pudo validar su Title ID. Actualiza el estado; no se enviará la apertura.': 'The PS4 reports an active app, but its Title ID could not be verified. Refresh the status; no launch command will be sent.',
+        'Marca la confirmación de riesgo antes de cerrar la app activa.': 'Confirm the risk before closing the active app.',
+        'No se pudo abrir la confirmación de cambio de app. No se envió ninguna orden.': 'The app switch confirmation could not be opened. No command was sent.',
+        'Verificando estado…': 'Verifying status…'
+    });
     window.ghmSetLanguage = setLanguage;
     window.ghmTranslateText = value => localStorage.getItem(STORAGE_KEY) === 'en' ? translate(String(value ?? '')) : String(value ?? '');
     const observer = new MutationObserver(records => {

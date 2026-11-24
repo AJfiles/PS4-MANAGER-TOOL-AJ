@@ -3,6 +3,7 @@ require_once __DIR__ . '/request_guard.php';
 require_once __DIR__ . '/cache_helpers.php';
 require_once __DIR__ . '/ftp_compat.php';
 require_once __DIR__ . '/binloader_client.php';
+require_once __DIR__ . '/library_listing_helpers.php';
 
 /**
  * ====================================================================
@@ -22,7 +23,7 @@ $action = trim($_POST['action'] ?? $_GET['action'] ?? '');
 $host_ip = trim($_POST['host_ip'] ?? $_GET['host_ip'] ?? '');
 $port = isset($_POST['port']) ? (int)$_POST['port'] : 2121;
 $cusa_id = strtoupper(trim($_POST['cusa_id'] ?? $_POST['title_id'] ?? $_GET['cusa_id'] ?? $_GET['title_id'] ?? ''));
-$user_id = trim((string)($_POST['user_id'] ?? 'active'));
+$user_id = trim((string)($_POST['user_id'] ?? ''));
 $confirm_force = trim($_POST['confirm_force'] ?? '');
 $request_id = trim($_POST['request_id'] ?? '');
 
@@ -119,6 +120,21 @@ function ac_parse_sfo(string $filepath): ?array {
     return $meta;
 }
 
+/** Candidate locations for metadata kept for external-storage titles. */
+function ac_title_metadata_paths(string $title_id, string $filename): array {
+    $title_id = strtoupper($title_id);
+    return [
+        "/user/appmeta/{$title_id}/{$filename}",
+        "/user/appmeta/external/{$title_id}/{$filename}",
+        "/system_data/priv/appmeta/{$title_id}/{$filename}",
+        "/system_data/priv/appmeta/external/{$title_id}/{$filename}",
+        "/mnt/ext0/user/appmeta/{$title_id}/{$filename}",
+        "/mnt/ext1/user/appmeta/{$title_id}/{$filename}",
+        "/mnt/ext0/user/appmeta/external/{$title_id}/{$filename}",
+        "/mnt/ext1/user/appmeta/external/{$title_id}/{$filename}",
+    ];
+}
+
 /**
  * Obtiene o enriquece metadatos e iconos de un título (desde caché o directamente vía FTP)
  */
@@ -167,14 +183,13 @@ function ac_get_title_metadata(string $title_id, string $host_ip = '', int $port
         }
     }
 
-    // Si todavía falta nombre real o icono y tenemos IP activa, descargarlos por FTP desde la PS4
+    // Leer metadatos con el adaptador compatible con ext-ftp y cURL de Android.
     if (($meta['name'] === $title_id || !is_file($icon_path) || @filesize($icon_path) === 0) && ac_valid_ip($host_ip)) {
-        $conn = @ftp_connect($host_ip, $port, 2);
-        if ($conn && @ftp_login($conn, 'anonymous', 'anonymous')) {
-            @ftp_pasv($conn, true);
+        {
             if (!is_file($sfo_path) || @filesize($sfo_path) === 0) {
-                foreach (["/user/appmeta/{$title_id}/param.sfo", "/system_data/priv/appmeta/{$title_id}/param.sfo"] as $rem_sfo) {
-                    if (@ftp_get($conn, $sfo_path, $rem_sfo, FTP_BINARY)) break;
+                foreach (ac_title_metadata_paths($title_id, 'param.sfo') as $rem_sfo) {
+                    $remote_sfo = ghm_ftp_get($host_ip, $port, $rem_sfo, 8);
+                    if (is_string($remote_sfo) && $remote_sfo !== '' && @file_put_contents($sfo_path, $remote_sfo) === strlen($remote_sfo)) break;
                 }
                 if (is_file($sfo_path)) {
                     $parsed = ac_parse_sfo($sfo_path);
@@ -189,12 +204,11 @@ function ac_get_title_metadata(string $title_id, string $host_ip = '', int $port
                 }
             }
             if (!is_file($icon_path) || @filesize($icon_path) === 0) {
-                foreach (["/user/appmeta/{$title_id}/icon0.png", "/system_data/priv/appmeta/{$title_id}/icon0.png"] as $rem_icon) {
-                    if (@ftp_get($conn, $icon_path, $rem_icon, FTP_BINARY)) break;
+                foreach (ac_title_metadata_paths($title_id, 'icon0.png') as $rem_icon) {
+                    $remote_icon = ghm_ftp_get($host_ip, $port, $rem_icon, 15);
+                    if (is_string($remote_icon) && $remote_icon !== '' && @file_put_contents($icon_path, $remote_icon) === strlen($remote_icon)) break;
                 }
             }
-            @ftp_close($conn);
-
             // Actualizar titles.json con la nueva metadata aprendida
             $all_titles[$title_id] = [
                 'id' => $title_id,
@@ -222,18 +236,90 @@ function ac_get_title_metadata(string $title_id, string $host_ip = '', int $port
     return $meta;
 }
 
-function ac_is_title_in_library(string $title_id): bool {
-    $metadata_file = __DIR__ . '/../user/cache/biblioteca/titles.json';
-    if (is_file($metadata_file)) {
-        $raw = @file_get_contents($metadata_file);
-        $decoded = json_decode((string)$raw, true);
-        if (is_array($decoded) && isset($decoded[$title_id])) return true;
+function ac_is_title_in_library(string $title_id, string $host = '', int $port = 2121): bool {
+    if (!ac_valid_ip($host)) return false;
+    $installed = ac_read_installed_title_ids($host, $port);
+    return is_array($installed) && isset($installed[strtoupper($title_id)]);
+}
+
+/** Return installed title IDs from app directories on internal/active ext mounts. */
+function ac_read_title_dir_ids(string $host, int $port, string $path, ?bool &$read_succeeded = null): array {
+    if ($read_succeeded !== null) $read_succeeded = false;
+    $rows = ghm_ftp_list($host, $port, $path, 10);
+    if ($rows === false) return [];
+    if ($read_succeeded !== null) $read_succeeded = true;
+    $ids = [];
+    foreach ($rows as $row) {
+        if (empty($row['dir'])) continue;
+        $id = strtoupper((string)($row['name'] ?? ''));
+        if (ac_valid_title_id($id)) $ids[$id] = rtrim($path, '/');
     }
-    $cache_dir = __DIR__ . '/../user/cache/biblioteca';
-    if (is_file($cache_dir . '/' . $title_id . '.sfo') || is_file($cache_dir . '/' . $title_id . '.png')) {
-        return true;
+    return $ids;
+}
+
+function ac_read_installed_title_ids(string $host, int $port): ?array {
+    $ids = [];
+    $read_any = false;
+
+    $internal_read = false;
+    $ids += ac_read_title_dir_ids($host, $port, '/user/app', $internal_read);
+    $read_any = $read_any || $internal_read;
+
+    $mounts_read = false;
+    $mounts = lb_read_directory_names($host, $port, '/mnt', $mounts_read);
+    $read_any = $read_any || $mounts_read;
+    if ($mounts_read) {
+        foreach ($mounts as $mount) {
+            if (!preg_match('/^ext[01]$/i', $mount)) continue;
+            $external_read = false;
+            $ids += ac_read_title_dir_ids($host, $port, '/mnt/' . $mount . '/user/app', $external_read);
+            $read_any = $read_any || $external_read;
+        }
     }
-    return false;
+
+    return $read_any ? $ids : null;
+}
+
+/** Read local PS4 profile directories without claiming they are signed in. */
+function ac_ftp_directory_rows(string $host, int $port, string $path): array|false {
+    $rows = ghm_ftp_list($host, $port, $path, 10);
+    if ($rows !== false || !function_exists('curl_init')) return $rows;
+    $url = 'ftp://' . $host . ':' . $port . '/' . ltrim($path, '/') . '/';
+    $ch = @curl_init($url);
+    if (!$ch) return false;
+    @curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 10, CURLOPT_FTP_RESPONSE_TIMEOUT => 8, CURLOPT_FTP_USE_EPSV => false, CURLOPT_DIRLISTONLY => true, CURLOPT_USERPWD => 'anonymous:', CURLOPT_PROXY => '']);
+    $listing = @curl_exec($ch);
+    $error = curl_errno($ch);
+    curl_close($ch);
+    if (!is_string($listing) || $error !== 0) return false;
+    $rows = [];
+    foreach (preg_split('/\r\n|\n|\r/', trim($listing)) as $name) {
+        $name = trim((string)$name);
+        if ($name !== '' && $name !== '.' && $name !== '..' && !str_contains($name, '/') && !str_contains($name, '\\')) $rows[] = ['name' => $name, 'dir' => true];
+    }
+    return $rows;
+}
+
+function ac_read_home_profiles(string $host, int $port): array|false {
+    $rows = ac_ftp_directory_rows($host, $port, '/user/home');
+    if ($rows === false) return false;
+    $profiles = [];
+    foreach ($rows as $row) {
+        if (empty($row['dir'])) continue;
+        $folder = strtolower((string)($row['name'] ?? ''));
+        if (!preg_match('/^[a-f0-9]{1,8}$/', $folder)) continue;
+        $decimal = base_convert($folder, 16, 10);
+        if (!ctype_digit($decimal) || (float)$decimal <= 0) continue;
+        $raw_name = ghm_ftp_get($host, $port, '/user/home/' . $folder . '/username.dat', 8);
+        $name = 'Perfil ' . strtoupper(str_pad($folder, 8, '0', STR_PAD_LEFT));
+        if (is_string($raw_name)) {
+            $raw_name = explode("\0", $raw_name, 2)[0];
+            $candidate = trim((string)preg_replace('/[\x00-\x1f\x7f]/', '', $raw_name));
+            if ($candidate !== '' && preg_match('//u', $candidate)) $name = function_exists('mb_substr') ? mb_substr($candidate, 0, 64, 'UTF-8') : substr($candidate, 0, 64);
+        }
+        $profiles[$decimal] = ['id' => $decimal, 'folder' => str_pad($folder, 8, '0', STR_PAD_LEFT), 'name' => $name, 'logged_in' => null, 'active' => false];
+    }
+    return $profiles;
 }
 
 /**
@@ -263,17 +349,8 @@ function ac_query_helper_daemon(string $host, int $daemon_port = 9091, int $time
  * Lee payloads.ini vía FTP y verifica si app_control.elf está configurado en [AutoRun].
  */
 function ac_check_autorun_enabled(string $host, int $port = 2121): bool {
-    $ftp = ghm_ftp_open($host, $port, 5);
-    if (!$ftp) return false;
-    $temp = tempnam(sys_get_temp_dir(), 'ca_ini_');
-    $ok = @ftp_get($ftp, $temp, '/data/GoldHEN/payloads.ini', FTP_BINARY);
-    if (!$ok) {
-        @unlink($temp);
-        return false;
-    }
-    $content = @file_get_contents($temp);
-    @unlink($temp);
-    if ($content === false) return false;
+    $content = ghm_ftp_get($host, $port, '/data/GoldHEN/payloads.ini', 8);
+    if (!is_string($content)) return false;
     $in_autorun = false;
     foreach (preg_split('/\r\n|\n|\r/', $content) as $line) {
         $line = trim($line);
@@ -286,31 +363,135 @@ function ac_check_autorun_enabled(string $host, int $port = 2121): bool {
     return false;
 }
 
+function ac_ftp_put_content_verified(string $host, int $port, string $remote, string $content): bool {
+    $local = tempnam(sys_get_temp_dir(), 'ca_ftp_write_');
+    if ($local === false) return false;
+    $written = @file_put_contents($local, $content);
+    $ok = $written === strlen($content)
+        && ghm_ftp_put($host, $port, $remote, $local, false, 45);
+    if ($ok) {
+        $readback = ghm_ftp_get($host, $port, $remote, 45);
+        $ok = is_string($readback) && hash_equals(hash('sha256', $content), hash('sha256', $readback));
+    }
+    @unlink($local);
+    return $ok;
+}
+
+/** cURL-only path for Android PHP runtimes without ext-ftp. */
+function ac_set_autorun_curl(string $host, int $port, bool $enable): bool {
+    $remote_ini = '/data/GoldHEN/payloads.ini';
+    $content = ghm_ftp_get($host, $port, $remote_ini, 12);
+    $ini_existed = is_string($content);
+    if (!$ini_existed) {
+        $exists = ghm_ftp_exists($host, $port, $remote_ini);
+        if ($exists !== false) return !$enable && $exists === false;
+        if (!$enable) return true;
+        $content = '';
+    }
+    $lines = preg_split('/\r\n|\n|\r/', $content);
+    $scan_autorun = false;
+    $autorun_found = false;
+    $contains_entry = false;
+    foreach ($lines as $line) {
+        if (preg_match('/^\s*\[([^]]+)\]\s*$/', $line, $section)) {
+            $scan_autorun = strcasecmp(trim($section[1]), 'AutoRun') === 0;
+            $autorun_found = $autorun_found || $scan_autorun;
+        } elseif ($scan_autorun && preg_match('~^/?user/data/payloads/app_control\.elf\s*=.*$~i', trim($line))) {
+            $contains_entry = true;
+        }
+    }
+    $created_marker = strpos($content, '; GHM_APP_CONTROL_CREATED_INI') !== false;
+    if (!$enable && !$contains_entry && !$created_marker) return true;
+
+    if ($enable) {
+        $payload = realpath(__DIR__ . '/../payloads/app_control.elf');
+        if (!$payload || !is_file($payload) || filesize($payload) < 64 || substr((string)file_get_contents($payload, false, null, 0, 4), 0, 4) !== "\x7fELF") return false;
+        if (!ghm_ftp_put($host, $port, '/user/data/payloads/app_control.elf', $payload, false, 45)) return false;
+        $remote_payload = ghm_ftp_get($host, $port, '/user/data/payloads/app_control.elf', 45);
+        if (!is_string($remote_payload) || !hash_equals(hash_file('sha256', $payload), hash('sha256', $remote_payload))) return false;
+    }
+
+    $newline = strpos($content, "\r\n") !== false ? "\r\n" : "\n";
+    $out = [];
+    $in_autorun = false;
+    $entry_written = false;
+    foreach ($lines as $line) {
+        if (preg_match('/^\s*\[([^]]+)\]\s*$/', $line, $section)) {
+            if ($in_autorun && $enable && !$entry_written) {
+                $out[] = '; GHM_APP_CONTROL_AUTORUN';
+                $out[] = '/user/data/payloads/app_control.elf = 1';
+                $entry_written = true;
+            }
+            $in_autorun = strcasecmp(trim($section[1]), 'AutoRun') === 0;
+            $out[] = $line;
+            continue;
+        }
+        if ($in_autorun && preg_match('~^/?user/data/payloads/app_control\.elf\s*=.*$~i', trim($line))) {
+            if ($enable && !$entry_written) {
+                $out[] = '; GHM_APP_CONTROL_AUTORUN';
+                $out[] = '/user/data/payloads/app_control.elf = 1';
+                $entry_written = true;
+            }
+            continue;
+        }
+        if (!$enable && trim($line) === '; GHM_APP_CONTROL_AUTORUN') continue;
+        $out[] = $line;
+    }
+    if ($enable && !$entry_written) {
+        if (!$ini_existed) $out[] = '; GHM_APP_CONTROL_CREATED_INI';
+        if (!$autorun_found) $out[] = '[AutoRun]';
+        $out[] = '; GHM_APP_CONTROL_AUTORUN';
+        $out[] = '/user/data/payloads/app_control.elf = 1';
+    }
+    $meaningful = array_filter($out, static fn(string $line): bool => trim($line) !== '' && !preg_match('/^\s*\[[^]]+\]\s*$/', $line) && trim($line) !== '; GHM_APP_CONTROL_CREATED_INI');
+    if (!$enable && $created_marker && !$meaningful) return ghm_ftp_delete($host, $port, $remote_ini);
+    if ($created_marker) $out = array_values(array_filter($out, static fn(string $line): bool => trim($line) !== '; GHM_APP_CONTROL_CREATED_INI'));
+    $final = implode($newline, $out);
+    if (str_ends_with($content, "\n") || str_ends_with($content, "\r")) $final .= $newline;
+
+    if ($ini_existed) {
+        $backup_path = $remote_ini . '.app_control.' . gmdate('Ymd_His') . '_' . bin2hex(random_bytes(2)) . '.bak';
+        if (!ac_ftp_put_content_verified($host, $port, $backup_path, $content)) return false;
+    }
+    if (ac_ftp_put_content_verified($host, $port, $remote_ini, $final)) return true;
+    if ($ini_existed) ac_ftp_put_content_verified($host, $port, $remote_ini, $content);
+    return false;
+}
+
 /**
  * Activa o desactiva app_control.elf en [AutoRun] de payloads.ini vía FTP.
  */
 function ac_set_autorun(string $host, int $port = 2121, bool $enable = true): bool {
+    if (!function_exists('ftp_connect')) return ac_set_autorun_curl($host, $port, $enable);
     $ftp = ghm_ftp_open($host, $port, 8);
     if (!$ftp) return false;
     $temp = tempnam(sys_get_temp_dir(), 'ca_ini_');
     $remote_ini = '/data/GoldHEN/payloads.ini';
-    if (!@ftp_get($ftp, $temp, $remote_ini, FTP_BINARY)) {
-        @unlink($temp);
-        @ftp_close($ftp);
-        return false;
-    }
-    $content = @file_get_contents($temp);
+    $ini_size = @ftp_size($ftp, $remote_ini);
+    $ini_existed = $ini_size !== false && $ini_size >= 0;
+    if (!$ini_existed && !$enable) { @unlink($temp); @ftp_close($ftp); return true; }
+    if ($ini_existed && !@ftp_get($ftp, $temp, $remote_ini, FTP_BINARY)) { @unlink($temp); @ftp_close($ftp); return false; }
+    $content = $ini_existed ? @file_get_contents($temp) : '';
     if (!is_string($content)) { @unlink($temp); @ftp_close($ftp); return false; }
 
-    // Asegurar que el destino AutoRun existe antes de escribir una referencia persistente.
-    $local_payload = realpath(__DIR__ . '/../payloads/app_control.elf');
-    if (!$local_payload || !is_file($local_payload) || @filesize($local_payload) < 64) {
-        @unlink($temp); @ftp_close($ftp); return false;
+    $target_pattern = '~^\s*/?user/data/payloads/app_control\.elf\s*=.*$~i';
+    $contains_entry = false;
+    $scan_autorun = false;
+    foreach (preg_split('/\r\n|\n|\r/', $content) as $existing_line) {
+        if (preg_match('/^\s*\[([^]]+)\]\s*$/', $existing_line, $section)) $scan_autorun = strcasecmp(trim($section[1]), 'AutoRun') === 0;
+        elseif ($scan_autorun && preg_match($target_pattern, trim($existing_line))) $contains_entry = true;
     }
-    @ftp_mkdir($ftp, '/user/data/payloads');
-    if (!@ftp_put($ftp, '/user/data/payloads/app_control.elf', $local_payload, FTP_BINARY)
-        || (int)@ftp_size($ftp, '/user/data/payloads/app_control.elf') !== (int)@filesize($local_payload)) {
-        @unlink($temp); @ftp_close($ftp); return false;
+    $has_created_marker = strpos($content, '; GHM_APP_CONTROL_CREATED_INI') !== false;
+    if (!$enable && !$contains_entry && !$has_created_marker) { @unlink($temp); @ftp_close($ftp); return true; }
+
+    if ($enable) {
+        $local_payload = realpath(__DIR__ . '/../payloads/app_control.elf');
+        if (!$local_payload || !is_file($local_payload) || @filesize($local_payload) < 64) { @unlink($temp); @ftp_close($ftp); return false; }
+        @ftp_mkdir($ftp, '/user/data/payloads');
+        if (!@ftp_put($ftp, '/user/data/payloads/app_control.elf', $local_payload, FTP_BINARY)
+            || (int)@ftp_size($ftp, '/user/data/payloads/app_control.elf') !== (int)@filesize($local_payload)) {
+            @unlink($temp); @ftp_close($ftp); return false;
+        }
     }
 
     $newline = (strpos($content, "\r\n") !== false) ? "\r\n" : "\n";
@@ -321,22 +502,25 @@ function ac_set_autorun(string $host, int $port = 2121, bool $enable = true): bo
     $entry_written = false;
     foreach ($lines as $line) {
         if (preg_match('/^\s*\[([^]]+)\]\s*$/', $line, $section)) {
-            if ($in_autorun && $enable && !$entry_written) { $out[] = '/user/data/payloads/app_control.elf = 1'; $entry_written = true; }
+            if ($in_autorun && $enable && !$entry_written) { $out[] = '; GHM_APP_CONTROL_AUTORUN'; $out[] = '/user/data/payloads/app_control.elf = 1'; $entry_written = true; }
             $in_autorun = strcasecmp(trim($section[1]), 'AutoRun') === 0;
             $autorun_found = $autorun_found || $in_autorun;
             $out[] = $line;
             continue;
         }
         if ($in_autorun && preg_match('~^\s*/?user/data/payloads/app_control\.elf\s*=.*$~i', trim($line))) {
-            if ($enable && !$entry_written) { $out[] = '/user/data/payloads/app_control.elf = 1'; $entry_written = true; }
+            if ($enable && !$entry_written) { $out[] = '; GHM_APP_CONTROL_AUTORUN'; $out[] = '/user/data/payloads/app_control.elf = 1'; $entry_written = true; }
             continue;
         }
         $out[] = $line;
     }
     if ($enable && !$entry_written) {
+        if (!$ini_existed) $out[] = '; GHM_APP_CONTROL_CREATED_INI';
         if (!$autorun_found) $out[] = '[AutoRun]';
+        $out[] = '; GHM_APP_CONTROL_AUTORUN';
         $out[] = '/user/data/payloads/app_control.elf = 1';
     }
+    if (!$enable) $out = array_values(array_filter($out, static fn(string $line): bool => trim($line) !== '; GHM_APP_CONTROL_AUTORUN'));
     $final_content = implode($newline, $out);
     if (substr($content, -1) === "\n" || substr($content, -1) === "\r") $final_content .= $newline;
 
@@ -345,9 +529,21 @@ function ac_set_autorun(string $host, int $port = 2121, bool $enable = true): bo
     if (@file_put_contents($temp_out, $final_content) === false || @file_put_contents($backup, $content) === false) {
         @unlink($temp); @unlink($temp_out); @unlink($backup); @ftp_close($ftp); return false;
     }
-    $remote_backup = $remote_ini . '.app_control.' . gmdate('Ymd_His') . '.bak';
-    $saved = @ftp_put($ftp, $remote_backup, $backup, FTP_BINARY)
-        && (int)@ftp_size($ftp, $remote_backup) === (int)@filesize($backup);
+    $created_marker = $has_created_marker;
+    if (!$enable && $created_marker) {
+        $meaningful = array_values(array_filter($out, static fn(string $line): bool => trim($line) !== '' && !preg_match('/^\s*\[[^]]+\]\s*$/', $line) && trim($line) !== '; GHM_APP_CONTROL_CREATED_INI'));
+        if (!$meaningful) {
+            $deleted = @ftp_delete($ftp, $remote_ini);
+            @unlink($temp); @unlink($temp_out); @unlink($backup); @ftp_close($ftp);
+            return (bool)$deleted;
+        }
+        $final_content = implode($newline, array_values(array_filter($out, static fn(string $line): bool => trim($line) !== '; GHM_APP_CONTROL_CREATED_INI')));
+        @file_put_contents($temp_out, $final_content);
+        @file_put_contents($backup, $content);
+    }
+    $remote_backup = $remote_ini . '.app_control.' . gmdate('Ymd_His') . '_' . bin2hex(random_bytes(2)) . '.bak';
+    $saved = !$ini_existed || (@ftp_put($ftp, $remote_backup, $backup, FTP_BINARY)
+        && (int)@ftp_size($ftp, $remote_backup) === (int)@filesize($backup));
     if ($saved) $saved = @ftp_put($ftp, $remote_ini, $temp_out, FTP_BINARY);
     if ($saved) {
         $verify = tempnam(sys_get_temp_dir(), 'ca_ini_verify_');
@@ -355,7 +551,7 @@ function ac_set_autorun(string $host, int $port = 2121, bool $enable = true): bo
             && hash_file('sha256', $verify) === hash('sha256', $final_content);
         @unlink($verify);
     }
-    if (!$saved) @ftp_put($ftp, $remote_ini, $backup, FTP_BINARY);
+    if (!$saved && $ini_existed) @ftp_put($ftp, $remote_ini, $backup, FTP_BINARY);
     @unlink($temp); @unlink($temp_out); @unlink($backup); @ftp_close($ftp);
     return (bool)$saved;
 }
@@ -364,6 +560,35 @@ function ac_set_autorun(string $host, int $port = 2121, bool $enable = true): bo
  * Inspección no invasiva por FTP de los puntos de montaje de sandbox activos (/mnt/sandbox/pfsmnt/).
  */
 function ac_query_ftp_sandbox(string $host, int $ftp_port = 2121, int $timeout_sec = 3): array {
+    if (!function_exists('ftp_connect')) {
+        if (!function_exists('curl_init')) {
+            return ['ok' => false, 'code' => 'FTP_RUNTIME_UNAVAILABLE', 'message' => 'PHP no incluye ext-ftp ni cURL para leer el FTP de la PS4.'];
+        }
+        $url = 'ftp://' . $host . ':' . $ftp_port . '/mnt/sandbox/pfsmnt/';
+        $ch = @curl_init($url);
+        if (!$ch) return ['ok' => false, 'code' => 'FTP_CONNECT_FAILED', 'message' => 'No se pudo preparar la consulta FTP desde PHP.'];
+        @curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => $timeout_sec,
+            CURLOPT_TIMEOUT => max(5, $timeout_sec + 2), CURLOPT_FTP_RESPONSE_TIMEOUT => max(5, $timeout_sec + 2),
+            CURLOPT_FTP_USE_EPSV => false, CURLOPT_DIRLISTONLY => true,
+            CURLOPT_USERPWD => 'anonymous:', CURLOPT_PROXY => ''
+        ]);
+        $listing = @curl_exec($ch);
+        $curl_error = curl_errno($ch);
+        curl_close($ch);
+        if (!is_string($listing) || $curl_error !== 0) {
+            return ['ok' => false, 'code' => 'FTP_CONNECT_FAILED', 'message' => 'No se pudo listar /mnt/sandbox/pfsmnt por cURL FTP. Verifica la IP, el puerto y el FTP de GoldHEN.'];
+        }
+        $detected = null;
+        foreach (preg_split('/\r\n|\n|\r/', trim($listing)) as $entry) {
+            $base = basename(str_replace('\\', '/', (string)$entry));
+            if (preg_match('/^([A-Z0-9]{4}\d{5})-app0$/i', $base, $m) || preg_match('/^([A-Z0-9._-]{4,16})-app0$/i', $base, $m)) {
+                $detected = strtoupper($m[1]);
+                break;
+            }
+        }
+        return ['ok' => true, 'app_running' => $detected !== null, 'title_id' => $detected, 'raw_mount' => $detected ? $detected . '-app0' : null];
+    }
     $errno = 0;
     $errstr = '';
     $conn = @ftp_connect($host, $ftp_port, $timeout_sec);
@@ -441,76 +666,53 @@ try {
             }
         }
 
-        // Si el inventario está vacío o el cliente solicita refresco forzado con IP disponible
+        if (!ac_valid_ip($host_ip)) {
+            app_control_reply([
+                'status' => 'error', 'action' => 'installed_titles',
+                'code' => 'INVALID_IP',
+                'message' => 'Indica la IP de la consola para verificar las aplicaciones instaladas.',
+                'request_id' => $request_id
+            ], 400);
+        }
+
+        $installed_ids = ac_read_installed_title_ids($host_ip, $port);
+        if ($installed_ids === null) {
+            app_control_reply([
+                'status' => 'error', 'action' => 'installed_titles',
+                'code' => 'INSTALLED_STATE_UNAVAILABLE',
+                'message' => 'No se pudo verificar por FTP qué aplicaciones siguen instaladas. Actualiza la biblioteca e inténtalo de nuevo.',
+                'request_id' => $request_id
+            ], 502);
+        }
+
+        // appmeta mantiene datos de títulos desinstalados. Se usa solo para
+        // enriquecer IDs ya confirmados dentro de directorios de instalación.
         $force_scan = !empty($_POST['force']) || !empty($_GET['force']);
-        if ((count($titles_map) === 0 || $force_scan) && ac_valid_ip($host_ip)) {
-            $conn = @ftp_connect($host_ip, $port, 3);
-            if ($conn && @ftp_login($conn, 'anonymous', 'anonymous')) {
-                @ftp_pasv($conn, true);
-                $rutas = ["/user/appmeta", "/system_data/priv/appmeta"];
-                $discovered_cusa = [];
-                foreach ($rutas as $base_path) {
-                    $list = @ftp_nlist($conn, $base_path);
-                    if (is_array($list)) {
-                        foreach ($list as $entry) {
-                            $item = strtoupper(basename(str_replace('\\', '/', $entry)));
-                            if (ac_valid_title_id($item)) {
-                                $discovered_cusa[$item] = true;
-                            }
-                        }
-                    }
-                }
-
-                foreach (array_keys($discovered_cusa) as $cusa) {
-                    $sfo_local = $cache_dir . '/' . $cusa . '.sfo';
-                    $icon_local = $cache_dir . '/' . $cusa . '.png';
-
-                    if (!is_file($sfo_local) || @filesize($sfo_local) === 0) {
-                        foreach (["/user/appmeta/{$cusa}/param.sfo", "/system_data/priv/appmeta/{$cusa}/param.sfo"] as $rem) {
-                            if (@ftp_get($conn, $sfo_local, $rem, FTP_BINARY)) break;
-                        }
-                    }
-
-                    if (!is_file($icon_local) || @filesize($icon_local) === 0) {
-                        foreach (["/user/appmeta/{$cusa}/icon0.png", "/system_data/priv/appmeta/{$cusa}/icon0.png"] as $rem) {
-                            if (@ftp_get($conn, $icon_local, $rem, FTP_BINARY)) break;
-                        }
-                    }
-
-                    $title_name = $cusa;
-                    $ver = '01.00';
-                    $cat = 'game';
-                    if (is_file($sfo_local)) {
-                        $parsed = ac_parse_sfo($sfo_local);
-                        if ($parsed) {
-                            $raw_t = $parsed['TITLE'] ?? $parsed['APP_TITLE'] ?? '';
-                            if ($raw_t && !preg_match('/^\d+$/', trim($raw_t))) {
-                                $title_name = trim(preg_replace('/\s+/', ' ', $raw_t));
-                            }
-                            if (!empty($parsed['APP_VER'])) $ver = $parsed['APP_VER'];
-                            if (!empty($parsed['CATEGORY'])) $cat = $parsed['CATEGORY'];
-                        }
-                    }
-
-                    $titles_map[$cusa] = [
-                        'id' => $cusa,
-                        'name' => $title_name,
-                        'version' => $ver,
-                        'category' => $cat,
-                        'icon' => is_file($icon_local) ? "user/cache/biblioteca/{$cusa}.png" : ''
-                    ];
-                }
-                @ftp_close($conn);
-
-                if (!empty($titles_map)) {
-                    @file_put_contents($metadata_file, json_encode($titles_map, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-                }
+        if (count($titles_map) === 0 || $force_scan) {
+            $discovered = [];
+            foreach (["/user/appmeta", "/system_data/priv/appmeta"] as $base_path) {
+                $read_succeeded = false;
+                $found = lb_read_appmeta_directory($host_ip, $port, $base_path, $read_succeeded);
+                foreach ($found as $id => $_source) $discovered[strtoupper((string)$id)] = true;
+            }
+            foreach (array_keys($discovered) as $id) {
+                $meta = ac_get_title_metadata($id, $host_ip, $port);
+                $titles_map[$id] = [
+                    'id' => $id,
+                    'name' => $meta['name'],
+                    'version' => $meta['version'],
+                    'category' => $meta['category'],
+                    'icon' => $meta['icon']
+                ];
+            }
+            if (!empty($titles_map)) {
+                @file_put_contents($metadata_file, json_encode($titles_map, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
             }
         }
 
         $titles = [];
-        foreach ($titles_map as $id => $data) {
-            if (!is_array($data) || !ac_valid_title_id((string)$id)) continue;
+        foreach ($installed_ids as $id => $_source) {
+            if (!ac_valid_title_id((string)$id)) continue;
             $id_clean = strtoupper((string)$id);
             $meta = ac_get_title_metadata($id_clean, $host_ip, $port);
             $titles[] = [
@@ -531,6 +733,7 @@ try {
             'action' => 'installed_titles',
             'count' => count($titles),
             'titles' => $titles,
+            'installed_verified' => true,
             'request_id' => $request_id
         ]);
     }
@@ -574,6 +777,8 @@ try {
                 'state' => $daemon_data['state'] ?? ($daemon_data['app_running'] ? 'running' : 'idle_home'),
                 'read_time' => $now_str,
                 'timestamp' => $now_ts,
+                'cooldown_remaining' => (int)($daemon_data['cooldown_remaining'] ?? 0),
+                'cooldown_until' => (int)($daemon_data['cooldown_until'] ?? 0),
                 'method' => 'helper_daemon',
                 'request_id' => $request_id
             ]);
@@ -643,7 +848,7 @@ try {
         }
 
         // Validación de seguridad obligatoria: debe pertenecer a la biblioteca instalada
-        if (!ac_is_title_in_library($cusa_id)) {
+        if (!ac_is_title_in_library($cusa_id, $host_ip, $port)) {
             app_control_reply([
                 'status' => 'error',
                 'code' => 'TITLE_NOT_IN_LIBRARY',
@@ -652,25 +857,67 @@ try {
             ], 403);
         }
 
-        if ($user_id !== 'active' && (!ctype_digit($user_id) || (int)$user_id <= 0)) {
+        if (!ctype_digit($user_id) || (int)$user_id <= 0) {
             app_control_reply([
                 'status' => 'error',
                 'code' => 'INVALID_USER_ID',
-                'message' => 'El perfil seleccionado no tiene un identificador válido.',
+                'message' => 'Selecciona un perfil con sesión verificada antes de abrir la aplicación. No se usará automáticamente el perfil activo.',
                 'request_id' => $request_id
             ], 400);
         }
 
         $meta = ac_get_title_metadata($cusa_id, $host_ip, $port);
         $helper_status = ac_query_helper_daemon($host_ip, 9091, 1);
-        if (!$helper_status || version_compare((string)($helper_status['version'] ?? '0'), '1.1.0', '<')) {
+        if (!$helper_status || version_compare((string)($helper_status['version'] ?? '0'), '1.2.1', '<')) {
             app_control_reply([
                 'status' => 'error',
                 'action' => 'launch',
                 'code' => 'HELPER_UPDATE_REQUIRED',
                 'title_id' => $cusa_id,
                 'name' => $meta['name'],
-                'message' => 'Se bloqueó el lanzamiento porque el helper activo no confirma el perfil de usuario (versión requerida 1.1.0). Reinicia la PS4 para cerrar la instancia anterior y luego inicia el payload actualizado. No se envió ninguna orden de apertura.',
+                'message' => 'Se bloqueó el lanzamiento porque el helper activo no valida perfiles o conserva un intervalo anterior (versión requerida 1.2.1). Reinicia la PS4 para cerrar la instancia anterior y luego inicia el payload actualizado. No se envió ninguna orden de apertura.',
+                'request_id' => $request_id
+            ], 409);
+        }
+
+        // No iniciar directamente sobre otra app en primer plano. El cliente
+        // debe pedir confirmación explícita, cerrar la app actual y respetar
+        // el cooldown antes de volver a solicitar la apertura.
+        if (!empty($helper_status['app_running'])) {
+            $active_title_id = strtoupper(trim((string)($helper_status['title_id'] ?? '')));
+            if (!ac_valid_title_id($active_title_id)) {
+                app_control_reply([
+                    'status' => 'error',
+                    'action' => 'launch',
+                    'code' => 'ACTIVE_TITLE_UNVERIFIED',
+                    'message' => 'La PS4 informa una app activa, pero no se pudo validar su Title ID. Actualiza el estado; no se enviará la apertura.',
+                    'request_id' => $request_id
+                ], 409);
+            }
+            if ($active_title_id === $cusa_id) {
+                app_control_reply([
+                    'status' => 'success',
+                    'action' => 'launch',
+                    'title_id' => $cusa_id,
+                    'state' => 'already_foreground',
+                    'no_action' => true,
+                    'cooldown_remaining' => (int)($helper_status['cooldown_remaining'] ?? 0),
+                    'message' => "{$meta['name']} ({$cusa_id}) ya está en primer plano. No se envió otra orden.",
+                    'request_id' => $request_id
+                ]);
+            }
+            $active_meta = ac_get_title_metadata($active_title_id, $host_ip, $port);
+            app_control_reply([
+                'status' => 'error',
+                'action' => 'launch',
+                'code' => 'ACTIVE_APP_CLOSE_REQUIRED',
+                'active_app' => [
+                    'title_id' => $active_title_id,
+                    'name' => (string)($active_meta['name'] ?? $active_title_id),
+                    'icon' => (string)($active_meta['icon'] ?? '')
+                ],
+                'target_app' => ['title_id' => $cusa_id, 'name' => $meta['name']],
+                'message' => 'Hay otra aplicación en primer plano. Confirma el cierre y espera el intervalo de seguridad antes de abrir la nueva app.',
                 'request_id' => $request_id
             ], 409);
         }
@@ -699,6 +946,8 @@ try {
                     'title_id' => $cusa_id,
                     'name' => $meta['name'],
                     'state' => $confirmed ? 'foreground' : 'accepted',
+                    'cooldown_remaining' => (int)($decoded['cooldown_remaining'] ?? 0),
+                    'cooldown_until' => (int)($decoded['cooldown_until'] ?? 0),
                     'message' => $decoded['message'] ?? ($confirmed ? "{$meta['name']} ({$cusa_id}) está en primer plano." : "La consola aceptó la solicitud para {$meta['name']} ({$cusa_id}), pero aún no se confirmó en primer plano."),
                     'method' => 'helper_daemon',
                     'request_id' => $request_id
@@ -708,6 +957,8 @@ try {
                 app_control_reply([
                     'status' => 'error', 'action' => 'launch',
                     'code' => $decoded['code'] ?? 'LAUNCH_REJECTED',
+                    'remaining_seconds' => (int)($decoded['remaining_seconds'] ?? 0),
+                    'cooldown_until' => (int)($decoded['cooldown_until'] ?? 0),
                     'title_id' => $cusa_id, 'name' => $meta['name'],
                     'message' => $decoded['message'] ?? 'El servicio de la consola rechazó la apertura.',
                     'request_id' => $request_id
@@ -851,6 +1102,21 @@ try {
             ], 403);
         }
 
+        // El helper 1.2.0 conserva un cooldown distinto. No permitir mutaciones
+        // hasta que la consola ejecute la versión que aplica 40 segundos.
+        $close_helper = ac_query_helper_daemon($host_ip, 9091, 1);
+        if (!$close_helper || ($close_helper['status'] ?? '') !== 'success'
+            || version_compare((string)($close_helper['version'] ?? '0'), '1.2.1', '<')) {
+            app_control_reply([
+                'status' => 'error',
+                'action' => 'close_force',
+                'code' => 'HELPER_UPDATE_REQUIRED',
+                'service_version' => (string)($close_helper['version'] ?? ''),
+                'message' => 'No se envió el cierre: Control de Apps requiere el helper 1.2.1 o posterior, que aplica el intervalo de seguridad de 40 segundos. Reinicia la PS4 para detener el helper anterior y luego inicia la versión actualizada.',
+                'request_id' => $request_id
+            ], 409);
+        }
+
         // Validación 3: Comprobar que el proceso o app activa no cambió entre la confirmación y la ejecución
         $check_sandbox = ac_query_ftp_sandbox($host_ip, $port, 2);
         if (empty($check_sandbox['ok'])) {
@@ -891,6 +1157,8 @@ try {
                     'action' => 'close_force',
                     'title_id' => $cusa_id,
                     'state' => $confirmed ? 'no_longer_foreground' : 'accepted',
+                    'cooldown_remaining' => (int)($decoded['cooldown_remaining'] ?? 0),
+                    'cooldown_until' => (int)($decoded['cooldown_until'] ?? 0),
                     'message' => $decoded['message'] ?? ($confirmed ? "La aplicación {$cusa_id} ya no está en primer plano." : "La consola aceptó el cierre de {$cusa_id}, pero sigue en primer plano; actualice el estado antes de repetirlo."),
                     'warning' => 'Cualquier progreso no guardado en la aplicación puede haberse perdido.',
                     'method' => 'helper_daemon',
@@ -901,6 +1169,8 @@ try {
                 app_control_reply([
                     'status' => 'error', 'action' => 'close_force',
                     'code' => $decoded['code'] ?? 'CLOSE_REJECTED',
+                    'remaining_seconds' => (int)($decoded['remaining_seconds'] ?? 0),
+                    'cooldown_until' => (int)($decoded['cooldown_until'] ?? 0),
                     'title_id' => $cusa_id,
                     'message' => $decoded['message'] ?? 'La consola rechazó el cierre forzado.',
                     'request_id' => $request_id
@@ -924,41 +1194,54 @@ try {
     // ----------------------------------------------------
     if ($action === 'user_profiles') {
         $profiles_helper = ac_query_helper_daemon($host_ip, 9091, 1);
-        if (!$profiles_helper || version_compare((string)($profiles_helper['version'] ?? '0'), '1.1.0', '<')) {
+        $home_profiles = ac_read_home_profiles($host_ip, $port);
+        if ($home_profiles === false) {
             app_control_reply([
-                'status' => 'error',
-                'code' => 'HELPER_UPDATE_REQUIRED',
-                'message' => 'El helper activo no puede consultar perfiles. Reinicia la PS4 para cerrar la instancia anterior y luego inicia el payload actualizado.',
-                'request_id' => $request_id
-            ], 409);
-        }
-        $sock = @fsockopen($host_ip, 9091, $errno, $errstr, 2);
-        if (!$sock) {
-            app_control_reply([
-                'status' => 'error',
-                'code' => 'CONTROL_CHANNEL_UNAVAILABLE',
-                'message' => 'Inicia el servicio de Control de Apps para consultar los perfiles conectados.',
-                'request_id' => $request_id
-            ], 503);
-        }
-        stream_set_timeout($sock, 3);
-        @fwrite($sock, json_encode(['action' => 'users']) . "\n");
-        $raw_users = @fgets($sock, 4096);
-        fclose($sock);
-        $users_data = $raw_users ? json_decode(trim($raw_users), true) : null;
-        if (!is_array($users_data) || ($users_data['status'] ?? '') !== 'success' || !is_array($users_data['users'] ?? null)) {
-            app_control_reply([
-                'status' => 'error',
-                'code' => 'USER_PROFILES_UNAVAILABLE',
-                'message' => is_array($users_data) ? ($users_data['message'] ?? 'La consola no devolvió perfiles válidos.') : 'La consola no respondió al consultar los perfiles.',
+                'status' => 'error', 'code' => 'PROFILE_DIRECTORY_UNAVAILABLE',
+                'message' => 'No se pudieron leer las carpetas de perfiles de /user/home por FTP.',
                 'request_id' => $request_id
             ], 502);
         }
+        $users_data = null;
+        // El daemon 1.2.0 ya tiene la misma consulta UserService que 1.2.1;
+        // 1.2.1 solo cambia el intervalo de acciones de 120 a 40 segundos.
+        // Permitir esta lectura evita ocultar sesiones reales mientras se
+        // espera el reinicio necesario para actualizar el helper.
+        if ($profiles_helper && ($profiles_helper['status'] ?? '') === 'success') {
+            $sock = @fsockopen($host_ip, 9091, $errno, $errstr, 2);
+            if ($sock) {
+                stream_set_timeout($sock, 3);
+                @fwrite($sock, json_encode(['action' => 'users']) . "\n");
+                $raw_users = @fgets($sock, 4096);
+                fclose($sock);
+                $candidate = $raw_users ? json_decode(trim($raw_users), true) : null;
+                if (is_array($candidate) && ($candidate['status'] ?? '') === 'success' && is_array($candidate['users'] ?? null)) $users_data = $candidate;
+            }
+        }
+        $active_id = (int)($users_data['active_user_id'] ?? 0);
+        $logged_ids = [];
+        foreach (($users_data['users'] ?? []) as $logged_user) {
+            if (!is_array($logged_user) || !ctype_digit((string)($logged_user['id'] ?? ''))) continue;
+            $id = (string)$logged_user['id'];
+            $logged_ids[$id] = true;
+            if (!isset($home_profiles[$id])) {
+                $home_profiles[$id] = ['id' => $id, 'folder' => '', 'name' => (string)($logged_user['name'] ?? ('Usuario ' . $id)), 'logged_in' => true, 'active' => !empty($logged_user['active']) || $active_id === (int)$id];
+            }
+        }
+        foreach ($home_profiles as $id => &$profile) {
+            if ($users_data !== null) $profile['logged_in'] = isset($logged_ids[(string)$id]);
+            $profile['active'] = $users_data !== null && $active_id > 0 && $active_id === (int)$id;
+        }
+        unset($profile);
+        usort($home_profiles, static fn(array $a, array $b): int => strcasecmp((string)$a['name'], (string)$b['name']));
         app_control_reply([
             'status' => 'success',
             'action' => 'user_profiles',
-            'active_user_id' => (int)($users_data['active_user_id'] ?? 0),
-            'users' => $users_data['users'],
+            'active_user_id' => $active_id,
+            'active_user_known' => $users_data !== null && $active_id > 0,
+            'login_state_known' => $users_data !== null,
+            'users' => array_values($home_profiles),
+            'helper_version' => (string)($profiles_helper['version'] ?? ''),
             'request_id' => $request_id
         ]);
     }
@@ -974,7 +1257,7 @@ try {
             'service_active' => $is_active,
             'port' => 9091,
             'service_version' => $is_active ? (string)($daemon_data['version'] ?? '') : '',
-            'requires_helper_update' => $is_active && version_compare((string)($daemon_data['version'] ?? '0'), '1.1.0', '<'),
+            'requires_helper_update' => $is_active && version_compare((string)($daemon_data['version'] ?? '0'), '1.2.1', '<'),
             'autorun_enabled' => $autorun_enabled,
             'daemon_info' => $daemon_data,
             'request_id' => $request_id
@@ -987,14 +1270,14 @@ try {
     if ($action === 'start_service') {
         $daemon_data = ac_query_helper_daemon($host_ip, 9091, 1);
         if ($daemon_data && ($daemon_data['status'] ?? '') === 'success') {
-            if (version_compare((string)($daemon_data['version'] ?? '0'), '1.1.0', '<')) {
+            if (version_compare((string)($daemon_data['version'] ?? '0'), '1.2.1', '<')) {
                 app_control_reply([
                     'status' => 'error',
                     'action' => 'start_service',
                     'code' => 'HELPER_UPDATE_REQUIRED',
                     'service_active' => true,
                     'service_version' => (string)($daemon_data['version'] ?? 'desconocida'),
-                    'message' => 'Hay un helper anterior activo que fija user_id=0 y no debe lanzar apps. Reinicia la PS4 para cerrar esa instancia; después vuelve a iniciar el payload actualizado con selección segura de perfil.',
+                    'message' => 'Hay un helper anterior activo (' . (string)($daemon_data['version'] ?? 'desconocida') . '). Reinicia la PS4 para detener esa instancia; después inicia el payload 1.2.1 para activar el nuevo intervalo de 40 segundos y la selección segura de perfiles.',
                     'request_id' => $request_id
                 ], 409);
             }
@@ -1078,7 +1361,7 @@ try {
             'service_active' => false,
             'port' => 9091,
             'bytes_sent' => (int)($send_res['bytes'] ?? strlen($bytes)),
-            'message' => 'BinLoader recibió todos los bytes, pero el servicio no respondió en 9091 dentro de 6 segundos. No se reenviará automáticamente. Comprueba la consola y la compatibilidad de este ELF.',
+            'message' => 'Se transmitieron ' . (int)($send_res['bytes'] ?? strlen($bytes)) . ' bytes por PayLoader 9090, pero el helper no confirmó inicio en 9091. La transferencia completa no demuestra que el ELF arrancó. No se reenvió: revisa si apareció la notificación de inicio en PS4; si 9091 continúa cerrado, reactiva PayLoader antes de otro intento.',
             'request_id' => $request_id
         ], 202);
     }
@@ -1110,6 +1393,14 @@ try {
         ]);
     }
 
+} catch (Throwable $error) {
+    error_log('[app_control_api] ' . get_class($error) . ': ' . $error->getMessage());
+    app_control_reply([
+        'status' => 'error',
+        'code' => 'CONTROL_API_RUNTIME_ERROR',
+        'message' => 'La API de Control de Apps encontró un error de PHP. Revisa el registro local del servidor.',
+        'request_id' => $request_id
+    ], 500);
 } finally {
     @flock($lock, LOCK_UN);
     @fclose($lock);

@@ -522,7 +522,9 @@ function aplicarOrdenamientoInterno() {
 function recompilarTodo() {
     aplicarOrdenamientoInterno();
     
-    const visibles = obtenerVisiblesFiltrados();
+    // The Library view is an installed-title launcher. Cached appmeta may keep
+    // uninstalled titles, so never render those as launchable cards.
+    const visibles = obtenerVisiblesFiltrados().filter(game => game.installed === true);
     const badgeText = document.getElementById('badge-total-txt');
     if (badgeText) {
         const instalados = visibles.filter(game => game.installed === true).length;
@@ -553,7 +555,7 @@ function renderizarGridDOM(visibles) {
     gridDom.innerHTML = "";
     
     if (visibles.length === 0) {
-        gridDom.innerHTML = `<div class="col-span-full py-12 text-center opacity-40"><p class="text-[9px] uppercase font-black tracking-widest text-gray-400">Sin títulos encontrados</p></div>`;
+        gridDom.innerHTML = `<div class="col-span-full py-12 text-center"><p class="text-[10px] uppercase font-black tracking-widest text-gray-300">No hay juegos instalados verificados</p><p class="mt-2 text-[9px] text-gray-500">Actualiza la biblioteca para consultar el estado actual de la PS4.</p></div>`;
         return;
     }
     
@@ -630,7 +632,7 @@ function construirCoverflowDOMEstatico(visibles) {
         target3D.innerHTML = `
             <div class="text-center mt-10">
                 <i class="fa-solid fa-triangle-exclamation text-4xl text-amber-500 mb-3"></i>
-                <p class="text-[10px] text-gray-400 font-mono tracking-widest uppercase">SIN TÍTULOS EN ESTE FILTRO.</p>
+            <p class="text-[10px] text-gray-300 font-mono tracking-widest uppercase">NO HAY TÍTULOS INSTALADOS VERIFICADOS.</p>
             </div>`;
         juegoSeleccionadoLocal = null;
         return;

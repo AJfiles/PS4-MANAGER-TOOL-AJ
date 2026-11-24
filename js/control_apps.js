@@ -11,6 +11,107 @@ let caInstalledTitles = [];
 let caActionLogs = [];
 let caIsRefreshing = false;
 let caIsActionRunning = false;
+let caVerifiedLaunchUsers = new Set();
+let caHelperRequiresUpdate = true;
+let caCooldownUntil = 0;
+let caCooldownTimer = 0;
+let caPendingSwitch = null;
+let caSwitchCountdownTimer = 0;
+let caPendingLibraryLaunch = null;
+
+function caShowSwitchPrompt(activeApp, targetApp, userId) {
+    const modal = document.getElementById('modal-cambio-app-protegido');
+    if (!modal) return false;
+    caPendingSwitch = {
+        active: {
+            title_id: String(activeApp?.title_id || '').toUpperCase(),
+            name: String(activeApp?.name || activeApp?.title_id || 'App activa'),
+            icon: String(activeApp?.icon || '')
+        },
+        target: {
+            title_id: String(targetApp?.title_id || '').toUpperCase(),
+            name: String(targetApp?.name || targetApp?.title_id || 'Nueva app')
+        },
+        userId: String(userId || ''),
+        closedConfirmed: false,
+        readyAt: 0
+    };
+    document.getElementById('ca-switch-heading').textContent = 'Cambiar aplicación';
+    document.getElementById('ca-switch-current-name').textContent = caPendingSwitch.active.name;
+    document.getElementById('ca-switch-current-id').textContent = `(${caPendingSwitch.active.title_id})`;
+    document.getElementById('ca-switch-next-name').textContent = caPendingSwitch.target.name;
+    document.getElementById('ca-switch-next-id').textContent = `(${caPendingSwitch.target.title_id})`;
+    document.getElementById('ca-switch-risk-row').classList.remove('hidden');
+    document.getElementById('ca-switch-wait').classList.add('hidden');
+    const checkbox = document.getElementById('ca-switch-risk-confirm');
+    if (checkbox) checkbox.checked = false;
+    const button = document.getElementById('ca-switch-confirm-button');
+    if (button) {
+        button.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Cerrar y cambiar';
+        button.disabled = true;
+        button.onclick = window.controlAppsConfirmarCambioApp;
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    return true;
+}
+
+window.controlAppsActualizarConfirmacionCambio = function () {
+    const button = document.getElementById('ca-switch-confirm-button');
+    const checkbox = document.getElementById('ca-switch-risk-confirm');
+    if (button && !caPendingSwitch?.closedConfirmed) button.disabled = !checkbox?.checked || caIsActionRunning;
+};
+
+window.controlAppsCancelarCambioApp = function () {
+    if (caSwitchCountdownTimer) clearInterval(caSwitchCountdownTimer);
+    caSwitchCountdownTimer = 0;
+    const hadClosed = Boolean(caPendingSwitch?.closedConfirmed);
+    caPendingSwitch = null;
+    const modal = document.getElementById('modal-cambio-app-protegido');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    if (hadClosed) window.ps5Notification?.('Control de Apps', 'La app anterior ya se cerró; cancelé la apertura de la nueva.', 'fa-circle-info');
+};
+
+function caActualizarCuentaCambio() {
+    if (!caPendingSwitch?.closedConfirmed) return;
+    const left = Math.max(0, Math.ceil((caPendingSwitch.readyAt - Date.now()) / 1000));
+    const wait = document.getElementById('ca-switch-wait');
+    const button = document.getElementById('ca-switch-confirm-button');
+    if (wait) {
+        wait.classList.remove('hidden');
+        wait.textContent = left
+            ? `Cierre confirmado. La pausa de seguridad termina en ${left} s; la app nueva no se abrirá antes.`
+            : 'Pausa completada. Se volverá a consultar el estado antes de abrir la app nueva.';
+    }
+    if (button) {
+        button.disabled = left > 0 || caIsActionRunning;
+        button.innerHTML = left
+            ? `<i class="fa-solid fa-hourglass-half mr-1"></i> Esperar ${left} s`
+            : '<i class="fa-solid fa-play mr-1"></i> Continuar y abrir';
+    }
+    if (!left && caSwitchCountdownTimer) { clearInterval(caSwitchCountdownTimer); caSwitchCountdownTimer = 0; }
+}
+
+function caSetCooldown(seconds) {
+    caCooldownUntil = Date.now() + Math.max(0, Number(seconds) || 0) * 1000;
+    if (caCooldownTimer) clearInterval(caCooldownTimer);
+    const update = () => {
+        const left = Math.max(0, Math.ceil((caCooldownUntil - Date.now()) / 1000));
+        const label = document.getElementById('ca-action-cooldown');
+        if (label) {
+            label.textContent = left ? `Espera de seguridad: ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` : 'Acciones disponibles';
+            label.classList.toggle('text-amber-300', left > 0);
+            label.classList.toggle('text-emerald-300', left === 0);
+        }
+        const profileId = document.getElementById('ca-launch-user')?.value || '';
+        document.querySelectorAll('[data-ca-launch-id]').forEach(button => { button.disabled = left > 0 || caHelperRequiresUpdate || caIsActionRunning || !caVerifiedLaunchUsers.has(profileId); });
+        const close = document.getElementById('ca-btn-cerrar-app');
+        if (close) close.disabled = left > 0 || caHelperRequiresUpdate || caIsActionRunning || !caActiveApp?.title_id;
+        if (!left && caCooldownTimer) { clearInterval(caCooldownTimer); caCooldownTimer = 0; }
+    };
+    update();
+    if (caCooldownUntil > Date.now()) caCooldownTimer = setInterval(update, 1000);
+}
 
 // Cargar historial previo de localStorage
 try {
@@ -31,6 +132,12 @@ function caEscapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+function caInvalidResponseMessage(response, raw) {
+    const contentType = response?.headers?.get?.('content-type') || 'tipo desconocido';
+    const preview = String(raw || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180);
+    return `Respuesta inválida del servidor (HTTP ${response?.status || 0}; ${contentType})${preview ? `: ${preview}` : '.'}`;
 }
 
 function caSafeImage(url) {
@@ -131,32 +238,73 @@ async function controlAppsCargarPerfiles() {
         form.append('host_ip', ip);
         form.append('port', String(port));
         form.append('request_id', `ca_users_${Date.now()}`);
+        let data;
         const response = await fetch('api/app_control_api.php', { method: 'POST', body: form, cache: 'no-store' });
-        const data = await response.json();
+        if (typeof response.text === 'function') {
+            const raw = await response.text();
+            try { data = JSON.parse(raw); }
+            catch (_) { throw new Error(caInvalidResponseMessage(response, raw)); }
+        } else {
+            data = await response.json();
+        }
+        if (!response.ok || !data || typeof data !== 'object') {
+            throw new Error(data?.message || `HTTP ${response.status} al leer los perfiles.`);
+        }
         if (data.status !== 'success' || !Array.isArray(data.users)) {
+            caVerifiedLaunchUsers = new Set();
+            select.replaceChildren(new Option('No hay perfiles verificados', ''));
             if (status) status.textContent = data.message || 'Inicia el servicio para consultar perfiles.';
+            controlAppsActualizarDisponibilidadLanzamiento();
             return;
         }
 
         const activeId = String(data.active_user_id || '');
-        const previousUser = String(select.value || 'active');
+        const previousUser = String(select.value || '');
         const entries = data.users.filter(user => user && /^\d+$/.test(String(user.id || '')));
-        select.replaceChildren(new Option(window.ghmTranslateText?.('Usuario activo detectado') || 'Usuario activo detectado', 'active'));
+        caVerifiedLaunchUsers = new Set(entries.filter(user => user.logged_in === true).map(user => String(user.id)));
+        select.replaceChildren(new Option(entries.length ? 'Selecciona un perfil' : 'No se encontraron perfiles locales', ''));
         for (const user of entries) {
-            const activeSuffix = String(user.id) === activeId ? ` · ${window.ghmTranslateText?.('Usuario activo') || 'activo'}` : '';
-            const label = `${String(user.name || `Usuario ${user.id}`)}${activeSuffix}`;
-            select.add(new Option(label, String(user.id)));
+            const logged = user.logged_in === true;
+            const known = user.logged_in === true || user.logged_in === false;
+            const suffix = user.active ? ' · sesión activa' : (logged ? ' · sesión iniciada' : (known ? ' · sesión cerrada' : ' · sesión sin verificar'));
+            const option = new Option(`${String(user.name || `Perfil ${user.id}`)}${suffix}`, logged ? String(user.id) : '');
+            option.disabled = !logged;
+            if (!logged) option.dataset.profileId = String(user.id);
+            select.add(option);
         }
-        select.value = entries.some(user => String(user.id) === previousUser) ? previousUser : 'active';
-        const profileMessage = entries.length > 1
-            ? `${entries.length} perfiles con sesion iniciada; elige con quien abrir la app.`
-            : (entries.length === 1 ? 'Perfil activo detectado en la PS4.' : 'No hay perfiles con sesion iniciada.');
-        if (status) status.textContent = window.ghmTranslateText?.(profileMessage) || profileMessage;
+        select.value = caVerifiedLaunchUsers.has(previousUser) ? previousUser : '';
+        const profileMessage = data.login_state_known === true
+            ? `${caVerifiedLaunchUsers.size} perfil(es) con sesión verificada. Selecciona uno para habilitar el lanzamiento.`
+            : `Perfiles locales encontrados: ${entries.length}. UserService no confirmó la sesión; abrir apps está deshabilitado.`;
+        if (status) status.textContent = profileMessage;
+        controlAppsActualizarDisponibilidadLanzamiento();
     } catch (error) {
-        if (status) status.textContent = 'No se pudieron consultar los perfiles.';
+        caVerifiedLaunchUsers = new Set();
+        if (status) status.textContent = error?.message || 'No se pudieron consultar los perfiles.';
+        controlAppsActualizarDisponibilidadLanzamiento();
     }
 }
 window.controlAppsCargarPerfiles = controlAppsCargarPerfiles;
+
+function controlAppsActualizarDisponibilidadLanzamiento() {
+    const selected = document.getElementById('ca-launch-user')?.value || '';
+    const enabled = !caHelperRequiresUpdate && !caIsActionRunning && caVerifiedLaunchUsers.has(selected) && Date.now() >= caCooldownUntil;
+    document.querySelectorAll('[data-ca-launch-id]').forEach(button => { button.disabled = !enabled; });
+    const closeButton = document.getElementById('ca-btn-cerrar-app');
+    if (closeButton) closeButton.disabled = caHelperRequiresUpdate || caIsActionRunning || Date.now() < caCooldownUntil || !caActiveApp?.title_id;
+}
+
+document.addEventListener('change', event => {
+    if (event.target?.id === 'ca-launch-user') {
+        controlAppsActualizarDisponibilidadLanzamiento();
+        const selected = String(event.target.value || '');
+        if (caPendingLibraryLaunch && caVerifiedLaunchUsers.has(selected)) {
+            const target = caPendingLibraryLaunch;
+            caPendingLibraryLaunch = null;
+            window.controlAppsAbrirApp(target.title_id, target.name);
+        }
+    }
+});
 
 async function controlAppsConsultarServicio() {
     const { ip, port } = caGetConnection();
@@ -178,6 +326,8 @@ async function controlAppsConsultarServicio() {
         const data = await resp.json();
 
         if (data && data.status === 'success') {
+            caHelperRequiresUpdate = data.requires_helper_update === true;
+            caSetCooldown(data.daemon_info?.cooldown_remaining || 0);
             if (badge && text && dot) {
                 if (data.service_active) {
                     if (data.requires_helper_update) {
@@ -213,7 +363,7 @@ async function controlAppsIniciarServicio() {
     const { ip, port } = caGetConnection();
     if (!ip) {
         window.ps5Notification?.('Control de Apps', 'No hay una IP guardada para la consola.', 'fa-network-wired');
-        return;
+        return false;
     }
     const icon = document.getElementById('ca-service-icon');
     const btn = document.getElementById('ca-btn-iniciar-servicio');
@@ -311,7 +461,7 @@ window.controlAppsActualizarEstado = async function (manual = true) {
             foregroundDetail.textContent = 'Configura o descubre la IP de la consola desde el Radar antes de consultar.';
         }
         window.ps5Notification?.('Control de Apps', 'No hay una IP guardada para la consola.', 'fa-network-wired');
-        return;
+        return false;
     }
 
     caIsRefreshing = true;
@@ -340,10 +490,11 @@ window.controlAppsActualizarEstado = async function (manual = true) {
         try {
             data = JSON.parse(raw);
         } catch (_) {
-            throw new Error(`Respuesta inválida del servidor (HTTP ${resp.status}).`);
+            throw new Error(caInvalidResponseMessage(resp, raw));
         }
 
         const nowStr = new Date().toLocaleTimeString();
+        if (Number(data.cooldown_remaining) > 0) caSetCooldown(data.cooldown_remaining);
 
         if (!resp.ok || data.status !== 'success') {
             const errorMsg = data.message || `Error HTTP ${resp.status}`;
@@ -361,7 +512,7 @@ window.controlAppsActualizarEstado = async function (manual = true) {
             caActiveApp = null;
             caLogAction('consulta', 'Estado PS4', 'error', errorMsg);
             window.ps5Notification?.('Control de Apps', errorMsg, 'fa-triangle-exclamation');
-            return;
+            return false;
         }
 
         // Caso 1: Aplicación en ejecución detectada
@@ -403,7 +554,7 @@ window.controlAppsActualizarEstado = async function (manual = true) {
                 }
             }
 
-            if (btnCerrar) btnCerrar.disabled = false;
+            controlAppsActualizarDisponibilidadLanzamiento();
             caLogAction('consulta', `${caActiveApp.name} (${caActiveApp.title_id})`, 'ok', 'En ejecución activa');
             if (manual) {
                 window.ps5Notification?.('Control de Apps', `${caActiveApp.name} en ejecución`, 'fa-gamepad');
@@ -428,13 +579,14 @@ window.controlAppsActualizarEstado = async function (manual = true) {
                 foregroundCover.style.backgroundImage = '';
                 foregroundCover.innerHTML = '<i class="fa-solid fa-house text-3xl text-cyan-400"></i>';
             }
-            if (btnCerrar) btnCerrar.disabled = true;
+            controlAppsActualizarDisponibilidadLanzamiento();
 
             caLogAction('consulta', 'Menú principal', 'ok', 'Sin aplicación en primer plano');
             if (manual) {
                 window.ps5Notification?.('Control de Apps', 'Menú principal activo (sin app)', 'fa-house');
             }
         }
+        return true;
     } catch (err) {
         const errorMsg = err.message || 'Error de comunicación con la consola';
         if (statusBadge) {
@@ -447,10 +599,11 @@ window.controlAppsActualizarEstado = async function (manual = true) {
         if (foregroundTime) {
             foregroundTime.textContent = `Hora de lectura: ${new Date().toLocaleTimeString()} (Error)`;
         }
-        if (btnCerrar) btnCerrar.disabled = true;
+        controlAppsActualizarDisponibilidadLanzamiento();
         caActiveApp = null;
         caLogAction('consulta', 'Estado PS4', 'error', errorMsg);
         window.ps5Notification?.('Control de Apps', errorMsg, 'fa-circle-xmark');
+        return false;
     } finally {
         caIsRefreshing = false;
         if (iconRefresh) iconRefresh.classList.remove('fa-spin');
@@ -465,6 +618,16 @@ window.controlAppsActualizarEstado = async function (manual = true) {
 window.controlAppsAbrirApp = async function (titleId, titleName = '') {
     if (caIsActionRunning) return;
     const { ip, port } = caGetConnection();
+    const selectedUser = document.getElementById('ca-launch-user')?.value || '';
+
+    if (!selectedUser || !caVerifiedLaunchUsers.has(selectedUser)) {
+        window.ps5Notification?.('Control de Apps', 'Selecciona un perfil cuya sesión haya sido verificada por la consola. No se enviará la orden.', 'fa-user-shield');
+        return;
+    }
+    if (Date.now() < caCooldownUntil) {
+        window.ps5Notification?.('Control de Apps', 'Espera a que termine la pausa de seguridad antes de otra acción.', 'fa-hourglass-half');
+        return;
+    }
 
     if (!ip) {
         window.ps5Notification?.('Control de Apps', 'No hay una IP guardada para la consola.', 'fa-network-wired');
@@ -479,6 +642,7 @@ window.controlAppsAbrirApp = async function (titleId, titleName = '') {
 
     const displayName = titleName || safeTitleId;
     caIsActionRunning = true;
+    controlAppsActualizarDisponibilidadLanzamiento();
     window.ps5Notification?.('Control de Apps', `Solicitando apertura de ${displayName}...`, 'fa-spinner fa-spin');
 
     try {
@@ -487,7 +651,7 @@ window.controlAppsAbrirApp = async function (titleId, titleName = '') {
         form.append('host_ip', ip);
         form.append('port', String(port));
         form.append('title_id', safeTitleId);
-        form.append('user_id', document.getElementById('ca-launch-user')?.value || 'active');
+        form.append('user_id', selectedUser);
         form.append('request_id', `ca_launch_${Date.now()}`);
 
         const resp = await fetch('api/app_control_api.php', {
@@ -501,12 +665,23 @@ window.controlAppsAbrirApp = async function (titleId, titleName = '') {
         try {
             data = JSON.parse(raw);
         } catch (_) {
-            throw new Error(`Respuesta inválida (HTTP ${resp.status}).`);
+            throw new Error(caInvalidResponseMessage(resp, raw));
+        }
+
+        if (data.code === 'ACTIVE_APP_CLOSE_REQUIRED' && data.active_app) {
+            window.abrirModuloNativo?.('control-apps');
+            if (!caShowSwitchPrompt(data.active_app, { title_id: safeTitleId, name: displayName }, selectedUser)) {
+                window.ps5Notification?.('Control de Apps', 'No se pudo abrir la confirmación de cambio de app. No se envió ninguna orden.', 'fa-triangle-exclamation');
+            }
+            return;
         }
 
         if (data.status !== 'success' && data.status !== 'accepted') {
+            if (Number(data.remaining_seconds) > 0) caSetCooldown(data.remaining_seconds);
             throw new Error(data.message || `Error al solicitar apertura (${resp.status})`);
         }
+
+        if (!data.no_action) caSetCooldown(data.cooldown_remaining || 40);
 
         const confirmed = data.status === 'success';
         const stateMsg = confirmed ? 'Confirmada en primer plano' : 'Aceptada; estado aún sin confirmar';
@@ -519,13 +694,131 @@ window.controlAppsAbrirApp = async function (titleId, titleName = '') {
         window.ps5Notification?.('Control de Apps', errorMsg, 'fa-circle-xmark');
     } finally {
         caIsActionRunning = false;
+        controlAppsActualizarDisponibilidadLanzamiento();
     }
 };
 
-// ====================================================================
+window.controlAppsConfirmarCambioApp = async function () {
+    if (!caPendingSwitch || caPendingSwitch.closedConfirmed || caIsActionRunning) return;
+    const checkbox = document.getElementById('ca-switch-risk-confirm');
+    const { ip, port } = caGetConnection();
+    const selectedUser = document.getElementById('ca-launch-user')?.value || '';
+    if (!checkbox?.checked) {
+        window.ps5Notification?.('Control de Apps', 'Marca la confirmación de riesgo antes de cerrar la app activa.', 'fa-triangle-exclamation');
+        return;
+    }
+    if (!selectedUser || selectedUser !== caPendingSwitch.userId || !caVerifiedLaunchUsers.has(selectedUser)) {
+        window.ps5Notification?.('Control de Apps', 'El perfil verificado cambió o ya no está disponible. No se cerró la app.', 'fa-user-shield');
+        return;
+    }
+    if (Date.now() < caCooldownUntil) {
+        window.ps5Notification?.('Control de Apps', 'Espera a que termine la pausa de seguridad antes de cerrar la app.', 'fa-hourglass-half');
+        return;
+    }
+    if (!ip) {
+        window.ps5Notification?.('Control de Apps', 'No hay una IP guardada para la consola.', 'fa-network-wired');
+        return;
+    }
+
+    caIsActionRunning = true;
+    controlAppsActualizarDisponibilidadLanzamiento();
+    controlAppsActualizarConfirmacionCambio();
+    window.ps5Notification?.('Control de Apps', `Verificando y cerrando ${caPendingSwitch.active.name}...`, 'fa-spinner fa-spin');
+    try {
+        const form = new FormData();
+        form.append('action', 'close_force');
+        form.append('host_ip', ip);
+        form.append('port', String(port));
+        form.append('title_id', caPendingSwitch.active.title_id);
+        form.append('confirm_force', '1');
+        form.append('request_id', `ca_switch_close_${Date.now()}`);
+        const response = await fetch('api/app_control_api.php', { method: 'POST', body: form, cache: 'no-store' });
+        const raw = await response.text();
+        let data;
+        try { data = JSON.parse(raw); }
+        catch (_) { throw new Error(caInvalidResponseMessage(response, raw)); }
+        if (!response.ok || data.status !== 'success' || data.state !== 'no_longer_foreground') {
+            if (Number(data.remaining_seconds) > 0) caSetCooldown(data.remaining_seconds);
+            throw new Error(data.message || `No se confirmó el cierre de ${caPendingSwitch.active.name}. La nueva app no se abrirá.`);
+        }
+
+        caPendingSwitch.closedConfirmed = true;
+        caActiveApp = null;
+        const delay = Math.max(40, Number(data.cooldown_remaining) || 0);
+        caPendingSwitch.readyAt = Date.now() + delay * 1000;
+        caSetCooldown(delay);
+        const riskRow = document.getElementById('ca-switch-risk-row');
+        if (riskRow) riskRow.classList.add('hidden');
+        const checkboxAfter = document.getElementById('ca-switch-risk-confirm');
+        if (checkboxAfter) checkboxAfter.checked = false;
+        const heading = document.getElementById('ca-switch-heading');
+        if (heading) heading.textContent = 'Cierre confirmado';
+        const button = document.getElementById('ca-switch-confirm-button');
+        if (button) button.onclick = window.controlAppsContinuarCambioApp;
+        caLogAction('cierre para cambio', `${caPendingSwitch.active.name} (${caPendingSwitch.active.title_id})`, 'ok', `Cierre confirmado; pausa de seguridad de ${delay} segundos antes de abrir ${caPendingSwitch.target.name}.`);
+        caActualizarCuentaCambio();
+        caSwitchCountdownTimer = setInterval(caActualizarCuentaCambio, 1000);
+        window.ps5Notification?.('Control de Apps', `Cierre confirmado. ${caPendingSwitch.target.name} quedará disponible después de la pausa de 40 segundos.`, 'fa-circle-check');
+    } catch (error) {
+        const message = error?.message || 'No se pudo completar el cambio. La app nueva no se abrirá.';
+        caLogAction('cambio de app', `${caPendingSwitch?.target?.name || 'Nueva app'}`, 'error', message);
+        window.ps5Notification?.('Control de Apps', message, 'fa-circle-xmark');
+    } finally {
+        caIsActionRunning = false;
+        controlAppsActualizarDisponibilidadLanzamiento();
+        if (caPendingSwitch?.closedConfirmed) caActualizarCuentaCambio();
+        else controlAppsActualizarConfirmacionCambio();
+    }
+};
+
+window.controlAppsContinuarCambioApp = async function () {
+    if (!caPendingSwitch?.closedConfirmed || caIsActionRunning) return;
+    if (Date.now() < caPendingSwitch.readyAt || Date.now() < caCooldownUntil) {
+        caActualizarCuentaCambio();
+        return;
+    }
+    const selectedUser = document.getElementById('ca-launch-user')?.value || '';
+    if (!selectedUser || selectedUser !== caPendingSwitch.userId || !caVerifiedLaunchUsers.has(selectedUser)) {
+        window.ps5Notification?.('Control de Apps', 'El perfil verificado cambió. Actualiza los perfiles y confirma otra vez la apertura.', 'fa-user-shield');
+        return;
+    }
+
+    caIsActionRunning = true;
+    controlAppsActualizarDisponibilidadLanzamiento();
+    const button = document.getElementById('ca-switch-confirm-button');
+    if (button) { button.disabled = true; button.textContent = 'Verificando estado…'; }
+    try {
+        const statusOk = await controlAppsActualizarEstado(false);
+        if (!statusOk) throw new Error('No se pudo confirmar el estado de la PS4; no se abrió la nueva app. Actualiza el estado e inténtalo de nuevo.');
+        if (caActiveApp?.title_id) {
+            throw new Error(`La PS4 aún muestra ${caActiveApp.name} (${caActiveApp.title_id}) en primer plano. No se abrirá otra app; comprueba la consola y vuelve a actualizar el estado.`);
+        }
+        const target = { ...caPendingSwitch.target };
+        caPendingSwitch = null;
+        const modal = document.getElementById('modal-cambio-app-protegido');
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        caIsActionRunning = false;
+        await window.controlAppsAbrirApp(target.title_id, target.name);
+    } catch (error) {
+        const message = error?.message || 'Se detuvo el cambio por seguridad.';
+        window.ps5Notification?.('Control de Apps', message, 'fa-triangle-exclamation');
+        const wait = document.getElementById('ca-switch-wait');
+        if (wait) { wait.classList.remove('hidden'); wait.textContent = message; }
+    } finally {
+        caIsActionRunning = false;
+        controlAppsActualizarDisponibilidadLanzamiento();
+        if (caPendingSwitch?.closedConfirmed) caActualizarCuentaCambio();
+    }
+};
+
 // 3. CIERRE DE APLICACIÓN (NORMAL PRIMERO, FORZADO CON CONFIRMACIÓN)
 // ====================================================================
 window.controlAppsIniciarCierre = async function () {
+    if (caIsActionRunning) return;
+    if (Date.now() < caCooldownUntil) {
+        window.ps5Notification?.('Control de Apps', 'Espera a que termine la pausa de seguridad antes de otra acción.', 'fa-hourglass-half');
+        return;
+    }
     if (!caActiveApp || !caActiveApp.title_id) {
         window.ps5Notification?.('Control de Apps', 'No hay ninguna aplicación activa para cerrar.', 'fa-info-circle');
         return;
@@ -537,6 +830,7 @@ window.controlAppsIniciarCierre = async function () {
         return;
     }
 
+    caIsActionRunning = true;
     // Intentar primero cierre normal (graceful)
     window.ps5Notification?.('Control de Apps', `Verificando cierre normal de ${caActiveApp.name}...`, 'fa-spinner fa-spin');
 
@@ -563,9 +857,11 @@ window.controlAppsIniciarCierre = async function () {
         }
 
         if (resp.ok && data && data.status === 'success') {
+            caSetCooldown(data.cooldown_remaining || 40);
             caLogAction('cierre normal', `${caActiveApp.name} (${caActiveApp.title_id})`, 'ok', data.message);
             window.ps5Notification?.('Control de Apps', data.message || 'Aplicación cerrada normalmente.', 'fa-circle-check');
             caActiveApp = null;
+            caIsActionRunning = false;
             await controlAppsActualizarEstado(false);
             return;
         }
@@ -574,6 +870,7 @@ window.controlAppsIniciarCierre = async function () {
     }
 
     // Si el cierre normal no existe o no responde: abrir modal de confirmación forzada
+    caIsActionRunning = false;
     controlAppsMostrarModalCierre();
 };
 
@@ -616,6 +913,10 @@ function controlAppsCerrarModalCierre() {
 window.controlAppsCerrarModalCierre = controlAppsCerrarModalCierre;
 
 window.controlAppsEjecutarCierreForzado = async function () {
+    if (caIsActionRunning || Date.now() < caCooldownUntil) {
+        if (Date.now() < caCooldownUntil) window.ps5Notification?.('Control de Apps', 'Espera a que termine la pausa de seguridad.', 'fa-hourglass-half');
+        return;
+    }
     if (!caActiveApp || !caActiveApp.title_id) {
         controlAppsCerrarModalCierre();
         return;
@@ -626,6 +927,8 @@ window.controlAppsEjecutarCierreForzado = async function () {
 
     const { ip, port } = caGetConnection();
     if (!ip) return;
+    caIsActionRunning = true;
+    controlAppsActualizarDisponibilidadLanzamiento();
 
     window.ps5Notification?.('Control de Apps', `Enviando orden de cierre forzado para ${targetApp.name}...`, 'fa-spinner fa-spin');
 
@@ -649,12 +952,14 @@ window.controlAppsEjecutarCierreForzado = async function () {
         try {
             data = JSON.parse(raw);
         } catch (_) {
-            throw new Error(`Respuesta inválida (${resp.status})`);
+            throw new Error(caInvalidResponseMessage(resp, raw));
         }
 
         if (data.status !== 'success' && data.status !== 'accepted') {
+            if (Number(data.remaining_seconds) > 0) caSetCooldown(data.remaining_seconds);
             throw new Error(data.message || `Error al cerrar app (${resp.status})`);
         }
+        caSetCooldown(data.cooldown_remaining || 40);
 
         const confirmed = data.status === 'success';
         caLogAction('cierre forzado', `${targetApp.name} (${targetApp.title_id})`, confirmed ? 'ok' : 'alerta', data.message || 'Respuesta recibida');
@@ -668,6 +973,9 @@ window.controlAppsEjecutarCierreForzado = async function () {
         const errorMsg = err.message || 'No se pudo completar el cierre forzado';
         caLogAction('cierre forzado', `${targetApp.name} (${targetApp.title_id})`, 'error', errorMsg);
         window.ps5Notification?.('Control de Apps', errorMsg, 'fa-circle-xmark');
+    } finally {
+        caIsActionRunning = false;
+        controlAppsActualizarDisponibilidadLanzamiento();
     }
 };
 
@@ -789,6 +1097,7 @@ function controlAppsRenderizarInstaladas(titles) {
     }).join('');
 
     listEl.innerHTML = html;
+    controlAppsActualizarDisponibilidadLanzamiento();
     if (typeof listEl.querySelectorAll !== 'function') return;
     listEl.querySelectorAll('img.ca-title-icon').forEach((image) => {
         image.addEventListener('error', () => {
@@ -873,11 +1182,21 @@ window.controlAppsLimpiarRegistro = function () {
 // ====================================================================
 window.abrirControlAppsParaJuego = function (juego) {
     if (!juego || !juego.id) return;
+    caPendingLibraryLaunch = { title_id: String(juego.id), name: String(juego.nombre || juego.name || juego.id) };
     window.cerrarFichaJuego?.();
     window.abrirModuloNativo?.('control-apps');
 
-    // Tras abrir la capa, solicitar abrir el juego
-    setTimeout(() => {
-        controlAppsAbrirApp(juego.id, juego.nombre || juego.id);
-    }, 200);
+    // Carga perfiles antes de solicitar una apertura desde Biblioteca.
+    setTimeout(async () => {
+        await controlAppsCargarPerfiles();
+        if (!caPendingLibraryLaunch) return;
+        const selected = document.getElementById('ca-launch-user')?.value || '';
+        if (selected && caVerifiedLaunchUsers.has(selected)) {
+            const target = caPendingLibraryLaunch;
+            caPendingLibraryLaunch = null;
+            window.controlAppsAbrirApp(target.title_id, target.name);
+        } else {
+            window.ps5Notification?.('Control de Apps', 'Elige un perfil con sesión verificada; la app seleccionada se abrirá después de elegirlo.', 'fa-user-shield');
+        }
+    }, 250);
 };

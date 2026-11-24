@@ -19,27 +19,34 @@
                 <p class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase">ESTADO, ABRIR Y CERRAR EN PS4</p>
             </div>
         </div>
-        <div class="flex flex-wrap items-center justify-end gap-2 max-w-full">
-            <span id="ca-connection-badge" class="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-[9px] font-mono text-gray-400">
+        <div class="w-full min-w-0 grid grid-cols-3 items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+            <span id="ca-connection-badge" class="col-span-2 min-w-0 truncate px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-[9px] font-mono text-gray-400">
                 <i class="fa-solid fa-network-wired text-cyan-400 mr-1.5"></i><span id="ca-connection-text">---</span>
             </span>
-            <span id="ca-service-badge" class="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-[9px] font-mono text-red-400 flex items-center gap-1.5" title="Estado del helper en puerto 9091">
+            <span id="ca-service-badge" class="min-w-0 justify-center px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-[9px] font-mono text-red-400 flex items-center gap-1.5" title="Estado del helper en puerto 9091">
                 <span id="ca-service-dot" class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
                 <span id="ca-service-text">Servicio 9091</span>
             </span>
-            <button id="ca-btn-iniciar-servicio" onclick="controlAppsIniciarServicio()" aria-label="Iniciar servicio de control en PS4" title="Iniciar servicio en la consola" class="h-10 px-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-wider active:scale-95 transition-all hover:bg-cyan-500/20">
+            <button id="ca-btn-iniciar-servicio" onclick="controlAppsIniciarServicio()" aria-label="Iniciar servicio de control en PS4" title="Iniciar servicio en la consola" class="h-10 w-full justify-center px-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-wider active:scale-95 transition-all hover:bg-cyan-500/20 sm:w-auto">
                 <i class="fa-solid fa-play" id="ca-service-icon"></i>
-                <span class="hidden sm:inline">Iniciar Servicio</span>
+                <span>Iniciar Servicio</span>
             </button>
-            <button id="ca-btn-toggle-autorun" onclick="controlAppsToggleAutorun()" aria-label="Configurar inicio con la consola" title="Iniciar con la consola (payloads.ini)" class="h-10 px-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-wider active:scale-95 transition-all hover:bg-purple-500/20">
+            <button id="ca-btn-toggle-autorun" onclick="controlAppsToggleAutorun()" aria-label="Configurar inicio con la consola" title="Iniciar con la consola (payloads.ini)" class="h-10 w-full justify-center px-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-wider active:scale-95 transition-all hover:bg-purple-500/20 sm:w-auto">
                 <i class="fa-solid fa-power-off" id="ca-autorun-icon"></i>
-                <span id="ca-autorun-text" class="hidden sm:inline">AutoRun</span>
+                <span id="ca-autorun-text">AutoRun</span>
             </button>
-            <button id="ca-btn-actualizar-estado" onclick="controlAppsActualizarEstado(true)" aria-label="Actualizar estado de la consola" class="h-10 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-wider active:scale-95 transition-all hover:bg-emerald-500/20">
+            <button id="ca-btn-actualizar-estado" onclick="controlAppsActualizarEstado(true)" aria-label="Actualizar estado de la consola" class="h-10 w-full justify-center px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-wider active:scale-95 transition-all hover:bg-emerald-500/20 sm:w-auto">
                 <i class="fa-solid fa-rotate-right" id="ca-refresh-icon"></i>
-                <span class="hidden sm:inline">Actualizar estado</span>
+                <span>Actualizar estado</span>
             </button>
         </div>
+    </div>
+
+    <div class="shrink-0 -mt-1 mb-1 rounded-xl border border-cyan-500/15 bg-cyan-500/[0.04] px-3 py-2 text-[9px] leading-relaxed text-gray-400">
+        <span class="font-black text-cyan-300">PayLoader 9090</span> recibe el ELF al pulsar «Iniciar Servicio».
+        <span class="mx-1 text-white/20">·</span>
+        <span class="font-black text-emerald-300">Servicio 9091</span> procesa las órdenes después de arrancar.
+        El estado «Inactivo» indica que el helper aún no confirmó inicio.
     </div>
 
     <!-- Contenido desplazable con scrollbar visible y espacio inferior para navegación -->
@@ -119,7 +126,7 @@
             <div class="flex flex-wrap items-center gap-2 rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-3 py-2">
                 <label for="ca-launch-user" class="text-[8.5px] font-black uppercase tracking-wider text-cyan-200">Abrir como perfil</label>
                 <select id="ca-launch-user" class="min-w-48 flex-1 rounded-lg border border-white/10 bg-[#080d18] px-3 py-2 text-[10px] font-bold text-white outline-none focus:border-cyan-400/50">
-                    <option value="active">Usuario activo detectado</option>
+                    <option value="">No hay perfil verificado</option>
                 </select>
                 <button type="button" onclick="controlAppsCargarPerfiles()" class="shrink-0 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-[8px] font-black uppercase tracking-wider text-cyan-200 hover:bg-cyan-500/20 active:scale-95 transition-all">
                     <i class="fa-solid fa-rotate mr-1"></i><span data-i18n="Actualizar perfiles">Actualizar perfiles</span>
@@ -131,6 +138,7 @@
                 <i class="fa-solid fa-magnifying-glass text-gray-500 text-[10px] mr-2"></i>
                 <input type="text" id="ca-installed-search" oninput="controlAppsFiltrarInstaladas()" placeholder="Buscar app por título o CUSA..." class="w-full h-full bg-transparent text-[11px] font-bold text-white outline-none">
             </div>
+            <p id="ca-action-cooldown" class="text-[9px] font-mono text-emerald-300">Acciones disponibles</p>
 
             <!-- Lista de apps instaladas -->
             <div id="ca-installed-list" class="grid grid-cols-1 xl:grid-cols-2 gap-2 max-h-[min(55vh,620px)] overflow-y-auto custom-scrollbar pr-1">
@@ -163,6 +171,31 @@
         </div>
 
     </div>
+</div>
+
+<!-- Cambio protegido: cerrar la app activa y esperar el intervalo antes de abrir otra. -->
+<div id="modal-cambio-app-protegido" class="fixed inset-0 z-[10080] hidden items-center justify-center bg-black/85 p-4 backdrop-blur-md" onclick="if(event.target===this)controlAppsCancelarCambioApp()">
+    <section class="glass-premium w-full max-w-md rounded-[2rem] border border-amber-400/30 bg-[#070b14]/95 p-5 shadow-2xl">
+        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 text-amber-300">
+            <i class="fa-solid fa-right-left text-lg"></i>
+        </div>
+        <h3 id="ca-switch-heading" class="text-center text-xs font-black uppercase tracking-widest text-white">Cambiar aplicación</h3>
+        <div id="ca-switch-prompt" class="mt-4 rounded-xl border border-white/10 bg-black/30 p-3 text-[10px] leading-relaxed text-gray-200">
+            <p>Aplicación activa: <b id="ca-switch-current-name" class="text-amber-200">---</b> <span id="ca-switch-current-id" class="font-mono text-gray-400">---</span></p>
+            <p class="mt-2">Nueva aplicación: <b id="ca-switch-next-name" class="text-cyan-200">---</b> <span id="ca-switch-next-id" class="font-mono text-gray-400">---</span></p>
+        </div>
+        <label id="ca-switch-risk-row" class="mt-4 flex cursor-pointer items-start gap-2 rounded-xl border border-red-500/25 bg-red-500/5 p-3 text-[9px] leading-relaxed text-red-100">
+            <input id="ca-switch-risk-confirm" type="checkbox" onchange="controlAppsActualizarConfirmacionCambio()" class="mt-0.5 accent-red-500">
+            <span>Confirmo que la aplicación activa se cerrará. Todo progreso que no se haya guardado podría perderse. Si el cierre se confirma, la nueva app se abrirá tras la pausa obligatoria de 40 segundos.</span>
+        </label>
+        <p id="ca-switch-wait" class="mt-4 hidden rounded-xl border border-amber-400/20 bg-amber-500/5 p-3 text-center text-[10px] text-amber-100"></p>
+        <div class="mt-5 flex gap-2">
+            <button type="button" onclick="controlAppsCancelarCambioApp()" class="flex-1 rounded-xl border border-white/10 bg-white/5 py-3 text-[9px] font-black uppercase tracking-wider text-gray-300">Cancelar</button>
+            <button id="ca-switch-confirm-button" type="button" onclick="controlAppsConfirmarCambioApp()" disabled class="flex-1 rounded-xl border border-amber-400/30 bg-amber-500/15 py-3 text-[9px] font-black uppercase tracking-wider text-amber-100 disabled:cursor-not-allowed disabled:opacity-40">
+                <i class="fa-solid fa-lock mr-1"></i> Cerrar y cambiar
+            </button>
+        </div>
+    </section>
 </div>
 
 <!-- Modal de Confirmación de Cierre Forzado -->
