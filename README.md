@@ -21,7 +21,7 @@ La conexión con la consola se realiza por la red local. No necesitas cuenta ni 
 | Plataforma | Descarga o instalación | Inicio rápido |
 | --- | --- | --- |
 | **📱 Android · Termux** | [Instalar / actualizar desde GitHub](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ) | Pega el comando de abajo en Termux. |
-| **📦 Android · APK** | [Descargar APK 4.5.21](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.21/PS4-Manager-Tools-AJ-v4.5.21.apk) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
+| **📦 Android · APK** | [Descargar APK 4.5.21](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.21/PS4_Manager_Tools_AJ_v4.5.21.APK) | Instálala y abre **PS4 Manager Tools AJ**. No necesitas Termux. |
 | **🖥️ Windows · PC** | [Descargar paquete PC 4.5.21](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases/download/v4.5.21/PS4-Manager-Tools-AJ-PC-v4.5.21.zip) | Descomprime y ejecuta `Iniciar-PS4-Manager-Tool.bat`. |
 
 Consulta [todos los Releases](https://github.com/AJfiles/PS4-MANAGER-TOOL-AJ/releases), sus notas de versión y el archivo de hashes SHA-256.
